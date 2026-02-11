@@ -43,52 +43,53 @@
 }
 
 :root {
-  /* Emerald & Gold Theme */
-  /* Background: Deep Emerald Green */
-  --background: oklch(0.15 0.05 160); 
-  /* Foreground: Light Gold */
-  --foreground: oklch(0.95 0.05 85); 
+  /* HV Brand Theme - Extracted from Logo */
   
-  /* Card: Slightly lighter Emerald */
-  --card: oklch(0.18 0.06 160); 
-  --card-foreground: oklch(0.95 0.05 85);
+  /* Background: Deep Forest Green (from logo background) */
+  --background: #021C0E; 
+  /* Foreground: Light Gold/Cream */
+  --foreground: #F2E8C9; 
   
-  --popover: oklch(0.18 0.06 160);
-  --popover-foreground: oklch(0.95 0.05 85);
+  /* Card: Slightly lighter Green */
+  --card: #052614; 
+  --card-foreground: #F2E8C9;
   
-  /* Primary: Rich Gold */
-  --primary: oklch(0.85 0.15 85); 
-  --primary-foreground: oklch(0.15 0.05 160);
+  --popover: #052614;
+  --popover-foreground: #F2E8C9;
+  
+  /* Primary: Official Gold (from logo H) */
+  --primary: #D4AF37; 
+  --primary-foreground: #021C0E;
   
   /* Secondary: Darker Gold/Bronze */
-  --secondary: oklch(0.6 0.12 85); 
-  --secondary-foreground: oklch(0.98 0.02 85);
+  --secondary: #B8860B; 
+  --secondary-foreground: #FFFFFF;
   
-  --muted: oklch(0.25 0.05 160);
-  --muted-foreground: oklch(0.7 0.05 85);
+  --muted: #0A3520;
+  --muted-foreground: #A0B8A6;
   
-  --accent: oklch(0.25 0.05 160);
-  --accent-foreground: oklch(0.95 0.05 85);
+  --accent: #0A3520;
+  --accent-foreground: #D4AF37;
   
-  --destructive: oklch(0.6 0.2 20);
-  --destructive-foreground: oklch(0.98 0.01 260);
+  --destructive: #7F1D1D;
+  --destructive-foreground: #FFFFFF;
   
   /* Borders: Subtle Gold */
-  --border: oklch(0.85 0.15 85 / 0.2);
-  --input: oklch(0.85 0.15 85 / 0.2);
-  --ring: oklch(0.85 0.15 85);
+  --border: rgba(212, 175, 55, 0.2);
+  --input: rgba(212, 175, 55, 0.2);
+  --ring: #D4AF37;
   
   --radius: 0.5rem;
   
-  /* Sidebar: Darkest Emerald */
-  --sidebar: oklch(0.12 0.04 160);
-  --sidebar-foreground: oklch(0.95 0.05 85);
-  --sidebar-primary: oklch(0.85 0.15 85);
-  --sidebar-primary-foreground: oklch(0.15 0.05 160);
-  --sidebar-accent: oklch(0.2 0.05 160);
-  --sidebar-accent-foreground: oklch(0.95 0.05 85);
-  --sidebar-border: oklch(0.85 0.15 85 / 0.1);
-  --sidebar-ring: oklch(0.85 0.15 85);
+  /* Sidebar: Matches Background for seamless look */
+  --sidebar: #021C0E;
+  --sidebar-foreground: #F2E8C9;
+  --sidebar-primary: #D4AF37;
+  --sidebar-primary-foreground: #021C0E;
+  --sidebar-accent: #0A3520;
+  --sidebar-accent-foreground: #D4AF37;
+  --sidebar-border: rgba(212, 175, 55, 0.1);
+  --sidebar-ring: #D4AF37;
 }
 
 @layer base {
