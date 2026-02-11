@@ -1,36 +1,42 @@
-import { Sidebar } from "./Sidebar";
+import { Sidebar, SIDEBAR_EVENT } from "./Sidebar";
 import { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 export function Layout({ children }: LayoutProps) {
-  // We need to know if sidebar is collapsed to adjust padding
-  // Since sidebar state is internal to Sidebar component, we'll use a simple approach:
-  // Always add enough padding for the expanded sidebar (w-64 = 16rem = 256px)
-  // Or better, make the main content margin-left match the sidebar width
-  
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  useEffect(() => {
+    const handleSidebarToggle = (e: CustomEvent) => {
+      setSidebarCollapsed(e.detail.collapsed);
+    };
+
+    window.addEventListener(SIDEBAR_EVENT as any, handleSidebarToggle);
+    return () => {
+      window.removeEventListener(SIDEBAR_EVENT as any, handleSidebarToggle);
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-x-hidden flex">
+    <div className="min-h-screen bg-background text-foreground overflow-x-hidden flex relative">
       <Sidebar />
+      
       {/* 
-        Adjusted margin-left (ml-20 or ml-64) to match sidebar width.
-        Since Sidebar controls its own state, we use a safe default of ml-20 (collapsed) 
-        and let the user expand. Ideally, state should be lifted up, but for a quick fix:
-        We will use a clever CSS trick or just assume expanded by default for safety.
-        
-        Actually, the previous code had `pl-20 lg:pl-20`.
-        The sidebar is fixed. We need to push the content.
-        Let's use a safe margin that accommodates the sidebar.
-        If the sidebar is collapsible, the content should adjust.
-        
-        To fix the "hidden behind sidebar" issue without rewriting the whole state management:
-        We will add a generous left margin that works for the expanded state (w-64).
-        If the user collapses it, there will be more whitespace, which is better than hidden content.
+        Main content wrapper
+        Dynamically adjusts margin-left based on sidebar state
+        w-20 = 5rem (80px)
+        w-64 = 16rem (256px)
       */}
-      <main className="flex-1 ml-20 lg:ml-64 transition-all duration-300 ease-in-out">
-        <div className="container mx-auto py-8 px-4 md:px-8 lg:px-12">
+      <main 
+        className={cn(
+          "flex-1 transition-all duration-300 ease-in-out min-h-screen flex flex-col",
+          sidebarCollapsed ? "ml-20" : "ml-20 lg:ml-64"
+        )}
+      >
+        <div className="container mx-auto py-8 px-4 md:px-8 lg:px-12 flex-1">
           {children}
         </div>
       </main>
