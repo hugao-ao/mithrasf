@@ -9,7 +9,7 @@ import {
   LogIn,
   User
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
 
 // Event to communicate sidebar state to Layout
@@ -36,7 +36,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 h-screen transition-all duration-300 ease-in-out flex flex-col bg-sidebar border-r border-sidebar-border shadow-xl",
+        "sticky top-0 h-screen transition-all duration-300 ease-in-out flex flex-col bg-sidebar border-r border-sidebar-border shadow-xl shrink-0 z-40",
         collapsed ? "w-20" : "w-64"
       )}
     >
