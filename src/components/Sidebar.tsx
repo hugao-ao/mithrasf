@@ -37,7 +37,7 @@ export function Sidebar() {
         <div className="flex items-center gap-3 overflow-hidden">
           <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 shadow-lg">
             <img src="/logo.svg" alt="Logo" className="h-6 w-6" onError={(e) => e.currentTarget.style.display = 'none'} />
-            <span className="absolute text-primary font-bold text-xl" style={{ display: 'none' }}>M</span>
+            <span className="absolute text-primary font-bold text-xl" style={{ display: 'none' }}>H</span>
           </div>
           <div
             className={cn(
@@ -45,7 +45,7 @@ export function Sidebar() {
               collapsed ? "opacity-0 w-0 hidden" : "opacity-100 w-auto"
             )}
           >
-            <span className="text-lg font-bold tracking-tight text-white">MithraSF</span>
+            <span className="text-lg font-bold tracking-tight text-white">HV</span>
             <span className="text-xs text-primary/80">Saúde Financeira</span>
           </div>
         </div>
