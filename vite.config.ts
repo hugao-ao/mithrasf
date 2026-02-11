@@ -160,8 +160,8 @@ export default defineConfig({
   plugins,
   resolve: {
     alias: {
-      // If root is 'client', @ points to src. If root is '.', @ points to client/src
-      "@": path.resolve(projectRoot, indexInClient ? "src" : "client/src"),
+      // If root is 'client', @ points to src. If root is '.', @ points to src (in root)
+      "@": path.resolve(projectRoot, indexInClient ? "src" : "src"),
       "@shared": path.resolve(__dirname, "shared"),
       "@assets": path.resolve(__dirname, "attached_assets"),
     },
