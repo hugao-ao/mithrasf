@@ -1,10 +1,9 @@
-import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, BarChart2, CheckCircle2, Shield, TrendingUp } from "lucide-react";
 
 export default function Home() {
   return (
-    <Layout>
+    <>
       {/* Hero Section */}
       <section className="relative py-12 md:py-20 lg:py-32 overflow-hidden">
         <div className="flex flex-col lg:flex-row items-center gap-12">
@@ -139,6 +138,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </Layout>
+    </>
   );
 }
