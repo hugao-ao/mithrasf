@@ -21,7 +21,7 @@ export function Layout({ children }: LayoutProps) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-x-hidden flex relative">
+    <div className="min-h-screen bg-background text-foreground overflow-x-hidden flex relative w-full">
       <Sidebar />
       
       {/* 
@@ -32,11 +32,15 @@ export function Layout({ children }: LayoutProps) {
       */}
       <main 
         className={cn(
-          "flex-1 transition-all duration-300 ease-in-out min-h-screen flex flex-col",
+          "flex-1 transition-all duration-300 ease-in-out min-h-screen flex flex-col w-full",
           sidebarCollapsed ? "ml-20" : "ml-20 lg:ml-64"
         )}
       >
-        <div className="container mx-auto py-8 px-4 md:px-8 lg:px-12 flex-1">
+        {/* 
+           Removed 'container' class constraint to allow full width usage 
+           Added max-w-full to ensure it takes available space
+        */}
+        <div className="w-full max-w-full py-8 px-4 md:px-8 lg:px-12 flex-1">
           {children}
         </div>
       </main>
