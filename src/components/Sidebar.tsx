@@ -1,16 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
-  BarChart3,
   ChevronLeft,
   ChevronRight,
+  Hammer,
   Home,
   LayoutDashboard,
   LogIn,
-  PieChart,
-  Settings,
-  ShieldCheck,
-  Wallet
+  User
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -23,11 +20,9 @@ export function Sidebar() {
 
   const navItems = [
     { icon: Home, label: "Início", href: "/" },
-    { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-    { icon: Wallet, label: "Fluxo de Caixa", href: "/fluxo-caixa" },
-    { icon: PieChart, label: "Investimentos", href: "/investimentos" },
-    { icon: BarChart3, label: "Relatórios", href: "/relatorios" },
-    { icon: Settings, label: "Configurações", href: "/configuracoes" },
+    { icon: LayoutDashboard, label: "Planos", href: "/planos" },
+    { icon: Hammer, label: "Ferramentas", href: "/ferramentas" },
+    { icon: User, label: "Conheça-me", href: "/conheca-me" },
   ];
 
   return (
@@ -41,7 +36,8 @@ export function Sidebar() {
       <div className="flex h-20 items-center justify-center border-b border-sidebar-border p-4">
         <div className="flex items-center gap-3 overflow-hidden">
           <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 shadow-lg">
-            <ShieldCheck className="h-6 w-6 text-primary" />
+            <img src="/logo.svg" alt="Logo" className="h-6 w-6" onError={(e) => e.currentTarget.style.display = 'none'} />
+            <span className="absolute text-primary font-bold text-xl" style={{ display: 'none' }}>M</span>
           </div>
           <div
             className={cn(
