@@ -9,14 +9,22 @@ import {
   LogIn,
   User
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
+
+// Event to communicate sidebar state to Layout
+export const SIDEBAR_EVENT = 'sidebar-toggle';
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [location] = useLocation();
 
-  const toggleSidebar = () => setCollapsed(!collapsed);
+  const toggleSidebar = () => {
+    const newState = !collapsed;
+    setCollapsed(newState);
+    // Dispatch event for Layout to listen
+    window.dispatchEvent(new CustomEvent(SIDEBAR_EVENT, { detail: { collapsed: newState } }));
+  };
 
   const navItems = [
     { icon: Home, label: "Início", href: "/" },
@@ -28,38 +36,44 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 h-screen transition-all duration-300 ease-in-out flex flex-col bg-sidebar border-r border-sidebar-border",
+        "fixed left-0 top-0 z-40 h-screen transition-all duration-300 ease-in-out flex flex-col bg-sidebar border-r border-sidebar-border shadow-xl",
         collapsed ? "w-20" : "w-64"
       )}
     >
       {/* Logo Area */}
-      <div className="flex h-20 items-center justify-center border-b border-sidebar-border p-4">
-        <div className="flex items-center gap-3 overflow-hidden">
-          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 shadow-lg">
-            <img src="/logo.svg" alt="Logo" className="h-6 w-6" onError={(e) => e.currentTarget.style.display = 'none'} />
-            <span className="absolute text-primary font-bold text-xl" style={{ display: 'none' }}>H</span>
+      <div className="flex h-24 items-center justify-center border-b border-sidebar-border p-4">
+        <div className="flex items-center gap-3 overflow-hidden w-full justify-center">
+          <div className={cn(
+            "relative flex shrink-0 items-center justify-center transition-all duration-300",
+            collapsed ? "h-12 w-12" : "h-16 w-16"
+          )}>
+            <img 
+              src="https://files.manuscdn.com/user_upload_by_module/session_file/310419663028340323/sKmFvmKlsZHRnPBz.png" 
+              alt="HV Logo" 
+              className="h-full w-full object-contain drop-shadow-md" 
+            />
           </div>
           <div
             className={cn(
-              "flex flex-col transition-opacity duration-300",
-              collapsed ? "opacity-0 w-0 hidden" : "opacity-100 w-auto"
+              "flex flex-col transition-all duration-300 overflow-hidden",
+              collapsed ? "opacity-0 w-0 hidden" : "opacity-100 w-auto ml-2"
             )}
           >
-            <span className="text-lg font-bold tracking-tight text-white">HV</span>
-            <span className="text-xs text-primary/80">Saúde Financeira</span>
+            <span className="text-xl font-bold tracking-tight text-white whitespace-nowrap">HV</span>
+            <span className="text-xs text-primary/90 whitespace-nowrap font-medium">Saúde Financeira</span>
           </div>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-2 p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/10">
+      <nav className="flex-1 space-y-2 p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/10 mt-4">
         {navItems.map((item) => {
           const isActive = location === item.href;
           return (
             <Link key={item.href} href={item.href}>
               <div
                 className={cn(
-                  "group flex items-center gap-3 rounded-lg px-3 py-3 transition-all duration-200 cursor-pointer",
+                  "group flex items-center gap-3 rounded-lg px-3 py-3 transition-all duration-200 cursor-pointer mb-1",
                   isActive
                     ? "bg-primary/10 text-primary border border-primary/20 shadow-[0_0_15px_rgba(212,175,55,0.1)]"
                     : "text-muted-foreground hover:bg-white/5 hover:text-white"
@@ -73,7 +87,7 @@ export function Sidebar() {
                 />
                 <span
                   className={cn(
-                    "whitespace-nowrap transition-all duration-300",
+                    "whitespace-nowrap transition-all duration-300 font-medium",
                     collapsed ? "opacity-0 w-0 hidden" : "opacity-100 w-auto"
                   )}
                 >
@@ -82,7 +96,7 @@ export function Sidebar() {
                 
                 {/* Tooltip for collapsed state */}
                 {collapsed && (
-                  <div className="absolute left-16 z-50 hidden rounded-md bg-sidebar border border-sidebar-border px-2 py-1 text-xs text-white shadow-xl group-hover:block">
+                  <div className="absolute left-16 z-50 hidden rounded-md bg-sidebar border border-sidebar-border px-3 py-2 text-sm text-white shadow-xl group-hover:block whitespace-nowrap">
                     {item.label}
                   </div>
                 )}
@@ -93,7 +107,7 @@ export function Sidebar() {
       </nav>
 
       {/* Footer Actions */}
-      <div className="border-t border-sidebar-border p-4 space-y-4">
+      <div className="border-t border-sidebar-border p-4 space-y-4 bg-sidebar/50">
         <a 
           href="https://siteteste-flame.vercel.app/" 
           target="_blank" 
@@ -106,7 +120,7 @@ export function Sidebar() {
           <LogIn className="h-5 w-5 shrink-0" />
           <span
             className={cn(
-              "whitespace-nowrap font-medium transition-all duration-300",
+              "whitespace-nowrap font-bold transition-all duration-300",
               collapsed ? "opacity-0 w-0 hidden" : "opacity-100 w-auto"
             )}
           >
@@ -118,7 +132,7 @@ export function Sidebar() {
           variant="ghost"
           size="icon"
           onClick={toggleSidebar}
-          className="w-full hover:bg-white/5 text-muted-foreground hover:text-white"
+          className="w-full hover:bg-white/5 text-muted-foreground hover:text-white h-10"
         >
           {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
         </Button>
