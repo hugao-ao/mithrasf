@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatCurrencyInput } from "@/lib/formatters";
 import { ArrowLeft, CheckCircle2, ShoppingBag } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
@@ -11,10 +12,15 @@ export default function ComparadorPrecos() {
   const [prodB, setProdB] = useState({ price: "", quantity: "" });
   const [result, setResult] = useState<any>(null);
 
+  const handlePriceChange = (value: string, setter: any, current: any) => {
+    const formatted = formatCurrencyInput(value);
+    setter({ ...current, price: formatted });
+  };
+
   const calculate = () => {
-    const priceA = parseFloat(prodA.price.replace(",", "."));
+    const priceA = parseFloat(prodA.price.replace(/\./g, "").replace(",", "."));
     const qtyA = parseFloat(prodA.quantity.replace(",", "."));
-    const priceB = parseFloat(prodB.price.replace(",", "."));
+    const priceB = parseFloat(prodB.price.replace(/\./g, "").replace(",", "."));
     const qtyB = parseFloat(prodB.quantity.replace(",", "."));
 
     if (!priceA || !qtyA || !priceB || !qtyB) return;
@@ -64,10 +70,9 @@ export default function ComparadorPrecos() {
             <div className="space-y-2">
               <Label>Preço (R$)</Label>
               <Input 
-                type="number" 
-                placeholder="Ex: 15.90" 
+                placeholder="0,00" 
                 value={prodA.price}
-                onChange={(e) => setProdA({...prodA, price: e.target.value})}
+                onChange={(e) => handlePriceChange(e.target.value, setProdA, prodA)}
                 className="bg-background/50 border-white/10"
               />
             </div>
@@ -93,10 +98,9 @@ export default function ComparadorPrecos() {
             <div className="space-y-2">
               <Label>Preço (R$)</Label>
               <Input 
-                type="number" 
-                placeholder="Ex: 25.90" 
+                placeholder="0,00" 
                 value={prodB.price}
-                onChange={(e) => setProdB({...prodB, price: e.target.value})}
+                onChange={(e) => handlePriceChange(e.target.value, setProdB, prodB)}
                 className="bg-background/50 border-white/10"
               />
             </div>
