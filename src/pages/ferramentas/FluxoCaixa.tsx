@@ -55,6 +55,13 @@ export default function FluxoCaixa() {
     }
   };
 
+  const prevStep = () => {
+    if (step > 1) {
+      setStep(step - 1);
+      setNewItem({ name: "", value: "" });
+    }
+  };
+
   const calculate = () => {
     const totalIncome = getTotal(incomes);
     const totalInvest = getTotal(investments);
@@ -158,9 +165,16 @@ export default function FluxoCaixa() {
           ))}
         </div>
 
-        <Button onClick={nextStep} className={`w-full h-12 text-lg font-bold ${colorClass} hover:opacity-90`}>
-          {step === 4 ? "Ver Resultado Completo" : "Próximo Passo"}
-        </Button>
+        <div className="flex gap-4">
+          {step > 1 && (
+            <Button onClick={prevStep} variant="outline" className="w-1/3 h-12 text-lg font-bold border-white/10 hover:bg-white/5">
+              Voltar
+            </Button>
+          )}
+          <Button onClick={nextStep} className={`flex-1 h-12 text-lg font-bold ${colorClass} hover:opacity-90`}>
+            {step === 4 ? "Ver Resultado Completo" : "Próximo Passo"}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
@@ -175,7 +189,7 @@ export default function FluxoCaixa() {
         </Link>
         <div>
           <h1 className="text-3xl font-bold text-white flex items-center gap-2">
-            <Wallet className="h-8 w-8 text-blue-400" /> Diagnóstico Financeiro
+            <Wallet className="h-8 w-8 text-blue-400" /> Raio-X do Orçamento
           </h1>
           <p className="text-muted-foreground">Mapeie cada centavo e descubra a verdade sobre suas finanças.</p>
         </div>
@@ -296,7 +310,7 @@ export default function FluxoCaixa() {
             setFixedExpenses([]); 
             setVariableExpenses([]);
           }} className="w-full">
-            Refazer Diagnóstico
+            Refazer Raio-X
           </Button>
         </div>
       )}
