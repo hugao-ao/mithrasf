@@ -19,7 +19,7 @@ export default function Home() {
             
             <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight leading-tight text-white">
               Realize seus objetivos <br />
-              <span className="gold-gradient-text">sem virar expert</span>
+              <span className="gold-gradient-text">Junto com um expert</span>
             </h1>
             
             <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed">
@@ -49,7 +49,7 @@ export default function Home() {
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-white">Sem Cursos Intermináveis</h3>
-                    <p className="text-sm text-muted-foreground">Você não precisa assistir 50h de aula para saber onde investir.</p>
+                    <p className="text-sm text-muted-foreground">Você não precisa assistir 50h de aula para tentar descobrir o que fazer e ainda ficar inseguro.</p>
                   </div>
                 </div>
                 
@@ -71,7 +71,7 @@ export default function Home() {
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-white">Acesso Direto e Rápido</h3>
-                    <p className="text-sm text-muted-foreground">Tem uma dúvida? Manda no WhatsApp e um especialista resolve.</p>
+                    <p className="text-sm text-muted-foreground">Precisa de algo? Chama no whats e um especialista resolve por lá mesmo, ou com uma reunião.</p>
                   </div>
                 </div>
               </div>
@@ -96,7 +96,7 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-4 md:px-8">
           {[
             {
-              title: "Diagnóstico Financeiro",
+              title: "Raio-X do Orçamento",
               desc: "Descubra o 'rombo' oculto no seu orçamento anual.",
               icon: Wallet,
               link: "/ferramentas/fluxo-caixa"
@@ -157,19 +157,19 @@ export default function Home() {
             {
               step: "1",
               title: "Tenho um Objetivo",
-              desc: "Seja comprar um carro, investir ou organizar as contas.",
+              desc: "Seja comprar um carro/imóvel, investir, viajar, organizar as contas, sair das dívidas, etc.",
               icon: Target
             },
             {
               step: "2",
               title: "Falo com Consultor",
-              desc: "Envio uma mensagem e recebo a estratégia pronta.",
+              desc: "Envio uma mensagem com minhas necessidades.",
               icon: MessageCircle
             },
             {
               step: "3",
               title: "Realizo com Segurança",
-              desc: "Executo o plano sabendo que é a melhor opção para mim.",
+              desc: "O consultor vai me ajudar a encontrar a melhor forma de resolver minha demanda.",
               icon: ShieldCheck
             }
           ].map((item, i) => (
