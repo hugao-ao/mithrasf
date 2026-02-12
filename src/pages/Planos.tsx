@@ -1,5 +1,13 @@
 import { Button } from "@/components/ui/button";
-import { Check, Clock, Info, Shield, Star, Target, Zap } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Check, Clock, Info, Shield, Star, Target } from "lucide-react";
 
 export default function Planos() {
   const plans = [
@@ -8,14 +16,18 @@ export default function Planos() {
       price: "29,90",
       period: "/mês",
       description: "Para quem quer autonomia com direção profissional.",
-      features: [
-        "Acesso liberado a todas as ferramentas",
-        "Reuniões Ilimitadas (mediante solicitação, prioridade zero, prazo máx. 6 meses)",
-        "Contato livre em horário comercial via WhatsApp",
-        "Planejamento e definição de metas",
-        "Assistência via WhatsApp (dúvidas pontuais)",
-        "Análises e pesquisas apenas durante a reunião"
+      mainFeatures: [
+        "Planejamento e metas definidos",
+        "Tire dúvidas no WhatsApp",
+        "Análises durante as reuniões",
+        "Você executa, nós orientamos"
       ],
+      details: {
+        reunioes: "Ilimitadas (mediante agendamento)",
+        prioridade: "Normal (prazo máx. 6 meses para agendamento)",
+        suporte: "WhatsApp em horário comercial para dúvidas pontuais",
+        escopo: "O consultor define o plano e você implementa sozinho."
+      },
       highlight: false,
       icon: Target
     },
@@ -23,15 +35,19 @@ export default function Planos() {
       name: "HV Nível II",
       price: "59,90",
       period: "/mês",
-      description: "Mais agilidade e suporte em cotações.",
-      features: [
-        "Acesso liberado a todas as ferramentas",
-        "Reuniões Ilimitadas (prioridade baixa, prazo máx. 4 meses)",
-        "Contato livre em horário comercial via WhatsApp",
-        "Planejamento, metas e cotações",
-        "Assistência e cotações via WhatsApp",
-        "Análises profundas apenas durante a reunião"
+      description: "Mais agilidade e ajuda com pesquisas de preço.",
+      mainFeatures: [
+        "Tudo do Nível I",
+        "Nós fazemos as cotações para você",
+        "Prioridade maior na agenda",
+        "Ajuda para encontrar os melhores preços"
       ],
+      details: {
+        reunioes: "Ilimitadas (mediante agendamento)",
+        prioridade: "Baixa (prazo máx. 4 meses para agendamento)",
+        suporte: "WhatsApp para dúvidas e pedidos de cotação",
+        escopo: "Além do plano, nós pesquisamos preços e opções para você."
+      },
       highlight: false,
       icon: Clock
     },
@@ -39,15 +55,19 @@ export default function Planos() {
       name: "HV Nível III",
       price: "119,90",
       period: "/mês",
-      description: "Acompanhamento próximo e intermediação.",
-      features: [
-        "Acesso liberado a todas as ferramentas",
-        "Reuniões Ilimitadas (prioridade alta, prazo máx. 2 meses)",
-        "Contato livre em horário comercial via WhatsApp",
-        "Monitoramento e intermediação de implementação",
-        "Assistência completa via WhatsApp e reuniões",
-        "Relatórios quinzenais de evolução (mediante preenchimento)"
+      description: "Acompanhamento próximo para garantir que aconteça.",
+      mainFeatures: [
+        "Tudo do Nível II",
+        "Nós intermediamos contratações",
+        "Relatórios quinzenais de progresso",
+        "Prioridade Alta na agenda"
       ],
+      details: {
+        reunioes: "Ilimitadas (mediante agendamento)",
+        prioridade: "Alta (prazo máx. 2 meses para agendamento)",
+        suporte: "WhatsApp completo + Intermediação de serviços",
+        escopo: "Nós falamos com fornecedores por você e monitoramos se o plano está sendo seguido."
+      },
       highlight: true,
       icon: Star
     },
@@ -55,15 +75,19 @@ export default function Planos() {
       name: "HV Nível IV",
       price: "299,90",
       period: "/mês",
-      description: "Gestão completa e resolução total.",
-      features: [
-        "Acesso liberado a todas as ferramentas",
-        "Reuniões Ilimitadas (prioridade MÁXIMA, horário fixo mensal)",
-        "Contato livre em horário comercial via WhatsApp",
-        "Resolução de demandas por procuração",
-        "Assistência total: dúvidas, análises e cotações via WhatsApp",
-        "Relatórios semanais (nós preenchemos para você)"
+      description: "Nós resolvemos tudo para você.",
+      mainFeatures: [
+        "Gestão completa por procuração",
+        "Relatórios semanais de evolução",
+        "Prioridade MÁXIMA (horário fixo mensal)",
+        "Nós executamos por você"
       ],
+      details: {
+        reunioes: "Ilimitadas + Horário Fixo Mensal Garantido",
+        prioridade: "Máxima (Atendimento VIP)",
+        suporte: "Resolução total de problemas (inclusive burocráticos)",
+        escopo: "Você decide, nós fazemos. Resolvemos tudo que não exigir sua presença física."
+      },
       highlight: false,
       isPremium: true,
       icon: Shield
@@ -78,7 +102,7 @@ export default function Planos() {
           Escolha o Nível da Sua <span className="gold-gradient-text">Evolução</span>
         </h1>
         <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-          Planos desenhados para se adaptar ao seu momento de vida e necessidade de acompanhamento.
+          Planos simples e diretos. Você escolhe o quanto quer colocar a mão na massa.
           <br />
           <span className="text-primary font-medium">Não é necessário fazer o Diagnóstico para assinar os planos mensais.</span>
         </p>
@@ -130,7 +154,7 @@ export default function Planos() {
             </div>
 
             <ul className="space-y-4 mb-8 flex-1">
-              {plan.features.map((feature, i) => (
+              {plan.mainFeatures.map((feature, i) => (
                 <li key={i} className="flex gap-3 text-sm text-muted-foreground">
                   <Check className={`h-5 w-5 shrink-0 ${plan.isPremium ? "text-primary" : "text-primary/70"}`} />
                   <span>{feature}</span>
@@ -138,15 +162,65 @@ export default function Planos() {
               ))}
             </ul>
 
-            <Button 
-              className={`w-full font-bold h-12 ${
-                plan.isPremium 
-                  ? "bg-primary text-black hover:bg-primary/90 shadow-lg shadow-primary/20" 
-                  : "bg-white/10 text-white hover:bg-white/20"
-              }`}
-            >
-              Assinar Agora
-            </Button>
+            <div className="space-y-3 mt-auto">
+              <Button 
+                className={`w-full font-bold h-12 ${
+                  plan.isPremium 
+                    ? "bg-primary text-black hover:bg-primary/90 shadow-lg shadow-primary/20" 
+                    : "bg-white/10 text-white hover:bg-white/20"
+                }`}
+              >
+                Assinar Agora
+              </Button>
+
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" className="w-full text-xs text-muted-foreground hover:text-primary h-8">
+                    Ver detalhes e regras
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-card border-primary/20 text-white sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl font-bold text-primary flex items-center gap-2">
+                      <plan.icon className="h-5 w-5" /> Detalhes do {plan.name}
+                    </DialogTitle>
+                    <DialogDescription className="text-muted-foreground">
+                      Entenda como funciona este nível de serviço.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <h4 className="font-semibold text-white text-sm">📅 Reuniões</h4>
+                      <p className="text-sm text-muted-foreground bg-white/5 p-3 rounded-lg border border-white/5">
+                        {plan.details.reunioes}
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <h4 className="font-semibold text-white text-sm">⚡ Prioridade de Agenda</h4>
+                      <p className="text-sm text-muted-foreground bg-white/5 p-3 rounded-lg border border-white/5">
+                        {plan.details.prioridade}
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h4 className="font-semibold text-white text-sm">💬 Suporte WhatsApp</h4>
+                      <p className="text-sm text-muted-foreground bg-white/5 p-3 rounded-lg border border-white/5">
+                        {plan.details.suporte}
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h4 className="font-semibold text-white text-sm">🎯 O que está incluso?</h4>
+                      <p className="text-sm text-muted-foreground bg-white/5 p-3 rounded-lg border border-white/5">
+                        {plan.details.escopo}
+                      </p>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         ))}
       </div>
