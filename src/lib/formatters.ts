@@ -18,7 +18,8 @@ export const formatPercentage = (value: number | string) => {
 };
 
 export const parseCurrency = (value: string) => {
-  return value.replace(/\D/g, "");
+  const digits = value.replace(/\D/g, "");
+  return parseFloat(digits) / 100;
 };
 
 export const formatCurrencyInput = (value: string) => {
