@@ -40,7 +40,7 @@ export default function Planos() {
         "Tudo do Nível I",
         "Nós fazemos as cotações para você",
         "Prioridade maior na agenda",
-        "Ajuda para encontrar o melhor custo-benefício para qualquer produto ou serviço"
+        "Ajuda para encontrar o melhor custo-benefício de qualquer produto ou serviço"
       ],
       details: {
         reunioes: "Ilimitadas (mediante agendamento)",
