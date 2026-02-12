@@ -2,23 +2,35 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatCurrency, formatCurrencyInput } from "@/lib/formatters";
 import { ArrowLeft, CheckCircle2, LineChart, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
 
 export default function Oraculo() {
+  const [timeUnit, setTimeUnit] = useState<'years' | 'months'>('years');
   const [currentWealth, setCurrentWealth] = useState("");
   const [monthlyContribution, setMonthlyContribution] = useState("");
   const [interestRate, setInterestRate] = useState("");
-  const [years, setYears] = useState("10");
-  const [goals, setGoals] = useState<{ name: string; value: string; year: string }[]>([]);
-  const [newGoal, setNewGoal] = useState({ name: "", value: "", year: "" });
+  const [duration, setDuration] = useState("10");
+  const [goals, setGoals] = useState<{ name: string; value: string; time: string; isRecurring: boolean }[]>([]);
+  const [newGoal, setNewGoal] = useState({ name: "", value: "", time: "", isRecurring: false });
   const [chartData, setChartData] = useState<any[]>([]);
 
+  const handleCurrencyChange = (setter: any, value: string) => {
+    const formatted = formatCurrencyInput(value);
+    setter(formatted);
+  };
+
+  const handleGoalCurrencyChange = (value: string) => {
+    const formatted = formatCurrencyInput(value);
+    setNewGoal({ ...newGoal, value: formatted });
+  };
+
   const addGoal = () => {
-    if (newGoal.name && newGoal.value && newGoal.year) {
+    if (newGoal.name && newGoal.value && newGoal.time) {
       setGoals([...goals, newGoal]);
-      setNewGoal({ name: "", value: "", year: "" });
+      setNewGoal({ name: "", value: "", time: "", isRecurring: false });
     }
   };
 
@@ -27,62 +39,88 @@ export default function Oraculo() {
   };
 
   const calculate = () => {
-    const wealth = parseFloat(currentWealth.replace(",", ".") || "0");
-    const contribution = parseFloat(monthlyContribution.replace(",", ".") || "0");
+    const wealth = parseFloat(currentWealth.replace(/\./g, "").replace(",", ".") || "0");
+    const contribution = parseFloat(monthlyContribution.replace(/\./g, "").replace(",", ".") || "0");
     const rate = parseFloat(interestRate.replace(",", ".") || "0");
-    const duration = parseInt(years || "10");
+    const time = parseInt(duration || "10");
 
     const monthlyRate = Math.pow(1 + rate / 100, 1 / 12) - 1;
     let current = wealth;
     const data = [];
+    const totalMonths = timeUnit === 'years' ? time * 12 : time;
 
-    for (let year = 1; year <= duration; year++) {
-      for (let month = 1; month <= 12; month++) {
-        current = current * (1 + monthlyRate) + contribution;
-      }
+    for (let month = 1; month <= totalMonths; month++) {
+      current = current * (1 + monthlyRate) + contribution;
 
-      // Check for goals in this year
-      const yearGoals = goals.filter(g => parseInt(g.year) === year);
+      // Check for goals
       let withdrawn = 0;
-      yearGoals.forEach(g => {
-        const val = parseFloat(g.value.replace(",", ".") || "0");
-        current -= val;
-        withdrawn += val;
+      goals.forEach(g => {
+        const goalTime = parseInt(g.time);
+        const goalValue = parseFloat(g.value.replace(/\./g, "").replace(",", ".") || "0");
+        
+        const isGoalMonth = timeUnit === 'years' 
+          ? (month % 12 === 0 && Math.floor(month / 12) === goalTime) // Year match
+          : month === goalTime; // Month match
+
+        const isRecurringMatch = g.isRecurring && (
+          timeUnit === 'years' ? month % 12 === 0 : true // Annual recurring
+        );
+
+        if (isGoalMonth || (g.isRecurring && month % 12 === 0)) {
+           // Simplified recurring logic: apply every year
+           if (g.isRecurring || isGoalMonth) {
+             current -= goalValue;
+             withdrawn += goalValue;
+           }
+        }
       });
 
-      data.push({ year, value: current, withdrawn });
+      // Only push data points for years to keep chart clean, or every month if short duration
+      if (timeUnit === 'years' && month % 12 === 0) {
+        data.push({ label: `Ano ${month/12}`, value: current, withdrawn });
+      } else if (timeUnit === 'months') {
+        data.push({ label: `Mês ${month}`, value: current, withdrawn });
+      }
     }
 
     setChartData(data);
   };
 
-  // Simple SVG Chart Component
+  // Simple SVG Chart Component (Mobile Friendly)
   const Chart = ({ data }: { data: any[] }) => {
     if (!data.length) return null;
     const maxValue = Math.max(...data.map(d => d.value));
-    const height = 200;
-    const width = 100; // percentage
-
+    const minValue = Math.min(...data.map(d => d.value)); // Handle negative values
+    const range = maxValue - Math.min(0, minValue);
+    
     return (
-      <div className="h-[250px] w-full flex items-end gap-1 relative border-b border-white/10 pb-6">
-        {data.map((d, i) => {
-          const barHeight = Math.max((d.value / maxValue) * height, 2);
-          return (
-            <div key={i} className="flex-1 flex flex-col items-center group relative">
-              <div 
-                className={`w-full max-w-[20px] rounded-t-sm transition-all duration-500 ${d.value < 0 ? 'bg-red-500' : 'bg-gold-500'}`}
-                style={{ height: `${Math.abs(barHeight)}px` }}
-              >
-                {/* Tooltip */}
-                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-black/90 text-white text-xs p-2 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10 pointer-events-none">
-                  Ano {d.year}: R$ {d.value.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
-                  {d.withdrawn > 0 && <div className="text-red-400">Saque: -R$ {d.withdrawn.toLocaleString('pt-BR')}</div>}
+      <div className="w-full overflow-x-auto">
+        <div className="h-[300px] min-w-[300px] w-full flex items-end gap-1 relative border-b border-white/10 pb-8 pt-4">
+          {data.map((d, i) => {
+            // Normalize height between 0 and 100%
+            const heightPercent = Math.max(((d.value - Math.min(0, minValue)) / range) * 100, 2);
+            
+            return (
+              <div key={i} className="flex-1 flex flex-col items-center group relative min-w-[10px]">
+                <div 
+                  className={`w-full max-w-[20px] rounded-t-sm transition-all duration-500 ${d.value < 0 ? 'bg-red-500' : 'bg-yellow-500'}`}
+                  style={{ height: `${Math.abs(heightPercent)}%` }}
+                >
+                  {/* Tooltip */}
+                  <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-black/90 text-white text-xs p-2 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10 pointer-events-none border border-white/10 shadow-xl">
+                    <p className="font-bold">{d.label}</p>
+                    <p>Saldo: {formatCurrency(d.value)}</p>
+                    {d.withdrawn > 0 && <p className="text-red-400">Saque: -{formatCurrency(d.withdrawn)}</p>}
+                  </div>
                 </div>
+                {/* Show label only for some items to avoid clutter */}
+                {(i % Math.ceil(data.length / 5) === 0 || i === data.length - 1) && (
+                  <span className="text-[10px] text-muted-foreground mt-2 absolute -bottom-6 whitespace-nowrap">{d.label}</span>
+                )}
               </div>
-              <span className="text-[10px] text-muted-foreground mt-2 absolute -bottom-6">{d.year}</span>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     );
   };
@@ -114,20 +152,18 @@ export default function Oraculo() {
               <div className="space-y-2">
                 <Label>Patrimônio Atual (R$)</Label>
                 <Input 
-                  type="number" 
-                  placeholder="Ex: 10000" 
+                  placeholder="0,00" 
                   value={currentWealth}
-                  onChange={(e) => setCurrentWealth(e.target.value)}
+                  onChange={(e) => handleCurrencyChange(setCurrentWealth, e.target.value)}
                   className="bg-background/50 border-white/10"
                 />
               </div>
               <div className="space-y-2">
                 <Label>Aporte Mensal (R$)</Label>
                 <Input 
-                  type="number" 
-                  placeholder="Ex: 500" 
+                  placeholder="0,00" 
                   value={monthlyContribution}
-                  onChange={(e) => setMonthlyContribution(e.target.value)}
+                  onChange={(e) => handleCurrencyChange(setMonthlyContribution, e.target.value)}
                   className="bg-background/50 border-white/10"
                 />
               </div>
@@ -142,12 +178,28 @@ export default function Oraculo() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Projeção (Anos)</Label>
+                <div className="flex justify-between items-center">
+                  <Label>Projeção</Label>
+                  <div className="flex gap-2 text-xs">
+                    <button 
+                      onClick={() => setTimeUnit('years')}
+                      className={`px-2 py-1 rounded ${timeUnit === 'years' ? 'bg-yellow-500 text-black' : 'bg-white/10'}`}
+                    >
+                      Anos
+                    </button>
+                    <button 
+                      onClick={() => setTimeUnit('months')}
+                      className={`px-2 py-1 rounded ${timeUnit === 'months' ? 'bg-yellow-500 text-black' : 'bg-white/10'}`}
+                    >
+                      Meses
+                    </button>
+                  </div>
+                </div>
                 <Input 
                   type="number" 
-                  placeholder="Ex: 20" 
-                  value={years}
-                  onChange={(e) => setYears(e.target.value)}
+                  placeholder={timeUnit === 'years' ? "Ex: 20" : "Ex: 240"} 
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
                   className="bg-background/50 border-white/10"
                 />
               </div>
@@ -172,24 +224,35 @@ export default function Oraculo() {
                 <div className="space-y-2">
                   <Label>Valor (R$)</Label>
                   <Input 
-                    type="number" 
-                    placeholder="Ex: 50000" 
+                    placeholder="0,00" 
                     value={newGoal.value}
-                    onChange={(e) => setNewGoal({...newGoal, value: e.target.value})}
+                    onChange={(e) => handleGoalCurrencyChange(e.target.value)}
                     className="bg-background/50 border-white/10"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Ano (1-{years})</Label>
+                  <Label>{timeUnit === 'years' ? 'Ano' : 'Mês'}</Label>
                   <Input 
                     type="number" 
                     placeholder="Ex: 5" 
-                    value={newGoal.year}
-                    onChange={(e) => setNewGoal({...newGoal, year: e.target.value})}
+                    value={newGoal.time}
+                    onChange={(e) => setNewGoal({...newGoal, time: e.target.value})}
                     className="bg-background/50 border-white/10"
                   />
                 </div>
               </div>
+              
+              <div className="flex items-center gap-2">
+                <input 
+                  type="checkbox" 
+                  id="recurring"
+                  checked={newGoal.isRecurring}
+                  onChange={(e) => setNewGoal({...newGoal, isRecurring: e.target.checked})}
+                  className="rounded border-white/10 bg-white/5"
+                />
+                <Label htmlFor="recurring" className="cursor-pointer">Repetir anualmente?</Label>
+              </div>
+
               <Button onClick={addGoal} variant="secondary" className="w-full">
                 <Plus className="h-4 w-4 mr-2" /> Adicionar Objetivo
               </Button>
@@ -199,7 +262,11 @@ export default function Oraculo() {
                   <Label>Objetivos Cadastrados:</Label>
                   {goals.map((g, i) => (
                     <div key={i} className="flex justify-between items-center text-sm bg-white/5 p-2 rounded">
-                      <span>{g.name} (Ano {g.year}): -R$ {g.value}</span>
+                      <span>
+                        {g.name} ({timeUnit === 'years' ? 'Ano' : 'Mês'} {g.time}) 
+                        {g.isRecurring && " 🔄"}
+                        : -{g.value}
+                      </span>
                       <Button variant="ghost" size="sm" onClick={() => removeGoal(i)} className="h-6 w-6 p-0 text-red-400">
                         <Trash2 className="h-3 w-3" />
                       </Button>
@@ -221,22 +288,32 @@ export default function Oraculo() {
             <Card className="bg-card border-yellow-500/30 shadow-lg shadow-yellow-500/10">
               <CardHeader>
                 <CardTitle className="text-yellow-500">Evolução Patrimonial</CardTitle>
-                <p className="text-sm text-muted-foreground">Passe o mouse sobre as barras para ver os valores.</p>
+                <p className="text-sm text-muted-foreground">Toque nas barras para ver os valores.</p>
               </CardHeader>
               <CardContent>
                 <Chart data={chartData} />
                 
-                <div className="grid grid-cols-2 gap-4 mt-8 pt-6 border-t border-white/10">
+                <div className="grid md:grid-cols-3 gap-4 mt-8 pt-6 border-t border-white/10">
                   <div>
                     <p className="text-sm text-muted-foreground">Patrimônio Final</p>
-                    <p className={`text-3xl font-bold ${chartData[chartData.length-1].value >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      R$ {chartData[chartData.length-1].value.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}
+                    <p className={`text-2xl font-bold ${chartData[chartData.length-1].value >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {formatCurrency(chartData[chartData.length-1].value)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Total Investido (Aportes)</p>
+                    <p className="text-sm text-muted-foreground">Renda Passiva Estimada (0.8% a.m.)</p>
+                    <p className="text-2xl font-bold text-blue-400">
+                      {formatCurrency(chartData[chartData.length-1].value * 0.008)} /mês
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Investido</p>
                     <p className="text-xl font-bold text-white">
-                      R$ {(parseFloat(currentWealth || "0") + parseFloat(monthlyContribution || "0") * parseInt(years || "0") * 12).toLocaleString('pt-BR')}
+                      {formatCurrency(
+                        (parseFloat(currentWealth.replace(/\./g, "").replace(",", ".") || "0") + 
+                        parseFloat(monthlyContribution.replace(/\./g, "").replace(",", ".") || "0") * 
+                        (timeUnit === 'years' ? parseInt(duration) * 12 : parseInt(duration)))
+                      )}
                     </p>
                   </div>
                 </div>
