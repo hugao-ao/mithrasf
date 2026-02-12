@@ -148,6 +148,13 @@ export default function SimuladorImobiliario() {
         {/* Results */}
         {result && (
           <div className="lg:col-span-2 space-y-6 animate-in fade-in slide-in-from-bottom-4">
+            
+            {/* Financed Amount Highlight */}
+            <div className="bg-white/5 border border-white/10 rounded-lg p-4 flex justify-between items-center">
+              <span className="text-muted-foreground">Valor Financiado (Imóvel - Entrada)</span>
+              <span className="text-2xl font-bold text-white">{formatCurrency(result.loanAmount)}</span>
+            </div>
+
             <div className="grid md:grid-cols-2 gap-6">
               {/* SAC Card */}
               <Card className="bg-card border-blue-500/30 shadow-lg shadow-blue-500/10">
