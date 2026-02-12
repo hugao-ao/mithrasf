@@ -2,29 +2,36 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatCurrency, formatCurrencyInput } from "@/lib/formatters";
 import { ArrowLeft, Building2, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
 
 export default function SimuladorImobiliario() {
+  const [timeUnit, setTimeUnit] = useState<'years' | 'months'>('years');
   const [values, setValues] = useState({
     propertyValue: "",
     downPayment: "",
     interestRate: "",
-    years: ""
+    duration: ""
   });
   const [result, setResult] = useState<any>(null);
 
-  const calculate = () => {
-    const pv = parseFloat(values.propertyValue.replace(",", "."));
-    const entry = parseFloat(values.downPayment.replace(",", "."));
-    const rateYear = parseFloat(values.interestRate.replace(",", "."));
-    const years = parseInt(values.years);
+  const handleCurrencyChange = (field: string, value: string) => {
+    const formatted = formatCurrencyInput(value);
+    setValues({ ...values, [field]: formatted });
+  };
 
-    if (!pv || !rateYear || !years) return;
+  const calculate = () => {
+    const pv = parseFloat(values.propertyValue.replace(/\./g, "").replace(",", "."));
+    const entry = parseFloat(values.downPayment.replace(/\./g, "").replace(",", "."));
+    const rateYear = parseFloat(values.interestRate.replace(",", "."));
+    const duration = parseInt(values.duration);
+
+    if (!pv || !rateYear || !duration) return;
 
     const loanAmount = pv - (entry || 0);
-    const months = years * 12;
+    const months = timeUnit === 'years' ? duration * 12 : duration;
     const rateMonth = Math.pow(1 + rateYear / 100, 1 / 12) - 1;
 
     // SAC Calculation
@@ -81,20 +88,18 @@ export default function SimuladorImobiliario() {
             <div className="space-y-2">
               <Label>Valor do Imóvel (R$)</Label>
               <Input 
-                type="number" 
-                placeholder="Ex: 500000" 
+                placeholder="0,00" 
                 value={values.propertyValue}
-                onChange={(e) => setValues({...values, propertyValue: e.target.value})}
+                onChange={(e) => handleCurrencyChange('propertyValue', e.target.value)}
                 className="bg-background/50 border-white/10"
               />
             </div>
             <div className="space-y-2">
               <Label>Valor da Entrada (R$)</Label>
               <Input 
-                type="number" 
-                placeholder="Ex: 100000" 
+                placeholder="0,00" 
                 value={values.downPayment}
-                onChange={(e) => setValues({...values, downPayment: e.target.value})}
+                onChange={(e) => handleCurrencyChange('downPayment', e.target.value)}
                 className="bg-background/50 border-white/10"
               />
             </div>
@@ -109,12 +114,28 @@ export default function SimuladorImobiliario() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Prazo (Anos)</Label>
+              <div className="flex justify-between items-center">
+                <Label>Prazo</Label>
+                <div className="flex gap-2 text-xs">
+                  <button 
+                    onClick={() => setTimeUnit('years')}
+                    className={`px-2 py-1 rounded ${timeUnit === 'years' ? 'bg-yellow-500 text-black' : 'bg-white/10'}`}
+                  >
+                    Anos
+                  </button>
+                  <button 
+                    onClick={() => setTimeUnit('months')}
+                    className={`px-2 py-1 rounded ${timeUnit === 'months' ? 'bg-yellow-500 text-black' : 'bg-white/10'}`}
+                  >
+                    Meses
+                  </button>
+                </div>
+              </div>
               <Input 
                 type="number" 
-                placeholder="Ex: 30" 
-                value={values.years}
-                onChange={(e) => setValues({...values, years: e.target.value})}
+                placeholder={timeUnit === 'years' ? "Ex: 30" : "Ex: 360"} 
+                value={values.duration}
+                onChange={(e) => setValues({...values, duration: e.target.value})}
                 className="bg-background/50 border-white/10"
               />
             </div>
@@ -137,19 +158,19 @@ export default function SimuladorImobiliario() {
                 <CardContent className="space-y-4">
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Primeira Parcela</p>
-                    <p className="text-xl font-bold text-white">R$ {result.sac.first.toFixed(2)}</p>
+                    <p className="text-xl font-bold text-white">{formatCurrency(result.sac.first)}</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Última Parcela</p>
-                    <p className="text-xl font-bold text-white">R$ {result.sac.last.toFixed(2)}</p>
+                    <p className="text-xl font-bold text-white">{formatCurrency(result.sac.last)}</p>
                   </div>
                   <div className="pt-4 border-t border-white/10 space-y-1">
                     <p className="text-sm text-muted-foreground">Total Pago</p>
-                    <p className="text-2xl font-bold text-red-400">R$ {result.sac.total.toFixed(2)}</p>
+                    <p className="text-2xl font-bold text-red-400">{formatCurrency(result.sac.total)}</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Só de Juros</p>
-                    <p className="text-lg font-bold text-red-400/80">R$ {result.sac.interest.toFixed(2)}</p>
+                    <p className="text-lg font-bold text-red-400/80">{formatCurrency(result.sac.interest)}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -163,7 +184,7 @@ export default function SimuladorImobiliario() {
                 <CardContent className="space-y-4">
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Valor da Parcela</p>
-                    <p className="text-xl font-bold text-white">R$ {result.price.installment.toFixed(2)}</p>
+                    <p className="text-xl font-bold text-white">{formatCurrency(result.price.installment)}</p>
                   </div>
                   <div className="space-y-1 opacity-0">
                     <p className="text-sm text-muted-foreground">Placeholder</p>
@@ -171,11 +192,11 @@ export default function SimuladorImobiliario() {
                   </div>
                   <div className="pt-4 border-t border-white/10 space-y-1">
                     <p className="text-sm text-muted-foreground">Total Pago</p>
-                    <p className="text-2xl font-bold text-red-400">R$ {result.price.total.toFixed(2)}</p>
+                    <p className="text-2xl font-bold text-red-400">{formatCurrency(result.price.total)}</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Só de Juros</p>
-                    <p className="text-lg font-bold text-red-400/80">R$ {result.price.interest.toFixed(2)}</p>
+                    <p className="text-lg font-bold text-red-400/80">{formatCurrency(result.price.interest)}</p>
                   </div>
                 </CardContent>
               </Card>
