@@ -6,6 +6,13 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Planos from "./pages/Planos";
+import Ferramentas from "./pages/Ferramentas";
+import ComparadorPrecos from "./pages/ferramentas/ComparadorPrecos";
+import CalculadoraJuros from "./pages/ferramentas/CalculadoraJuros";
+import SimuladorImobiliario from "./pages/ferramentas/SimuladorImobiliario";
+import ComparadorCartoes from "./pages/ferramentas/ComparadorCartoes";
+import FluxoCaixa from "./pages/ferramentas/FluxoCaixa";
+import Oraculo from "./pages/ferramentas/Oraculo";
 import UnderConstruction from "./pages/UnderConstruction";
 import { Layout } from "./components/Layout";
 
@@ -15,7 +22,16 @@ function Router() {
       <Switch>
         <Route path={"/"} component={Home} />
         <Route path={"/planos"} component={Planos} />
-        <Route path={"/ferramentas"} component={UnderConstruction} />
+        
+        {/* Ferramentas Routes */}
+        <Route path={"/ferramentas"} component={Ferramentas} />
+        <Route path={"/ferramentas/comparador-precos"} component={ComparadorPrecos} />
+        <Route path={"/ferramentas/calculadora-juros"} component={CalculadoraJuros} />
+        <Route path={"/ferramentas/simulador-imobiliario"} component={SimuladorImobiliario} />
+        <Route path={"/ferramentas/comparador-cartoes"} component={ComparadorCartoes} />
+        <Route path={"/ferramentas/fluxo-caixa"} component={FluxoCaixa} />
+        <Route path={"/ferramentas/oraculo"} component={Oraculo} />
+
         <Route path={"/conheca-me"} component={UnderConstruction} />
         <Route path={"/404"} component={NotFound} />
         {/* Final fallback route */}
