@@ -2,41 +2,63 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatCurrency, formatCurrencyInput } from "@/lib/formatters";
 import { ArrowLeft, CheckCircle2, CreditCard, Trophy } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
 
 export default function ComparadorCartoes() {
-  const [cardA, setCardA] = useState({ name: "", fee: "", points: "", lounge: "" });
-  const [cardB, setCardB] = useState({ name: "", fee: "", points: "", lounge: "" });
+  const [monthlySpend, setMonthlySpend] = useState("");
+  const [dollarRate, setDollarRate] = useState("5,80");
+  const [milesValue, setMilesValue] = useState("15,00"); // Preço do milheiro
+  
+  const [cardA, setCardA] = useState({ name: "", fee: "", points: "", cashback: "" });
+  const [cardB, setCardB] = useState({ name: "", fee: "", points: "", cashback: "" });
   const [result, setResult] = useState<any>(null);
+
+  const handleCurrencyChange = (value: string, setter: any, current?: any, field?: string) => {
+    const formatted = formatCurrencyInput(value);
+    if (current && field) {
+      setter({ ...current, [field]: formatted });
+    } else {
+      setter(formatted);
+    }
+  };
 
   const compare = () => {
     if (!cardA.name || !cardB.name) return;
 
-    const feeA = parseFloat(cardA.fee.replace(",", ".") || "0");
-    const feeB = parseFloat(cardB.fee.replace(",", ".") || "0");
-    const pointsA = parseFloat(cardA.points.replace(",", ".") || "0");
-    const pointsB = parseFloat(cardB.points.replace(",", ".") || "0");
-    const loungeA = parseInt(cardA.lounge || "0");
-    const loungeB = parseInt(cardB.lounge || "0");
+    const spend = parseFloat(monthlySpend.replace(/\./g, "").replace(",", ".") || "0");
+    const dollar = parseFloat(dollarRate.replace(",", ".") || "1");
+    const milePrice = parseFloat(milesValue.replace(/\./g, "").replace(",", ".") || "0") / 1000;
 
-    let scoreA = 0;
-    let scoreB = 0;
+    const calculateReturn = (card: typeof cardA) => {
+      const fee = parseFloat(card.fee.replace(/\./g, "").replace(",", ".") || "0") / 12; // Mensal
+      const points = parseFloat(card.points.replace(",", ".") || "0");
+      const cashback = parseFloat(card.cashback.replace(",", ".") || "0") / 100;
 
-    if (feeA < feeB) scoreA++; else if (feeB < feeA) scoreB++;
-    if (pointsA > pointsB) scoreA++; else if (pointsB > pointsA) scoreB++;
-    if (loungeA > loungeB) scoreA++; else if (loungeB > loungeA) scoreB++;
+      // Retorno em Milhas (R$)
+      const milesReturn = (spend / dollar) * points * milePrice;
+      
+      // Retorno em Cashback (R$)
+      const cashbackReturn = spend * cashback;
+
+      // Retorno Total Bruto (maior entre milhas e cashback)
+      const grossReturn = Math.max(milesReturn, cashbackReturn);
+      
+      // Retorno Líquido (descontando anuidade)
+      const netReturn = grossReturn - fee;
+
+      return { netReturn, grossReturn, fee, isMiles: milesReturn > cashbackReturn };
+    };
+
+    const returnA = calculateReturn(cardA);
+    const returnB = calculateReturn(cardB);
 
     setResult({
-      winner: scoreA > scoreB ? cardA.name : scoreB > scoreA ? cardB.name : "Empate",
-      scoreA,
-      scoreB,
-      details: {
-        fee: feeA < feeB ? "A" : feeB < feeA ? "B" : "Draw",
-        points: pointsA > pointsB ? "A" : pointsB > pointsA ? "B" : "Draw",
-        lounge: loungeA > loungeB ? "A" : loungeB > loungeA ? "B" : "Draw"
-      }
+      winner: returnA.netReturn > returnB.netReturn ? cardA.name : returnB.netReturn > returnA.netReturn ? cardB.name : "Empate",
+      returnA,
+      returnB
     });
   };
 
@@ -52,9 +74,45 @@ export default function ComparadorCartoes() {
           <h1 className="text-3xl font-bold text-white flex items-center gap-2">
             <CreditCard className="h-8 w-8 text-purple-400" /> Comparador de Cartões
           </h1>
-          <p className="text-muted-foreground">Qual cartão merece espaço na sua carteira?</p>
+          <p className="text-muted-foreground">Milhas ou Cashback? Veja qual coloca mais dinheiro no seu bolso.</p>
         </div>
       </div>
+
+      {/* Configurações Gerais */}
+      <Card className="bg-card/50 border-white/10">
+        <CardHeader>
+          <CardTitle className="text-yellow-500 text-lg">Seu Perfil de Gastos</CardTitle>
+        </CardHeader>
+        <CardContent className="grid md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label>Gasto Mensal na Fatura (R$)</Label>
+            <Input 
+              placeholder="0,00" 
+              value={monthlySpend}
+              onChange={(e) => handleCurrencyChange(e.target.value, setMonthlySpend)}
+              className="bg-background/50 border-white/10"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Cotação do Dólar (R$)</Label>
+            <Input 
+              placeholder="5,80" 
+              value={dollarRate}
+              onChange={(e) => setDollarRate(e.target.value)}
+              className="bg-background/50 border-white/10"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Valor do Milheiro (R$)</Label>
+            <Input 
+              placeholder="15,00" 
+              value={milesValue}
+              onChange={(e) => handleCurrencyChange(e.target.value, setMilesValue)}
+              className="bg-background/50 border-white/10"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* Card A */}
@@ -75,32 +133,33 @@ export default function ComparadorCartoes() {
             <div className="space-y-2">
               <Label>Anuidade (R$)</Label>
               <Input 
-                type="number" 
-                placeholder="Ex: 588" 
+                placeholder="0,00" 
                 value={cardA.fee}
-                onChange={(e) => setCardA({...cardA, fee: e.target.value})}
+                onChange={(e) => handleCurrencyChange(e.target.value, setCardA, cardA, 'fee')}
                 className="bg-background/50 border-white/10"
               />
             </div>
-            <div className="space-y-2">
-              <Label>Pontos por Dólar</Label>
-              <Input 
-                type="number" 
-                placeholder="Ex: 1.0" 
-                value={cardA.points}
-                onChange={(e) => setCardA({...cardA, points: e.target.value})}
-                className="bg-background/50 border-white/10"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Acessos a Sala VIP (ano)</Label>
-              <Input 
-                type="number" 
-                placeholder="Ex: 0" 
-                value={cardA.lounge}
-                onChange={(e) => setCardA({...cardA, lounge: e.target.value})}
-                className="bg-background/50 border-white/10"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Pontos por Dólar</Label>
+                <Input 
+                  type="number" 
+                  placeholder="Ex: 1.0" 
+                  value={cardA.points}
+                  onChange={(e) => setCardA({...cardA, points: e.target.value})}
+                  className="bg-background/50 border-white/10"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Cashback (%)</Label>
+                <Input 
+                  type="number" 
+                  placeholder="Ex: 1.0" 
+                  value={cardA.cashback}
+                  onChange={(e) => setCardA({...cardA, cashback: e.target.value})}
+                  className="bg-background/50 border-white/10"
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -123,39 +182,40 @@ export default function ComparadorCartoes() {
             <div className="space-y-2">
               <Label>Anuidade (R$)</Label>
               <Input 
-                type="number" 
-                placeholder="Ex: 1020" 
+                placeholder="0,00" 
                 value={cardB.fee}
-                onChange={(e) => setCardB({...cardB, fee: e.target.value})}
+                onChange={(e) => handleCurrencyChange(e.target.value, setCardB, cardB, 'fee')}
                 className="bg-background/50 border-white/10"
               />
             </div>
-            <div className="space-y-2">
-              <Label>Pontos por Dólar</Label>
-              <Input 
-                type="number" 
-                placeholder="Ex: 2.5" 
-                value={cardB.points}
-                onChange={(e) => setCardB({...cardB, points: e.target.value})}
-                className="bg-background/50 border-white/10"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Acessos a Sala VIP (ano)</Label>
-              <Input 
-                type="number" 
-                placeholder="Ex: 4" 
-                value={cardB.lounge}
-                onChange={(e) => setCardB({...cardB, lounge: e.target.value})}
-                className="bg-background/50 border-white/10"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Pontos por Dólar</Label>
+                <Input 
+                  type="number" 
+                  placeholder="Ex: 2.5" 
+                  value={cardB.points}
+                  onChange={(e) => setCardB({...cardB, points: e.target.value})}
+                  className="bg-background/50 border-white/10"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Cashback (%)</Label>
+                <Input 
+                  type="number" 
+                  placeholder="Ex: 0" 
+                  value={cardB.cashback}
+                  onChange={(e) => setCardB({...cardB, cashback: e.target.value})}
+                  className="bg-background/50 border-white/10"
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
       <Button onClick={compare} className="w-full h-12 font-bold bg-purple-500 hover:bg-purple-600">
-        Comparar Cartões
+        Comparar Retorno Financeiro
       </Button>
 
       {result && (
@@ -171,19 +231,33 @@ export default function ComparadorCartoes() {
               <h2 className="text-3xl font-bold text-white">
                 {result.winner === "Empate" ? "Empate Técnico!" : `Vencedor: ${result.winner}`}
               </h2>
+              <p className="text-muted-foreground">Considerando o retorno líquido (ganho - anuidade)</p>
 
-              <div className="grid grid-cols-3 gap-4 text-sm pt-4 border-t border-white/10">
-                <div className={`p-3 rounded-lg ${result.details.fee === 'A' ? 'bg-purple-500/20 text-purple-300' : result.details.fee === 'B' ? 'bg-blue-500/20 text-blue-300' : 'bg-white/5'}`}>
-                  <p className="font-bold mb-1">Menor Anuidade</p>
-                  {result.details.fee === 'A' ? cardA.name : result.details.fee === 'B' ? cardB.name : "Igual"}
+              <div className="grid md:grid-cols-2 gap-4 pt-4 border-t border-white/10">
+                <div className={`p-4 rounded-lg ${result.returnA.netReturn > result.returnB.netReturn ? 'bg-green-500/20 border border-green-500/30' : 'bg-white/5'}`}>
+                  <p className="font-bold text-lg mb-1">{cardA.name}</p>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Retorno Mensal Líquido</p>
+                    <p className={`text-2xl font-bold ${result.returnA.netReturn > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {formatCurrency(result.returnA.netReturn)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      ({result.returnA.isMiles ? 'Via Milhas' : 'Via Cashback'})
+                    </p>
+                  </div>
                 </div>
-                <div className={`p-3 rounded-lg ${result.details.points === 'A' ? 'bg-purple-500/20 text-purple-300' : result.details.points === 'B' ? 'bg-blue-500/20 text-blue-300' : 'bg-white/5'}`}>
-                  <p className="font-bold mb-1">Mais Pontos</p>
-                  {result.details.points === 'A' ? cardA.name : result.details.points === 'B' ? cardB.name : "Igual"}
-                </div>
-                <div className={`p-3 rounded-lg ${result.details.lounge === 'A' ? 'bg-purple-500/20 text-purple-300' : result.details.lounge === 'B' ? 'bg-blue-500/20 text-blue-300' : 'bg-white/5'}`}>
-                  <p className="font-bold mb-1">Mais Salas VIP</p>
-                  {result.details.lounge === 'A' ? cardA.name : result.details.lounge === 'B' ? cardB.name : "Igual"}
+
+                <div className={`p-4 rounded-lg ${result.returnB.netReturn > result.returnA.netReturn ? 'bg-green-500/20 border border-green-500/30' : 'bg-white/5'}`}>
+                  <p className="font-bold text-lg mb-1">{cardB.name}</p>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Retorno Mensal Líquido</p>
+                    <p className={`text-2xl font-bold ${result.returnB.netReturn > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {formatCurrency(result.returnB.netReturn)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      ({result.returnB.isMiles ? 'Via Milhas' : 'Via Cashback'})
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -195,14 +269,14 @@ export default function ComparadorCartoes() {
               <CheckCircle2 className="h-6 w-6 text-primary" />
             </div>
             <div className="flex-1 text-center md:text-left">
-              <h3 className="font-bold text-white text-lg">Cartão é só a ponta do iceberg.</h3>
+              <h3 className="font-bold text-white text-lg">Sala VIP? Seguro Viagem? Upgrade de Cabine?</h3>
               <p className="text-muted-foreground">
-                Existem estratégias para viajar de graça e ter renda extra com milhas. Quer aprender como?
+                O retorno financeiro é só o começo. Existem dezenas de benefícios ocultos nos cartões Black que você pode estar perdendo.
               </p>
             </div>
             <Link href="/planos">
               <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 whitespace-nowrap">
-                Falar com Consultor
+                Consultar Benefícios VIP
               </Button>
             </Link>
           </div>
