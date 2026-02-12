@@ -3,9 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatCurrency, formatCurrencyInput } from "@/lib/formatters";
-import { ArrowLeft, CheckCircle2, CreditCard, Trophy } from "lucide-react";
+import { ArrowLeft, CheckCircle2, CreditCard, Trophy, Info } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function ComparadorCartoes() {
   const [monthlySpend, setMonthlySpend] = useState("");
@@ -38,7 +44,9 @@ export default function ComparadorCartoes() {
       const cashback = parseFloat(card.cashback.replace(",", ".") || "0") / 100;
 
       // Retorno em Milhas (R$)
-      const milesReturn = (spend / dollar) * points * milePrice;
+      // Gasto / Dólar * Pontos * Preço Milha
+      const milesGenerated = (spend / dollar) * points;
+      const milesReturn = milesGenerated * milePrice;
       
       // Retorno em Cashback (R$)
       const cashbackReturn = spend * cashback;
@@ -49,7 +57,17 @@ export default function ComparadorCartoes() {
       // Retorno Líquido (descontando anuidade)
       const netReturn = grossReturn - fee;
 
-      return { netReturn, grossReturn, fee, isMiles: milesReturn > cashbackReturn };
+      return { 
+        netReturn, 
+        grossReturn, 
+        fee, 
+        isMiles: milesReturn > cashbackReturn,
+        details: {
+          milesGenerated,
+          milesReturn,
+          cashbackReturn
+        }
+      };
     };
 
     const returnA = calculateReturn(cardA);
@@ -58,7 +76,8 @@ export default function ComparadorCartoes() {
     setResult({
       winner: returnA.netReturn > returnB.netReturn ? cardA.name : returnB.netReturn > returnA.netReturn ? cardB.name : "Empate",
       returnA,
-      returnB
+      returnB,
+      params: { spend, dollar, milePrice }
     });
   };
 
@@ -234,31 +253,43 @@ export default function ComparadorCartoes() {
               <p className="text-muted-foreground">Considerando o retorno líquido (ganho - anuidade)</p>
 
               <div className="grid md:grid-cols-2 gap-4 pt-4 border-t border-white/10">
-                <div className={`p-4 rounded-lg ${result.returnA.netReturn > result.returnB.netReturn ? 'bg-green-500/20 border border-green-500/30' : 'bg-white/5'}`}>
-                  <p className="font-bold text-lg mb-1">{cardA.name}</p>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Retorno Mensal Líquido</p>
-                    <p className={`text-2xl font-bold ${result.returnA.netReturn > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {formatCurrency(result.returnA.netReturn)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      ({result.returnA.isMiles ? 'Via Milhas' : 'Via Cashback'})
-                    </p>
+                {[result.returnA, result.returnB].map((ret, idx) => (
+                  <div key={idx} className={`p-4 rounded-lg text-left ${ret.netReturn === Math.max(result.returnA.netReturn, result.returnB.netReturn) ? 'bg-green-500/20 border border-green-500/30' : 'bg-white/5'}`}>
+                    <div className="flex justify-between items-start mb-2">
+                      <p className="font-bold text-lg">{idx === 0 ? cardA.name : cardB.name}</p>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Info className="h-4 w-4 text-muted-foreground hover:text-white" />
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-black border border-white/20 p-3 max-w-xs">
+                            <p className="font-bold mb-2">Memória de Cálculo:</p>
+                            <ul className="text-xs space-y-1">
+                              <li>Gasto: {formatCurrency(result.params.spend)}</li>
+                              <li>Dólar: R$ {result.params.dollar.toFixed(2)}</li>
+                              <li>Milheiro: R$ {(result.params.milePrice * 1000).toFixed(2)}</li>
+                              <li className="border-t border-white/20 pt-1 mt-1">
+                                Milhas Geradas: {ret.details.milesGenerated.toFixed(0)} ({formatCurrency(ret.details.milesReturn)})
+                              </li>
+                              <li>Cashback: {formatCurrency(ret.details.cashbackReturn)}</li>
+                              <li>Anuidade Mensal: -{formatCurrency(ret.fee)}</li>
+                            </ul>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">Retorno Mensal Líquido</p>
+                      <p className={`text-2xl font-bold ${ret.netReturn > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {formatCurrency(ret.netReturn)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        ({ret.isMiles ? 'Melhor via Milhas' : 'Melhor via Cashback'})
+                      </p>
+                    </div>
                   </div>
-                </div>
-
-                <div className={`p-4 rounded-lg ${result.returnB.netReturn > result.returnA.netReturn ? 'bg-green-500/20 border border-green-500/30' : 'bg-white/5'}`}>
-                  <p className="font-bold text-lg mb-1">{cardB.name}</p>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Retorno Mensal Líquido</p>
-                    <p className={`text-2xl font-bold ${result.returnB.netReturn > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {formatCurrency(result.returnB.netReturn)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      ({result.returnB.isMiles ? 'Via Milhas' : 'Via Cashback'})
-                    </p>
-                  </div>
-                </div>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -269,14 +300,14 @@ export default function ComparadorCartoes() {
               <CheckCircle2 className="h-6 w-6 text-primary" />
             </div>
             <div className="flex-1 text-center md:text-left">
-              <h3 className="font-bold text-white text-lg">Sala VIP? Seguro Viagem? Upgrade de Cabine?</h3>
+              <h3 className="font-bold text-white text-lg">Será que você consegue um cartão ainda melhor?</h3>
               <p className="text-muted-foreground">
-                O retorno financeiro é só o começo. Existem dezenas de benefícios ocultos nos cartões Black que você pode estar perdendo.
+                Muitas vezes é possível conseguir isenção de anuidade ou cartões superiores conversando com o gerente certo. Quer descobrir se você tem acesso a algo melhor?
               </p>
             </div>
             <Link href="/planos">
               <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 whitespace-nowrap">
-                Consultar Benefícios VIP
+                Falar com Consultor
               </Button>
             </Link>
           </div>
