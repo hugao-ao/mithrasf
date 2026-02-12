@@ -2,43 +2,76 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Calculator, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Calculator, CheckCircle2, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
+import { formatCurrency, parseCurrency } from "@/lib/formatters";
 
 export default function CalculadoraJuros() {
+  const [mode, setMode] = useState<'findRate' | 'findInstallment'>('findRate');
+  
   const [values, setValues] = useState({
     parcelValue: "",
     installments: "",
-    cashPrice: ""
+    cashPrice: "",
+    interestRate: ""
   });
+  
   const [result, setResult] = useState<any>(null);
 
-  const calculateInterest = () => {
-    const pmt = parseFloat(values.parcelValue.replace(",", "."));
-    const n = parseInt(values.installments);
-    const pv = parseFloat(values.cashPrice.replace(",", "."));
-
-    if (!pmt || !n || !pv) return;
-
-    // Newton-Raphson method to find interest rate
-    let rate = 0.01; // Initial guess 1%
-    for (let i = 0; i < 20; i++) {
-      const f = pmt * (1 - Math.pow(1 + rate, -n)) / rate - pv;
-      const df = pmt * ((Math.pow(1 + rate, -n - 1) * n * rate - (1 - Math.pow(1 + rate, -n))) / (rate * rate));
-      rate = rate - f / df;
-    }
-
-    const monthlyRate = rate * 100;
-    const totalPaid = pmt * n;
-    const interestPaid = totalPaid - pv;
-
-    setResult({
-      monthlyRate: monthlyRate.toFixed(2),
-      totalPaid: totalPaid.toFixed(2),
-      interestPaid: interestPaid.toFixed(2),
-      isWorthCash: monthlyRate > 0.8 // Assuming 0.8% as a benchmark for safe investment return
+  const handleCurrencyInput = (field: string, value: string) => {
+    const numericValue = value.replace(/\D/g, "");
+    const formattedValue = (Number(numericValue) / 100).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
     });
+    setValues({ ...values, [field]: formattedValue });
+  };
+
+  const calculate = () => {
+    if (mode === 'findRate') {
+      const pmt = parseCurrency(values.parcelValue);
+      const n = parseInt(values.installments);
+      const pv = parseCurrency(values.cashPrice);
+
+      if (!pmt || !n || !pv) return;
+
+      // Newton-Raphson method to find interest rate
+      let rate = 0.01; // Initial guess 1%
+      for (let i = 0; i < 20; i++) {
+        const f = pmt * (1 - Math.pow(1 + rate, -n)) / rate - pv;
+        const df = pmt * ((Math.pow(1 + rate, -n - 1) * n * rate - (1 - Math.pow(1 + rate, -n))) / (rate * rate));
+        rate = rate - f / df;
+      }
+
+      const monthlyRate = rate * 100;
+      const totalPaid = pmt * n;
+      const interestPaid = totalPaid - pv;
+
+      setResult({
+        monthlyRate: monthlyRate.toFixed(2),
+        totalPaid: formatCurrency(totalPaid),
+        interestPaid: formatCurrency(interestPaid),
+        isWorthCash: monthlyRate > 0.8
+      });
+    } else {
+      // Find Installment Mode
+      const pv = parseCurrency(values.cashPrice);
+      const n = parseInt(values.installments);
+      const rate = parseFloat(values.interestRate.replace(",", ".")) / 100;
+
+      if (!pv || !n || !rate) return;
+
+      const pmt = pv * (rate * Math.pow(1 + rate, n)) / (Math.pow(1 + rate, n) - 1);
+      const totalPaid = pmt * n;
+      const interestPaid = totalPaid - pv;
+
+      setResult({
+        installmentValue: formatCurrency(pmt),
+        totalPaid: formatCurrency(totalPaid),
+        interestPaid: formatCurrency(interestPaid)
+      });
+    }
   };
 
   return (
@@ -53,26 +86,53 @@ export default function CalculadoraJuros() {
           <h1 className="text-3xl font-bold text-white flex items-center gap-2">
             <Calculator className="h-8 w-8 text-green-400" /> Calculadora de Juros Reais
           </h1>
-          <p className="text-muted-foreground">Descubra os juros escondidos no "parcelado sem juros".</p>
+          <p className="text-muted-foreground">Descubra os juros escondidos ou simule parcelas.</p>
         </div>
+      </div>
+
+      {/* Mode Switcher */}
+      <div className="flex p-1 bg-card/50 border border-white/10 rounded-lg w-fit mx-auto">
+        <button
+          onClick={() => { setMode('findRate'); setResult(null); }}
+          className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
+            mode === 'findRate' 
+              ? 'bg-primary text-primary-foreground shadow-lg' 
+              : 'text-muted-foreground hover:text-white'
+          }`}
+        >
+          Descobrir Taxa de Juros
+        </button>
+        <button
+          onClick={() => { setMode('findInstallment'); setResult(null); }}
+          className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
+            mode === 'findInstallment' 
+              ? 'bg-primary text-primary-foreground shadow-lg' 
+              : 'text-muted-foreground hover:text-white'
+          }`}
+        >
+          Calcular Parcela
+        </button>
       </div>
 
       <div className="grid md:grid-cols-2 gap-8">
         <Card className="bg-card/50 border-white/10 h-fit">
           <CardHeader>
-            <CardTitle className="text-green-400">Dados da Compra</CardTitle>
+            <CardTitle className="text-green-400">
+              {mode === 'findRate' ? 'Dados da Compra' : 'Simulação de Financiamento'}
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Valor da Parcela (R$)</Label>
+              <Label>Valor à Vista (R$)</Label>
               <Input 
-                type="number" 
-                placeholder="Ex: 100.00" 
-                value={values.parcelValue}
-                onChange={(e) => setValues({...values, parcelValue: e.target.value})}
+                type="text" 
+                placeholder="R$ 0,00" 
+                value={values.cashPrice}
+                onChange={(e) => handleCurrencyInput('cashPrice', e.target.value)}
                 className="bg-background/50 border-white/10"
               />
             </div>
+
             <div className="space-y-2">
               <Label>Número de Parcelas</Label>
               <Input 
@@ -83,18 +143,33 @@ export default function CalculadoraJuros() {
                 className="bg-background/50 border-white/10"
               />
             </div>
-            <div className="space-y-2">
-              <Label>Preço à Vista com Desconto (R$)</Label>
-              <Input 
-                type="number" 
-                placeholder="Ex: 1000.00" 
-                value={values.cashPrice}
-                onChange={(e) => setValues({...values, cashPrice: e.target.value})}
-                className="bg-background/50 border-white/10"
-              />
-            </div>
-            <Button onClick={calculateInterest} className="w-full h-12 font-bold bg-green-500 hover:bg-green-600 mt-4">
-              Calcular Juros Reais
+
+            {mode === 'findRate' ? (
+              <div className="space-y-2">
+                <Label>Valor da Parcela (R$)</Label>
+                <Input 
+                  type="text" 
+                  placeholder="R$ 0,00" 
+                  value={values.parcelValue}
+                  onChange={(e) => handleCurrencyInput('parcelValue', e.target.value)}
+                  className="bg-background/50 border-white/10"
+                />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label>Taxa de Juros Mensal (%)</Label>
+                <Input 
+                  type="number" 
+                  placeholder="Ex: 1.5" 
+                  value={values.interestRate}
+                  onChange={(e) => setValues({...values, interestRate: e.target.value})}
+                  className="bg-background/50 border-white/10"
+                />
+              </div>
+            )}
+
+            <Button onClick={calculate} className="w-full h-12 font-bold bg-green-500 hover:bg-green-600 mt-4">
+              {mode === 'findRate' ? 'Descobrir Taxa Real' : 'Calcular Valor da Parcela'}
             </Button>
           </CardContent>
         </Card>
@@ -104,33 +179,39 @@ export default function CalculadoraJuros() {
             <Card className="bg-card border-green-500/30 shadow-lg shadow-green-500/10">
               <CardContent className="p-6 space-y-6">
                 <div className="text-center space-y-2">
-                  <p className="text-muted-foreground">Taxa de Juros Mensal Encontrada</p>
-                  <div className="text-5xl font-bold text-white">
-                    {result.monthlyRate}% <span className="text-lg text-muted-foreground">a.m.</span>
+                  <p className="text-muted-foreground">
+                    {mode === 'findRate' ? 'Taxa de Juros Mensal Real' : 'Valor da Parcela Mensal'}
+                  </p>
+                  <div className="text-4xl font-bold text-white">
+                    {mode === 'findRate' 
+                      ? `${result.monthlyRate}% a.m.` 
+                      : result.installmentValue}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
                   <div>
-                    <p className="text-xs text-muted-foreground">Total a Pagar Parcelado</p>
-                    <p className="text-xl font-bold text-red-400">R$ {result.totalPaid}</p>
+                    <p className="text-xs text-muted-foreground">Total a Pagar</p>
+                    <p className="text-xl font-bold text-red-400">{result.totalPaid}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Juros Pagos "de Graça"</p>
-                    <p className="text-xl font-bold text-red-400">R$ {result.interestPaid}</p>
+                    <p className="text-xs text-muted-foreground">Juros Totais</p>
+                    <p className="text-xl font-bold text-red-400">{result.interestPaid}</p>
                   </div>
                 </div>
 
-                <div className={`p-4 rounded-lg border ${result.isWorthCash ? 'bg-green-500/10 border-green-500/30' : 'bg-yellow-500/10 border-yellow-500/30'}`}>
-                  <h3 className={`font-bold mb-2 ${result.isWorthCash ? 'text-green-400' : 'text-yellow-400'}`}>
-                    {result.isWorthCash ? '✅ Vale a pena pagar à vista!' : '⚠️ Talvez compense parcelar'}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {result.isWorthCash 
-                      ? `Se você tiver o dinheiro, pague à vista. O desconto equivale a um rendimento de ${result.monthlyRate}% ao mês, difícil de conseguir em investimentos seguros.`
-                      : `A taxa de juros é baixa (${result.monthlyRate}%). Se você investir o dinheiro e render mais que isso, pode valer a pena parcelar.`}
-                  </p>
-                </div>
+                {mode === 'findRate' && (
+                  <div className={`p-4 rounded-lg border ${result.isWorthCash ? 'bg-green-500/10 border-green-500/30' : 'bg-yellow-500/10 border-yellow-500/30'}`}>
+                    <h3 className={`font-bold mb-2 ${result.isWorthCash ? 'text-green-400' : 'text-yellow-400'}`}>
+                      {result.isWorthCash ? '✅ Vale a pena pagar à vista!' : '⚠️ Talvez compense parcelar'}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {result.isWorthCash 
+                        ? `O desconto equivale a um rendimento de ${result.monthlyRate}% ao mês. Dificilmente um investimento seguro supera isso.`
+                        : `A taxa de juros é baixa (${result.monthlyRate}%). Se você investir o dinheiro, pode render mais que isso.`}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
