@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatCurrency, formatCurrencyInput } from "@/lib/formatters";
 import { ArrowLeft, CheckCircle2, LineChart, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 
 export default function Oraculo() {
@@ -49,6 +49,9 @@ export default function Oraculo() {
     const data = [];
     const totalMonths = timeUnit === 'years' ? time * 12 : time;
 
+    // Add initial point
+    data.push({ label: 'Início', value: wealth, withdrawn: 0 });
+
     for (let month = 1; month <= totalMonths; month++) {
       current = current * (1 + monthlyRate) + contribution;
 
@@ -61,10 +64,6 @@ export default function Oraculo() {
         const isGoalMonth = timeUnit === 'years' 
           ? (month % 12 === 0 && Math.floor(month / 12) === goalTime) // Year match
           : month === goalTime; // Month match
-
-        const isRecurringMatch = g.isRecurring && (
-          timeUnit === 'years' ? month % 12 === 0 : true // Annual recurring
-        );
 
         if (isGoalMonth || (g.isRecurring && month % 12 === 0)) {
            // Simplified recurring logic: apply every year
@@ -86,6 +85,14 @@ export default function Oraculo() {
     setChartData(data);
   };
 
+  // Auto-calculate when inputs change
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      calculate();
+    }, 500); // Debounce calculation
+    return () => clearTimeout(timer);
+  }, [currentWealth, monthlyContribution, interestRate, duration, goals, timeUnit]);
+
   // Simple SVG Chart Component (Mobile Friendly)
   const Chart = ({ data }: { data: any[] }) => {
     if (!data.length) return null;
@@ -98,13 +105,23 @@ export default function Oraculo() {
         <div className="h-[300px] min-w-[300px] w-full flex items-end gap-1 relative border-b border-white/10 pb-8 pt-4">
           {data.map((d, i) => {
             // Normalize height between 0 and 100%
-            const heightPercent = Math.max(((d.value - Math.min(0, minValue)) / range) * 100, 2);
+            // Ensure minimum height of 2px so bar is visible even if value is 0
+            let heightPercent = 0;
+            if (range > 0) {
+                heightPercent = ((d.value - Math.min(0, minValue)) / range) * 100;
+            } else {
+                // If range is 0 (all values equal), show 50% height
+                heightPercent = 50;
+            }
+            
+            // Ensure minimum visual height
+            const visualHeight = Math.max(Math.abs(heightPercent), 2);
             
             return (
               <div key={i} className="flex-1 flex flex-col items-center group relative min-w-[10px]">
                 <div 
                   className={`w-full max-w-[20px] rounded-t-sm transition-all duration-500 ${d.value < 0 ? 'bg-red-500' : 'bg-yellow-500'}`}
-                  style={{ height: `${Math.abs(heightPercent)}%` }}
+                  style={{ height: `${visualHeight}%` }}
                 >
                   {/* Tooltip */}
                   <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-black/90 text-white text-xs p-2 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10 pointer-events-none border border-white/10 shadow-xl">
@@ -264,8 +281,13 @@ export default function Oraculo() {
                     <div key={i} className="flex justify-between items-center text-sm bg-white/5 p-2 rounded">
                       <span>
                         {g.name} ({timeUnit === 'years' ? 'Ano' : 'Mês'} {g.time}) 
-                        {g.isRecurring && " 🔄"}
-                        : -{g.value}
+                        {g.isRecurring && ' (Anual)'}
+                      </span>
+                      <span className="text-red-400">
+                        {g.isRecurring 
+                          ? `-${g.value}/ano`
+                          : -{g.value}
+                        }
                       </span>
                       <Button variant="ghost" size="sm" onClick={() => removeGoal(i)} className="h-6 w-6 p-0 text-red-400">
                         <Trash2 className="h-3 w-3" />
