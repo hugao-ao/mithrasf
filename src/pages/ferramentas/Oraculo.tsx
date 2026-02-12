@@ -286,7 +286,7 @@ export default function Oraculo() {
                       <span className="text-red-400">
                         {g.isRecurring 
                           ? `-${g.value}/ano`
-                          : -{g.value}
+                          : `-${g.value}`
                         }
                       </span>
                       <Button variant="ghost" size="sm" onClick={() => removeGoal(i)} className="h-6 w-6 p-0 text-red-400">
