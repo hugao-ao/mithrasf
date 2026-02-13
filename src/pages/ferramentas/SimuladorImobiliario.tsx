@@ -238,12 +238,12 @@ export default function SimuladorImobiliario() {
                   Você vai pagar de {result.sac.multiplier.toFixed(1)}x a {result.price.multiplier.toFixed(1)}x o valor do imóvel!
                 </h3>
                 <p className="text-muted-foreground text-sm mt-2 max-w-2xl mx-auto">
-                  Quer uma estratégia para pagar menos juros e quitar em menos tempo?
+                  Quer um especialista para te ajudar a pagar menos juros e quitar em menos tempo?
                 </p>
               </div>
               <Link href="/planos">
                 <Button variant="outline" className="w-full md:w-auto border-primary text-primary hover:bg-primary/10">
-                  Quero uma Estratégia de Compra Inteligente
+                  Sim, quero um especialista
                 </Button>
               </Link>
             </div>
