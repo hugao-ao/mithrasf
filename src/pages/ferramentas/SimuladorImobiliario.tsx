@@ -56,13 +56,11 @@ export default function SimuladorImobiliario() {
     const totalPaidPrice = installmentPrice * months;
     const totalInterestPrice = totalPaidPrice - loanAmount;
 
-    // Multiplicadores em relação ao valor TOTAL do imóvel (não só financiado)
-    // Custo Total (Entrada + Total Financiamento) / Valor do Imóvel
-    const totalCostSAC = totalPaidSAC + entry;
-    const totalCostPrice = totalPaidPrice + entry;
-    
-    const multiplierSAC = totalCostSAC / pv;
-    const multiplierPrice = totalCostPrice / pv;
+    // Multiplicadores em relação ao valor TOTAL do imóvel
+    // Ajuste: Considerar apenas o Total Pago no Financiamento / Valor do Imóvel
+    // (Conforme solicitado pelo usuário: 398k / 200k = 1.99x)
+    const multiplierSAC = totalPaidSAC / pv;
+    const multiplierPrice = totalPaidPrice / pv;
 
     setResult({
       loanAmount,
@@ -240,7 +238,7 @@ export default function SimuladorImobiliario() {
                   Você vai pagar de {result.sac.multiplier.toFixed(1)}x a {result.price.multiplier.toFixed(1)}x o valor do imóvel!
                 </h3>
                 <p className="text-muted-foreground text-sm mt-2 max-w-2xl mx-auto">
-                  Isso considerando o valor total do imóvel (Entrada + Financiamento). Financiar é comprar dinheiro caro do banco. Já pensou em montar uma estratégia para comprar à vista ou dar uma entrada muito maior em poucos anos?
+                  Isso considerando apenas o custo do financiamento em relação ao valor do bem. Financiar é comprar dinheiro caro do banco. Já pensou em montar uma estratégia para comprar à vista ou dar uma entrada muito maior em poucos anos?
                 </p>
               </div>
               <Link href="/planos">
