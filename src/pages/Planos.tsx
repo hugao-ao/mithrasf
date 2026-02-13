@@ -24,11 +24,10 @@ export default function Planos() {
       ],
       details: {
         reunioes: "Ilimitadas (mediante agendamento)",
-        prioridade: "Baixa (prazo máx. 6 meses para agendamento)",
-        suporte: "WhatsApp em horário comercial para dúvidas pontuais",
+        prioridade: "Baixa",
         escopo: [
-          "O consultor te ajuda com qualquer coisa durante o momento da reunião.",
-          "Fora dela só o suporte para dúvidas no whatsapp."
+          "Contato ilimitado via whatsapp (Sem análises novas ou cotações).",
+          "Resolução de qualquer tipo de demanda durante o horário da reunião."
         ],
         adesao_info: "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 6 meses)"
       },
@@ -48,12 +47,11 @@ export default function Planos() {
       ],
       details: {
         reunioes: "Ilimitadas (mediante agendamento)",
-        prioridade: "Normal (prazo máx. 4 meses para agendamento)",
-        suporte: "WhatsApp para dúvidas e pedidos de cotação",
+        prioridade: "Normal",
         escopo: [
-          "O consultor te ajuda com qualquer coisa durante o momento da reunião.",
-          "Fora dela, além do suporte whatsapp, faz cotações e pesquisas relacionadas aos assuntos apenas tratados na reunião.",
-          "Sem demandas novas via whatsapp."
+          "Contato ilimitado via whatsapp (Sem novas análises).",
+          "Resolução de qualquer tipo de demanda durante o horário da reunião.",
+          "Cotações e Pesquisas relativas às demandas da reunião."
         ],
         adesao_info: "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 4 meses)"
       },
@@ -73,12 +71,13 @@ export default function Planos() {
       ],
       details: {
         reunioes: "Ilimitadas (mediante agendamento)",
-        prioridade: "Alta (prazo máx. 2 meses para agendamento)",
-        suporte: "WhatsApp completo + Intermediação de serviços",
+        prioridade: "Alta",
         escopo: [
-          "O consultor te ajuda com qualquer coisa durante o momento da reunião.",
-          "Fora dela, além do suporte whatsapp, cotações e pesquisas relacionadas aos assuntos tratados na reunião ou demandados via whatsapp, intermedia a escolha de qualquer produto ou serviço que você queira, mas a decisão no final é SUA.",
-          "Além disso, fala com você no whats a cada 15 dias para receber atualizações e monitorar você."
+          "Contato ilimitado via whatsapp.",
+          "Resolução de qualquer tipo de demanda durante o horário da reunião.",
+          "Cotações e Pesquisas relativas às demandas da reunião.",
+          "Intermediação de contratação de produtos e serviços.",
+          "Contato via whatsapp mensal para atualizações e/ou relatórios."
         ],
         adesao_info: "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 2 meses)"
       },
@@ -98,14 +97,15 @@ export default function Planos() {
       ],
       details: {
         reunioes: "Ilimitadas + Horário Fixo Mensal Garantido",
-        prioridade: "Máxima (Atendimento VIP)",
-        suporte: "Resolução total de problemas (inclusive burocráticos)",
+        prioridade: "Máxima",
         escopo: [
-          "O consultor te ajuda com qualquer coisa durante o momento da reunião.",
-          "Fora dela, além do suporte whatsapp, cotações e pesquisas relacionadas aos assuntos tratados na reunião ou demandados via whatsapp, resolverá no seu lugar o máximo de coisas que pode legalmente fazer por você no seu lugar, restando para você apenas aprovar ou não as escolhas feitas e decidir quando necessário.",
-          "Além disso, fala com você no whatssapp semanalmente para passar relatório e fazer atualizações."
+          "Contato ilimitado via whatsapp.",
+          "Resolução de qualquer tipo de demanda durante o horário da reunião.",
+          "Cotações e Pesquisas relativas às demandas da reunião.",
+          "Intermediação de contratação de produtos e serviços que não puderem ser resolvidos pelo consultor no seu lugar.",
+          "Contato via whatsapp semanal para atualizações e/ou relatórios."
         ],
-        adesao_info: "(Contratando a ADESÃO, tem direito a reunião mensal com consultor)"
+        adesao_info: ""
       },
       highlight: false,
       isPremium: true,
@@ -213,7 +213,9 @@ export default function Planos() {
                       <h4 className="font-semibold text-white text-sm">📅 Reuniões</h4>
                       <div className="text-sm text-muted-foreground bg-white/5 p-3 rounded-lg border border-white/5">
                         <p>{plan.details.reunioes}</p>
-                        <p className="text-xs text-primary mt-1 font-medium">{plan.details.adesao_info}</p>
+                        {plan.details.adesao_info && (
+                          <p className="text-xs text-primary mt-1 font-medium">{plan.details.adesao_info}</p>
+                        )}
                       </div>
                     </div>
                     
@@ -225,24 +227,13 @@ export default function Planos() {
                     </div>
 
                     <div className="space-y-2">
-                      <h4 className="font-semibold text-white text-sm">💬 Suporte WhatsApp</h4>
-                      <p className="text-sm text-muted-foreground bg-white/5 p-3 rounded-lg border border-white/5">
-                        {plan.details.suporte}
-                      </p>
-                    </div>
-
-                    <div className="space-y-2">
                       <h4 className="font-semibold text-white text-sm">🎯 O que está incluso?</h4>
                       <div className="text-sm text-muted-foreground bg-white/5 p-3 rounded-lg border border-white/5 space-y-2">
-                        {Array.isArray(plan.details.escopo) ? (
-                          <ul className="list-disc pl-4 space-y-1">
-                            {plan.details.escopo.map((item, idx) => (
-                              <li key={idx}>{item}</li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <p>{plan.details.escopo}</p>
-                        )}
+                        <ul className="list-disc pl-4 space-y-1">
+                          {plan.details.escopo.map((item, idx) => (
+                            <li key={idx}>{item}</li>
+                          ))}
+                        </ul>
                       </div>
                     </div>
                   </div>
