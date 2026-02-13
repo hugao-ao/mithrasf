@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Check, Clock, Info, Shield, Star, Target } from "lucide-react";
+import { Check, Clock, Info, Shield, Star, Target, FileText } from "lucide-react";
 
 export default function Planos() {
   const plans = [
@@ -29,7 +29,11 @@ export default function Planos() {
           "Contato ilimitado via whatsapp (Sem análises novas ou cotações).",
           "Resolução de qualquer tipo de demanda durante o horário da reunião."
         ],
-        adesao_info: "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 6 meses)"
+        adesao_info: "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 6 meses)",
+        contract: {
+          sla_agenda: "6 meses",
+          sla_whatsapp: "30 dias"
+        }
       },
       highlight: false,
       icon: Target
@@ -53,7 +57,11 @@ export default function Planos() {
           "Resolução de qualquer tipo de demanda durante o horário da reunião.",
           "Cotações e Pesquisas relativas às demandas da reunião."
         ],
-        adesao_info: "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 4 meses)"
+        adesao_info: "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 4 meses)",
+        contract: {
+          sla_agenda: "4 meses",
+          sla_whatsapp: "15 dias"
+        }
       },
       highlight: false,
       icon: Clock
@@ -79,7 +87,11 @@ export default function Planos() {
           "Intermediação de contratação de produtos e serviços.",
           "Contato via whatsapp mensal para atualizações e/ou relatórios."
         ],
-        adesao_info: "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 2 meses)"
+        adesao_info: "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 2 meses)",
+        contract: {
+          sla_agenda: "2 meses",
+          sla_whatsapp: "7 dias"
+        }
       },
       highlight: true,
       icon: Star
@@ -105,7 +117,11 @@ export default function Planos() {
           "Intermediação de contratação de produtos e serviços que não puderem ser resolvidos pelo consultor no seu lugar.",
           "Contato via whatsapp semanal para atualizações e/ou relatórios."
         ],
-        adesao_info: ""
+        adesao_info: "",
+        contract: {
+          sla_agenda: "1 mês",
+          sla_whatsapp: "72 horas"
+        }
       },
       highlight: false,
       isPremium: true,
@@ -235,6 +251,78 @@ export default function Planos() {
                           ))}
                         </ul>
                       </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-white/10">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" className="w-full border-primary/30 text-primary hover:bg-primary/10">
+                            <FileText className="mr-2 h-4 w-4" /> Consultar Contrato Completo
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="bg-card border-primary/20 text-white max-w-2xl max-h-[80vh] overflow-y-auto">
+                          <DialogHeader>
+                            <DialogTitle className="text-xl font-bold text-primary">Contrato de Prestação de Serviços - {plan.name}</DialogTitle>
+                            <DialogDescription>Termos e condições do serviço de Consultoria Administrativa Financeira.</DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-4 text-sm text-muted-foreground leading-relaxed pr-2">
+                            <div className="p-4 bg-white/5 rounded-lg border border-white/5 space-y-4">
+                              <h4 className="font-bold text-white">1. O QUE VOCÊ ESTÁ CONTRATANDO</h4>
+                              <p>
+                                Você está contratando um serviço de <strong>Organização e Apoio Administrativo Financeiro</strong>. 
+                                O CONSULTOR vai te ajudar a organizar seus dados, controlar seu fluxo de caixa, pesquisar preços e resolver burocracias.
+                              </p>
+                              <p className="bg-yellow-500/10 border-l-2 border-yellow-500 pl-3 py-1 text-yellow-200/90 text-xs">
+                                <strong>IMPORTANTE:</strong> Este contrato NÃO é uma consultoria de investimentos. O CONSULTOR não vai recomendar compra ou venda de ações, fundos ou ativos financeiros. Todas as decisões finais sobre onde colocar seu dinheiro são 100% suas.
+                              </p>
+
+                              <h4 className="font-bold text-white mt-6">2. PRAZOS E REGRAS DE ATENDIMENTO</h4>
+                              <ul className="list-disc pl-4 space-y-2">
+                                <li>
+                                  <strong>Agendamento:</strong> O CONSULTOR tem até <strong>{plan.details.contract.sla_agenda}</strong> para conseguir um horário na agenda para você, contando a partir do dia que você pedir no WhatsApp.
+                                </li>
+                                <li>
+                                  <strong>Respostas no WhatsApp:</strong> Quando você mandar mensagem, o CONSULTOR tem até <strong>{plan.details.contract.sla_whatsapp}</strong> (dias úteis) para responder.
+                                </li>
+                                <li>
+                                  <strong>Onde falar:</strong> Tudo deve ser pedido ou nas reuniões ou no WhatsApp oficial. Pedidos feitos por outros canais (Instagram, e-mail pessoal, sinal de fumaça) não valem.
+                                </li>
+                              </ul>
+
+                              <h4 className="font-bold text-white mt-6">3. REGRAS DE REUNIÕES (LEIA COM ATENÇÃO)</h4>
+                              <ul className="list-disc pl-4 space-y-2">
+                                <li>
+                                  <strong>Antecedência Mínima:</strong> Toda reunião deve ser marcada com pelo menos <strong>7 dias de antecedência</strong>. Pedidos de última hora podem não ser atendidos.
+                                </li>
+                                <li>
+                                  <strong>Faltou? Contou!:</strong> Se a reunião estiver marcada e você não aparecer ("No-Show"), ela será considerada como <strong>REALIZADA</strong> no sistema. A data dessa reunião perdida contará como a data oficial da última atualização do seu planejamento.
+                                </li>
+                                <li>
+                                  <strong>Remarcação Garantida:</strong> Você só tem garantia de remarcação se o CONSULTOR precisar cancelar ou se ele não aparecer. Se o imprevisto for seu, a remarcação depende da disponibilidade da agenda (sem garantia).
+                                </li>
+                              </ul>
+
+                              <h4 className="font-bold text-white mt-6">4. SEUS DADOS ESTÃO SEGUROS</h4>
+                              <p>
+                                Para sua segurança, criaremos um e-mail exclusivo (ex: <code>seu.cpf@hvsf.gmail.com</code>) que será compartilhado com você.
+                              </p>
+                              <ul className="list-disc pl-4 space-y-2">
+                                <li>Todas as suas informações financeiras ficam salvas na agenda desse e-mail.</li>
+                                <li>Nosso sistema acessa apenas o necessário via integração segura com o Google.</li>
+                                <li>Se houver qualquer problema de segurança, seus dados estão protegidos pela senha e autenticação de dois fatores desse e-mail, que só você e o consultor têm acesso.</li>
+                              </ul>
+
+                              <h4 className="font-bold text-white mt-6">5. PAGAMENTO, CANCELAMENTO E REEMBOLSO</h4>
+                              <ul className="list-disc pl-4 space-y-2">
+                                <li><strong>Sem Multa:</strong> Você pode cancelar a qualquer momento. Não cobramos multa para sair.</li>
+                                <li><strong>Direito de Arrependimento (Lei do Consumidor):</strong> Se você assinou online e se arrependeu, tem <strong>7 dias corridos</strong> para pedir o cancelamento e receber 100% do seu dinheiro de volta. Passou de 7 dias? Não há reembolso do que já foi pago.</li>
+                                <li><strong>Processamento:</strong> Se você cancelar muito em cima da data de renovação, pode ser que a cobrança do mês seguinte já tenha sido enviada ao banco. Nesse caso, não há devolução proporcional (pro-rata).</li>
+                                <li><strong>Seus Dados:</strong> Se cancelar, guardamos seu histórico por 60 dias. Se não voltar nesse prazo, apagamos tudo definitivamente.</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </div>
                 </DialogContent>
