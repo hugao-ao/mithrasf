@@ -307,7 +307,7 @@ export default function ComparadorCartoes() {
             <div className="flex-1 text-center md:text-left">
               <h3 className="font-bold text-white text-lg">Será que você consegue um cartão ainda melhor?</h3>
               <p className="text-muted-foreground">
-                Muitas vezes é possível conseguir isenção de anuidade ou cartões superiores conversando com o gerente certo. Quer descobrir se você tem acesso a algo melhor?
+                Você pode estar deixando de ganhar muito mais milhas ou cashback. Quer um especialista para analisar seu perfil e te ajudar a conseguir os melhores cartões do mercado?
               </p>
             </div>
             <Link href="/planos">
