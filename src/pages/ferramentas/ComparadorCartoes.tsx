@@ -3,15 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatCurrency, formatCurrencyInput } from "@/lib/formatters";
-import { ArrowLeft, CheckCircle2, CreditCard, Trophy, Info } from "lucide-react";
+import { ArrowLeft, CheckCircle2, CreditCard, Trophy } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 export default function ComparadorCartoes() {
   const [monthlySpend, setMonthlySpend] = useState("");
@@ -254,32 +248,12 @@ export default function ComparadorCartoes() {
 
               <div className="grid md:grid-cols-2 gap-4 pt-4 border-t border-white/10">
                 {[result.returnA, result.returnB].map((ret, idx) => (
-                  <div key={idx} className={`p-4 rounded-lg text-left ${ret.netReturn === Math.max(result.returnA.netReturn, result.returnB.netReturn) ? 'bg-green-500/20 border border-green-500/30' : 'bg-white/5'}`}>
+                  <div key={idx} className={`p-4 rounded-lg text-left transition-all duration-300 ${ret.netReturn === Math.max(result.returnA.netReturn, result.returnB.netReturn) ? 'bg-green-500/20 border border-green-500/30' : 'bg-white/5'}`}>
                     <div className="flex justify-between items-start mb-2">
                       <p className="font-bold text-lg">{idx === 0 ? cardA.name : cardB.name}</p>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Info className="h-4 w-4 text-muted-foreground hover:text-white" />
-                          </TooltipTrigger>
-                          <TooltipContent className="bg-black border border-white/20 p-3 max-w-xs">
-                            <p className="font-bold mb-2">Memória de Cálculo:</p>
-                            <ul className="text-xs space-y-1">
-                              <li>Gasto: {formatCurrency(result.params.spend)}</li>
-                              <li>Dólar: R$ {result.params.dollar.toFixed(2)}</li>
-                              <li>Milheiro: R$ {(result.params.milePrice * 1000).toFixed(2)}</li>
-                              <li className="border-t border-white/20 pt-1 mt-1">
-                                Milhas Geradas: {ret.details.milesGenerated.toFixed(0)} ({formatCurrency(ret.details.milesReturn)})
-                              </li>
-                              <li>Cashback: {formatCurrency(ret.details.cashbackReturn)}</li>
-                              <li>Anuidade Mensal: -{formatCurrency(ret.fee)}</li>
-                            </ul>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
                     </div>
                     
-                    <div className="space-y-1">
+                    <div className="space-y-1 mb-4">
                       <p className="text-sm text-muted-foreground">Retorno Mensal Líquido</p>
                       <p className={`text-2xl font-bold ${ret.netReturn > 0 ? 'text-green-400' : 'text-red-400'}`}>
                         {formatCurrency(ret.netReturn)}
@@ -287,6 +261,37 @@ export default function ComparadorCartoes() {
                       <p className="text-xs text-muted-foreground">
                         ({ret.isMiles ? 'Melhor via Milhas' : 'Melhor via Cashback'})
                       </p>
+                    </div>
+
+                    {/* Memória de Cálculo Fixa */}
+                    <div className="mt-3 pt-3 border-t border-white/10 text-xs space-y-2">
+                      <p className="font-bold text-muted-foreground mb-2">Memória de Cálculo:</p>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Gasto Mensal:</span>
+                        <span>{formatCurrency(result.params.spend)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Cotação Dólar:</span>
+                        <span>R$ {result.params.dollar.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Milhas Geradas:</span>
+                        <span>{ret.details.milesGenerated.toFixed(0)} ({formatCurrency(ret.details.milesReturn)})</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Cashback:</span>
+                        <span>{formatCurrency(ret.details.cashbackReturn)}</span>
+                      </div>
+                      <div className="flex justify-between text-red-400">
+                        <span>Anuidade Mensal:</span>
+                        <span>-{formatCurrency(ret.fee)}</span>
+                      </div>
+                      <div className="flex justify-between font-bold pt-2 border-t border-white/10">
+                        <span>Resultado Final:</span>
+                        <span className={ret.netReturn > 0 ? 'text-green-400' : 'text-red-400'}>
+                          {formatCurrency(ret.netReturn)}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 ))}
