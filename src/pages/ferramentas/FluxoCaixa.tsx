@@ -287,13 +287,13 @@ export default function FluxoCaixa() {
             <div>
               <h3 className="font-bold text-white text-lg">
                 {result.balance >= 0 
-                  ? "Seu dinheiro está sobrando, mas está rendendo o máximo?" 
-                  : "Identificamos o problema. Agora vamos resolver?"}
+                  ? "Você tem dinheiro sobrando, mas onde ele está?" 
+                  : "Alerta Vermelho! Você está sangrando financeiramente."}
               </h3>
               <p className="text-muted-foreground text-sm mt-2">
                 {result.balance >= 0 
-                  ? "Não deixe a inflação comer seu lucro. Quer aprender a investir com inteligência?"
-                  : "Cortar o cafezinho não resolve. Quer um plano estrutural para sair dessa?"}
+                  ? `Você tem ${formatCurrency(result.balance)} que deveriam estar construindo sua liberdade, mas onde eles estão? Se você não vê esse dinheiro, você está queimando patrimônio.`
+                  : `Você está perdendo ${formatCurrency(Math.abs(result.balance))} por mês. Isso destrói qualquer plano de futuro. É uma emergência.`}
               </p>
             </div>
             <Link href="/planos">
