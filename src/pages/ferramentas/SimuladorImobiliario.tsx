@@ -238,7 +238,7 @@ export default function SimuladorImobiliario() {
                   Você vai pagar de {result.sac.multiplier.toFixed(1)}x a {result.price.multiplier.toFixed(1)}x o valor do imóvel!
                 </h3>
                 <p className="text-muted-foreground text-sm mt-2 max-w-2xl mx-auto">
-                  Isso considerando apenas o custo do financiamento em relação ao valor do bem. Financiar é comprar dinheiro caro do banco. Já pensou em montar uma estratégia para comprar à vista ou dar uma entrada muito maior em poucos anos?
+                  Quer uma estratégia para pagar menos juros e quitar em menos tempo?
                 </p>
               </div>
               <Link href="/planos">
