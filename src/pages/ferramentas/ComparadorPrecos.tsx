@@ -153,11 +153,13 @@ export default function ComparadorPrecos() {
             </div>
             <div className="flex-1 text-center md:text-left">
               <h3 className="font-bold text-white text-lg">Economizar no mercado é bom...</h3>
-              <p className="text-muted-foreground">Mas saber investir essa economia é o que muda sua vida. Quer aprender a fazer seu dinheiro render mais?</p>
+              <p className="text-muted-foreground">
+                Mas saber investir essa economia é o que muda sua vida. Quer um especialista para fazer seu dinheiro render mais?
+              </p>
             </div>
             <Link href="/planos">
               <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 whitespace-nowrap">
-                Falar com Consultor
+                Sim, quero um especialista
               </Button>
             </Link>
           </div>
