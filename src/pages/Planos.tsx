@@ -24,9 +24,13 @@ export default function Planos() {
       ],
       details: {
         reunioes: "Ilimitadas (mediante agendamento)",
-        prioridade: "Normal (prazo máx. 6 meses para agendamento)",
+        prioridade: "Baixa (prazo máx. 6 meses para agendamento)",
         suporte: "WhatsApp em horário comercial para dúvidas pontuais",
-        escopo: "O consultor define o plano e você implementa sozinho."
+        escopo: [
+          "O consultor te ajuda com qualquer coisa durante o momento da reunião.",
+          "Fora dela só o suporte para dúvidas no whatsapp."
+        ],
+        adesao_info: "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 6 meses)"
       },
       highlight: false,
       icon: Target
@@ -40,13 +44,18 @@ export default function Planos() {
         "Tudo do Nível I",
         "Nós fazemos as cotações para você",
         "Prioridade maior na agenda",
-        "Ajuda para encontrar o melhor custo-benefício de qualquer produto ou serviço"
+        "Ajuda para encontrar os melhores preços"
       ],
       details: {
         reunioes: "Ilimitadas (mediante agendamento)",
-        prioridade: "Baixa (prazo máx. 4 meses para agendamento)",
+        prioridade: "Normal (prazo máx. 4 meses para agendamento)",
         suporte: "WhatsApp para dúvidas e pedidos de cotação",
-        escopo: "Além do plano, nós pesquisamos preços e opções para você."
+        escopo: [
+          "O consultor te ajuda com qualquer coisa durante o momento da reunião.",
+          "Fora dela, além do suporte whatsapp, faz cotações e pesquisas relacionadas aos assuntos apenas tratados na reunião.",
+          "Sem demandas novas via whatsapp."
+        ],
+        adesao_info: "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 4 meses)"
       },
       highlight: false,
       icon: Clock
@@ -66,7 +75,12 @@ export default function Planos() {
         reunioes: "Ilimitadas (mediante agendamento)",
         prioridade: "Alta (prazo máx. 2 meses para agendamento)",
         suporte: "WhatsApp completo + Intermediação de serviços",
-        escopo: "Nós falamos com fornecedores por você e monitoramos se o plano está sendo seguido."
+        escopo: [
+          "O consultor te ajuda com qualquer coisa durante o momento da reunião.",
+          "Fora dela, além do suporte whatsapp, cotações e pesquisas relacionadas aos assuntos tratados na reunião ou demandados via whatsapp, intermedia a escolha de qualquer produto ou serviço que você queira, mas a decisão no final é SUA.",
+          "Além disso, fala com você no whats a cada 15 dias para receber atualizações e monitorar você."
+        ],
+        adesao_info: "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 2 meses)"
       },
       highlight: true,
       icon: Star
@@ -86,7 +100,12 @@ export default function Planos() {
         reunioes: "Ilimitadas + Horário Fixo Mensal Garantido",
         prioridade: "Máxima (Atendimento VIP)",
         suporte: "Resolução total de problemas (inclusive burocráticos)",
-        escopo: "Você decide, nós fazemos. Resolvemos tudo que não exigir sua presença física."
+        escopo: [
+          "O consultor te ajuda com qualquer coisa durante o momento da reunião.",
+          "Fora dela, além do suporte whatsapp, cotações e pesquisas relacionadas aos assuntos tratados na reunião ou demandados via whatsapp, resolverá no seu lugar o máximo de coisas que pode legalmente fazer por você no seu lugar, restando para você apenas aprovar ou não as escolhas feitas e decidir quando necessário.",
+          "Além disso, fala com você no whatssapp semanalmente para passar relatório e fazer atualizações."
+        ],
+        adesao_info: "(Contratando a ADESÃO, tem direito a reunião mensal com consultor)"
       },
       highlight: false,
       isPremium: true,
@@ -179,7 +198,7 @@ export default function Planos() {
                     Ver detalhes e regras
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="bg-card border-primary/20 text-white sm:max-w-md">
+                <DialogContent className="bg-card border-primary/20 text-white sm:max-w-md max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle className="text-xl font-bold text-primary flex items-center gap-2">
                       <plan.icon className="h-5 w-5" /> Detalhes do {plan.name}
@@ -192,9 +211,10 @@ export default function Planos() {
                   <div className="space-y-4 py-4">
                     <div className="space-y-2">
                       <h4 className="font-semibold text-white text-sm">📅 Reuniões</h4>
-                      <p className="text-sm text-muted-foreground bg-white/5 p-3 rounded-lg border border-white/5">
-                        {plan.details.reunioes}
-                      </p>
+                      <div className="text-sm text-muted-foreground bg-white/5 p-3 rounded-lg border border-white/5">
+                        <p>{plan.details.reunioes}</p>
+                        <p className="text-xs text-primary mt-1 font-medium">{plan.details.adesao_info}</p>
+                      </div>
                     </div>
                     
                     <div className="space-y-2">
@@ -213,9 +233,17 @@ export default function Planos() {
 
                     <div className="space-y-2">
                       <h4 className="font-semibold text-white text-sm">🎯 O que está incluso?</h4>
-                      <p className="text-sm text-muted-foreground bg-white/5 p-3 rounded-lg border border-white/5">
-                        {plan.details.escopo}
-                      </p>
+                      <div className="text-sm text-muted-foreground bg-white/5 p-3 rounded-lg border border-white/5 space-y-2">
+                        {Array.isArray(plan.details.escopo) ? (
+                          <ul className="list-disc pl-4 space-y-1">
+                            {plan.details.escopo.map((item, idx) => (
+                              <li key={idx}>{item}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p>{plan.details.escopo}</p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </DialogContent>
