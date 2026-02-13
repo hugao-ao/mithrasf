@@ -292,13 +292,13 @@ export default function FluxoCaixa() {
               </h3>
               <p className="text-muted-foreground text-sm mt-2">
                 {result.balance >= 0 
-                  ? "Não deixe a inflação comer seu lucro. Aprenda a investir com inteligência."
-                  : "Cortar o cafezinho não resolve. Você precisa de um plano estrutural para sair dessa."}
+                  ? "Não deixe a inflação comer seu lucro. Quer aprender a investir com inteligência?"
+                  : "Cortar o cafezinho não resolve. Quer um plano estrutural para sair dessa?"}
               </p>
             </div>
             <Link href="/planos">
               <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary/10">
-                Falar com Consultor
+                Sim, quero um especialista
               </Button>
             </Link>
           </div>
