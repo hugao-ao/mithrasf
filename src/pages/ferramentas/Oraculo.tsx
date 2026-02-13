@@ -2,10 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatCurrency, formatCurrencyInput } from "@/lib/formatters";
+import { formatCurrency, formatCurrencyInput, parseCurrency } from "@/lib/formatters";
 import { ArrowLeft, CheckCircle2, LineChart, Plus, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 export default function Oraculo() {
   const [timeUnit, setTimeUnit] = useState<'years' | 'months'>('years');
@@ -39,8 +40,9 @@ export default function Oraculo() {
   };
 
   const calculate = () => {
-    const wealth = parseFloat(currentWealth.replace(/\./g, "").replace(",", ".") || "0");
-    const contribution = parseFloat(monthlyContribution.replace(/\./g, "").replace(",", ".") || "0");
+    // Use parseCurrency helper to ensure correct parsing (handles "R$ 1.000,00" -> 1000.00)
+    const wealth = typeof currentWealth === 'string' ? parseCurrency(currentWealth) : 0;
+    const contribution = typeof monthlyContribution === 'string' ? parseCurrency(monthlyContribution) : 0;
     const rate = parseFloat(interestRate.replace(",", ".") || "0");
     const time = parseInt(duration || "10");
 
@@ -59,7 +61,7 @@ export default function Oraculo() {
       let withdrawn = 0;
       goals.forEach(g => {
         const goalTime = parseInt(g.time);
-        const goalValue = parseFloat(g.value.replace(/\./g, "").replace(",", ".") || "0");
+        const goalValue = typeof g.value === 'string' ? parseCurrency(g.value) : 0;
         
         const isGoalMonth = timeUnit === 'years' 
           ? (month % 12 === 0 && Math.floor(month / 12) === goalTime) // Year match
@@ -92,55 +94,6 @@ export default function Oraculo() {
     }, 500); // Debounce calculation
     return () => clearTimeout(timer);
   }, [currentWealth, monthlyContribution, interestRate, duration, goals, timeUnit]);
-
-  // Simple SVG Chart Component (Mobile Friendly)
-  const Chart = ({ data }: { data: any[] }) => {
-    if (!data.length) return null;
-    const maxValue = Math.max(...data.map(d => d.value));
-    const minValue = Math.min(...data.map(d => d.value)); // Handle negative values
-    const range = maxValue - Math.min(0, minValue);
-    
-    return (
-      <div className="w-full overflow-x-auto">
-        <div className="h-[300px] min-w-[300px] w-full flex items-end gap-1 relative border-b border-white/10 pb-8 pt-4">
-          {data.map((d, i) => {
-            // Normalize height between 0 and 100%
-            // Ensure minimum height of 2px so bar is visible even if value is 0
-            let heightPercent = 0;
-            if (range > 0) {
-                heightPercent = ((d.value - Math.min(0, minValue)) / range) * 100;
-            } else {
-                // If range is 0 (all values equal), show 50% height
-                heightPercent = 50;
-            }
-            
-            // Ensure minimum visual height
-            const visualHeight = Math.max(Math.abs(heightPercent), 2);
-            
-            return (
-              <div key={i} className="flex-1 flex flex-col items-center group relative min-w-[10px]">
-                <div 
-                  className={`w-full max-w-[20px] rounded-t-sm transition-all duration-500 ${d.value < 0 ? 'bg-red-500' : 'bg-yellow-500'}`}
-                  style={{ height: `${visualHeight}%` }}
-                >
-                  {/* Tooltip */}
-                  <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-black/90 text-white text-xs p-2 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10 pointer-events-none border border-white/10 shadow-xl">
-                    <p className="font-bold">{d.label}</p>
-                    <p>Saldo: {formatCurrency(d.value)}</p>
-                    {d.withdrawn > 0 && <p className="text-red-400">Saque: -{formatCurrency(d.withdrawn)}</p>}
-                  </div>
-                </div>
-                {/* Show label only for some items to avoid clutter */}
-                {(i % Math.ceil(data.length / 5) === 0 || i === data.length - 1) && (
-                  <span className="text-[10px] text-muted-foreground mt-2 absolute -bottom-6 whitespace-nowrap">{d.label}</span>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-20">
@@ -310,10 +263,50 @@ export default function Oraculo() {
             <Card className="bg-card border-yellow-500/30 shadow-lg shadow-yellow-500/10">
               <CardHeader>
                 <CardTitle className="text-yellow-500">Evolução Patrimonial</CardTitle>
-                <p className="text-sm text-muted-foreground">Toque nas barras para ver os valores.</p>
+                <p className="text-sm text-muted-foreground">Acompanhe o crescimento do seu patrimônio ao longo do tempo.</p>
               </CardHeader>
               <CardContent>
-                <Chart data={chartData} />
+                <div className="h-[300px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData}>
+                      <defs>
+                        <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#EAB308" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#EAB308" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                      <XAxis 
+                        dataKey="label" 
+                        stroke="rgba(255,255,255,0.5)" 
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <YAxis 
+                        stroke="rgba(255,255,255,0.5)" 
+                        fontSize={12}
+                        tickFormatter={(value) => `R$ ${(value/1000).toFixed(0)}k`}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: 'rgba(0,0,0,0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                        itemStyle={{ color: '#EAB308' }}
+                        formatter={(value: number) => [formatCurrency(value), "Patrimônio"]}
+                        labelStyle={{ color: '#fff', marginBottom: '0.5rem' }}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="value" 
+                        stroke="#EAB308" 
+                        strokeWidth={3}
+                        fillOpacity={1} 
+                        fill="url(#colorValue)" 
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
                 
                 <div className="grid md:grid-cols-3 gap-4 mt-8 pt-6 border-t border-white/10">
                   <div>
@@ -332,9 +325,9 @@ export default function Oraculo() {
                     <p className="text-sm text-muted-foreground">Total Investido</p>
                     <p className="text-xl font-bold text-white">
                       {formatCurrency(
-                        (parseFloat(currentWealth.replace(/\./g, "").replace(",", ".") || "0") + 
-                        parseFloat(monthlyContribution.replace(/\./g, "").replace(",", ".") || "0") * 
-                        (timeUnit === 'years' ? parseInt(duration) * 12 : parseInt(duration)))
+                        (typeof currentWealth === 'string' ? parseCurrency(currentWealth) : 0) + 
+                        (typeof monthlyContribution === 'string' ? parseCurrency(monthlyContribution) : 0) * 
+                        (timeUnit === 'years' ? parseInt(duration) * 12 : parseInt(duration))
                       )}
                     </p>
                   </div>
