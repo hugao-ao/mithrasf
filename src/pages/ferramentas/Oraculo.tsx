@@ -275,55 +275,49 @@ export default function Oraculo() {
                           <stop offset="95%" stopColor="#EAB308" stopOpacity={0}/>
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#333" />
                       <XAxis 
                         dataKey="label" 
-                        stroke="rgba(255,255,255,0.5)" 
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
+                        stroke="#666" 
+                        tick={{fill: '#666'}}
+                        minTickGap={30}
                       />
                       <YAxis 
-                        stroke="rgba(255,255,255,0.5)" 
-                        fontSize={12}
-                        tickFormatter={(value) => `R$ ${(value/1000).toFixed(0)}k`}
-                        tickLine={false}
-                        axisLine={false}
+                        stroke="#666" 
+                        tick={{fill: '#666'}}
+                        tickFormatter={(value) => 
+                          new Intl.NumberFormat('pt-BR', {
+                            notation: "compact",
+                            compactDisplay: "short"
+                          }).format(value)
+                        }
                       />
                       <Tooltip 
-                        contentStyle={{ backgroundColor: 'rgba(0,0,0,0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                        itemStyle={{ color: '#EAB308' }}
-                        formatter={(value: number) => [formatCurrency(value), "Patrimônio"]}
-                        labelStyle={{ color: '#fff', marginBottom: '0.5rem' }}
+                        contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333' }}
+                        formatter={(value: number) => formatCurrency(value)}
                       />
                       <Area 
                         type="monotone" 
                         dataKey="value" 
                         stroke="#EAB308" 
-                        strokeWidth={3}
                         fillOpacity={1} 
                         fill="url(#colorValue)" 
+                        strokeWidth={2}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
-                
-                <div className="grid md:grid-cols-3 gap-4 mt-8 pt-6 border-t border-white/10">
-                  <div>
+
+                <div className="mt-6 grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-white/5 rounded-lg">
                     <p className="text-sm text-muted-foreground">Patrimônio Final</p>
-                    <p className={`text-2xl font-bold ${chartData[chartData.length-1].value >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {formatCurrency(chartData[chartData.length-1].value)}
+                    <p className="text-2xl font-bold text-yellow-500">
+                      {formatCurrency(chartData[chartData.length - 1].value)}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Renda Passiva Estimada (0.8% a.m.)</p>
-                    <p className="text-2xl font-bold text-blue-400">
-                      {formatCurrency(chartData[chartData.length-1].value * 0.008)} /mês
-                    </p>
-                  </div>
-                  <div>
+                  <div className="p-4 bg-white/5 rounded-lg">
                     <p className="text-sm text-muted-foreground">Total Investido</p>
-                    <p className="text-xl font-bold text-white">
+                    <p className="text-2xl font-bold text-white">
                       {formatCurrency(
                         (typeof currentWealth === 'string' ? parseCurrency(currentWealth) : 0) + 
                         (typeof monthlyContribution === 'string' ? parseCurrency(monthlyContribution) : 0) * 
@@ -341,18 +335,14 @@ export default function Oraculo() {
                 <CheckCircle2 className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h3 className="font-bold text-white text-lg">
-                  {chartData[chartData.length-1].value < 0 
-                    ? "Cuidado! Seus sonhos custam mais do que seu dinheiro rende." 
-                    : "Quer fazer essa curva subir mais rápido?"}
-                </h3>
+                <h3 className="font-bold text-white text-lg">Quer um especialista para planejar seu futuro financeiro?</h3>
                 <p className="text-muted-foreground text-sm mt-2">
-                  Uma estratégia de investimentos personalizada pode aumentar sua rentabilidade e antecipar sua liberdade financeira em anos.
+                  Ter clareza sobre o futuro é o primeiro passo para a liberdade.
                 </p>
               </div>
               <Link href="/planos">
                 <Button variant="outline" className="w-full md:w-auto border-primary text-primary hover:bg-primary/10">
-                  Quero Acelerar meu Patrimônio
+                  Sim, quero um especialista
                 </Button>
               </Link>
             </div>
