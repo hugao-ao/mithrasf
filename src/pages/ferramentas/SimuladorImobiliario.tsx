@@ -32,32 +32,53 @@ export default function SimuladorImobiliario() {
 
     const loanAmount = pv - (entry || 0);
     const months = timeUnit === 'years' ? duration * 12 : duration;
+    
+    // CORREÇÃO: Cálculo da taxa mensal equivalente a partir da taxa anual efetiva
+    // Fórmula: (1 + taxa_anual)^(1/12) - 1
     const rateMonth = Math.pow(1 + rateYear / 100, 1 / 12) - 1;
 
     // SAC Calculation
     const amortizationSAC = loanAmount / months;
-    const firstInstallmentSAC = amortizationSAC + loanAmount * rateMonth;
-    const lastInstallmentSAC = amortizationSAC + amortizationSAC * rateMonth;
-    const totalPaidSAC = months * (firstInstallmentSAC + lastInstallmentSAC) / 2;
+    
+    // Primeira parcela SAC: Amortização + Juros sobre Saldo Devedor Total
+    const firstInstallmentSAC = amortizationSAC + (loanAmount * rateMonth);
+    
+    // Última parcela SAC: Amortização + Juros sobre Última Amortização
+    const lastInstallmentSAC = amortizationSAC + (amortizationSAC * rateMonth);
+    
+    // Total Pago SAC (Soma de PA)
+    const totalPaidSAC = (months * (firstInstallmentSAC + lastInstallmentSAC)) / 2;
     const totalInterestSAC = totalPaidSAC - loanAmount;
 
     // Price Calculation
+    // Fórmula Price: PMT = PV * [i * (1+i)^n] / [(1+i)^n - 1]
     const installmentPrice = loanAmount * (rateMonth * Math.pow(1 + rateMonth, months)) / (Math.pow(1 + rateMonth, months) - 1);
     const totalPaidPrice = installmentPrice * months;
     const totalInterestPrice = totalPaidPrice - loanAmount;
 
+    // Multiplicadores em relação ao valor TOTAL do imóvel (não só financiado)
+    // Custo Total (Entrada + Total Financiamento) / Valor do Imóvel
+    const totalCostSAC = totalPaidSAC + entry;
+    const totalCostPrice = totalPaidPrice + entry;
+    
+    const multiplierSAC = totalCostSAC / pv;
+    const multiplierPrice = totalCostPrice / pv;
+
     setResult({
       loanAmount,
+      propertyValue: pv,
       sac: {
         first: firstInstallmentSAC,
         last: lastInstallmentSAC,
         total: totalPaidSAC,
-        interest: totalInterestSAC
+        interest: totalInterestSAC,
+        multiplier: multiplierSAC
       },
       price: {
         installment: installmentPrice,
         total: totalPaidPrice,
-        interest: totalInterestPrice
+        interest: totalInterestPrice,
+        multiplier: multiplierPrice
       }
     });
   };
@@ -172,7 +193,7 @@ export default function SimuladorImobiliario() {
                     <p className="text-xl font-bold text-white">{formatCurrency(result.sac.last)}</p>
                   </div>
                   <div className="pt-4 border-t border-white/10 space-y-1">
-                    <p className="text-sm text-muted-foreground">Total Pago</p>
+                    <p className="text-sm text-muted-foreground">Total Pago (Financiamento)</p>
                     <p className="text-2xl font-bold text-red-400">{formatCurrency(result.sac.total)}</p>
                   </div>
                   <div className="space-y-1">
@@ -198,7 +219,7 @@ export default function SimuladorImobiliario() {
                     <p className="text-xl font-bold text-white">-</p>
                   </div>
                   <div className="pt-4 border-t border-white/10 space-y-1">
-                    <p className="text-sm text-muted-foreground">Total Pago</p>
+                    <p className="text-sm text-muted-foreground">Total Pago (Financiamento)</p>
                     <p className="text-2xl font-bold text-red-400">{formatCurrency(result.price.total)}</p>
                   </div>
                   <div className="space-y-1">
@@ -215,9 +236,11 @@ export default function SimuladorImobiliario() {
                 <CheckCircle2 className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h3 className="font-bold text-white text-lg">Você vai pagar {((result.sac.total / result.loanAmount)).toFixed(1)}x o valor do imóvel!</h3>
+                <h3 className="font-bold text-white text-lg">
+                  Você vai pagar de {result.sac.multiplier.toFixed(1)}x a {result.price.multiplier.toFixed(1)}x o valor do imóvel!
+                </h3>
                 <p className="text-muted-foreground text-sm mt-2 max-w-2xl mx-auto">
-                  Financiar é comprar dinheiro caro do banco. Já pensou em montar uma estratégia para comprar à vista ou dar uma entrada muito maior em poucos anos?
+                  Isso considerando o valor total do imóvel (Entrada + Financiamento). Financiar é comprar dinheiro caro do banco. Já pensou em montar uma estratégia para comprar à vista ou dar uma entrada muito maior em poucos anos?
                 </p>
               </div>
               <Link href="/planos">
