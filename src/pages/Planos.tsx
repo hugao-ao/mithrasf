@@ -267,57 +267,56 @@ export default function Planos() {
                           </DialogHeader>
                           <div className="space-y-4 text-sm text-muted-foreground leading-relaxed pr-2">
                             <div className="p-4 bg-white/5 rounded-lg border border-white/5 space-y-4">
-                              <h4 className="font-bold text-white">1. O QUE VOCÊ ESTÁ CONTRATANDO</h4>
+                              <h4 className="font-bold text-white">1. OBJETO DO CONTRATO</h4>
                               <p>
-                                Você está contratando um serviço de <strong>Organização e Apoio Administrativo Financeiro</strong>. 
-                                O CONSULTOR vai te ajudar a organizar seus dados, controlar seu fluxo de caixa, pesquisar preços e resolver burocracias.
+                                O presente contrato tem por objeto a prestação de serviços de <strong>Organização e Apoio Administrativo Financeiro</strong>. 
+                                O CONSULTOR atuará na organização de dados, controle de fluxo de caixa, pesquisas de preços e resolução de burocracias, conforme o escopo do plano contratado.
                               </p>
                               <p className="bg-yellow-500/10 border-l-2 border-yellow-500 pl-3 py-1 text-yellow-200/90 text-xs">
-                                <strong>IMPORTANTE:</strong> Este contrato NÃO é uma consultoria de investimentos. O CONSULTOR não vai recomendar compra ou venda de ações, fundos ou ativos financeiros. Todas as decisões finais sobre onde colocar seu dinheiro são 100% suas.
+                                <strong>CLÁUSULA DE ISENÇÃO (CVM):</strong> Este serviço NÃO constitui consultoria, análise ou recomendação de valores mobiliários ou investimentos. O CONSULTOR não realizará recomendações de compra ou venda de ativos financeiros. Todas as decisões de investimento são de exclusiva responsabilidade do CONTRATANTE.
                               </p>
 
-                              <h4 className="font-bold text-white mt-6">2. PRAZOS E REGRAS DE ATENDIMENTO</h4>
+                              <h4 className="font-bold text-white mt-6">2. PRAZOS E NÍVEIS DE SERVIÇO (SLA)</h4>
                               <ul className="list-disc pl-4 space-y-2">
                                 <li>
-                                  <strong>Agendamento:</strong> O CONSULTOR tem até <strong>{plan.details.contract.sla_agenda}</strong> para conseguir um horário na agenda para você, contando a partir do dia que você pedir no WhatsApp.
+                                  <strong>Agendamento de Reuniões:</strong> O prazo máximo para disponibilização de horário na agenda é de <strong>{plan.details.contract.sla_agenda}</strong>, contados a partir da solicitação formal.
                                 </li>
                                 <li>
-                                  <strong>Respostas no WhatsApp:</strong> Quando você mandar mensagem, o CONSULTOR tem até <strong>{plan.details.contract.sla_whatsapp}</strong> (dias úteis) para responder.
+                                  <strong>Atendimento via WhatsApp:</strong> As solicitações enviadas terão prazo de resposta de até <strong>{plan.details.contract.sla_whatsapp}</strong> (dias úteis).
                                 </li>
                                 <li>
-                                  <strong>Onde falar:</strong> Tudo deve ser pedido ou nas reuniões ou no WhatsApp oficial. Pedidos feitos por outros canais (Instagram, e-mail pessoal, sinal de fumaça) não valem.
+                                  <strong>Canais Oficiais:</strong> Para fins de registro e contagem de prazos, são válidas apenas as solicitações realizadas em reunião ou via WhatsApp oficial. Solicitações por outros meios (redes sociais pessoais, e-mail não-oficial) não geram obrigação de atendimento.
                                 </li>
                               </ul>
 
-                              <h4 className="font-bold text-white mt-6">3. REGRAS DE REUNIÕES (LEIA COM ATENÇÃO)</h4>
+                              <h4 className="font-bold text-white mt-6">3. POLÍTICA DE AGENDAMENTO E AUSÊNCIAS</h4>
                               <ul className="list-disc pl-4 space-y-2">
                                 <li>
-                                  <strong>Antecedência Mínima:</strong> Toda reunião deve ser marcada com pelo menos <strong>7 dias de antecedência</strong>. Pedidos de última hora podem não ser atendidos.
+                                  <strong>Antecedência Mínima:</strong> Reuniões devem ser solicitadas com antecedência mínima de <strong>7 (sete) dias corridos</strong>. Solicitações com prazo inferior dependerão exclusivamente de disponibilidade eventual, sem garantia de atendimento.
                                 </li>
                                 <li>
-                                  <strong>Faltou? Contou!:</strong> Se a reunião estiver marcada e você não aparecer ("No-Show"), ela será considerada como <strong>REALIZADA</strong> no sistema. A data dessa reunião perdida contará como a data oficial da última atualização do seu planejamento.
+                                  <strong>Política de "No-Show" (Ausência):</strong> O não comparecimento à reunião agendada, sem aviso prévio de cancelamento, implicará na consideração do serviço como <strong>PRESTADO</strong>. A data da reunião não realizada será registrada como a data oficial da última atualização do planejamento.
                                 </li>
                                 <li>
-                                  <strong>Remarcação Garantida:</strong> Você só tem garantia de remarcação se o CONSULTOR precisar cancelar ou se ele não aparecer. Se o imprevisto for seu, a remarcação depende da disponibilidade da agenda (sem garantia).
+                                  <strong>Remarcações:</strong> A garantia de remarcação aplica-se apenas em casos de cancelamento por parte do CONSULTOR. Cancelamentos por parte do CONTRATANTE sujeitam-se à disponibilidade de agenda, sem garantia de nova data imediata.
                                 </li>
                               </ul>
 
-                              <h4 className="font-bold text-white mt-6">4. SEUS DADOS ESTÃO SEGUROS</h4>
+                              <h4 className="font-bold text-white mt-6">4. SEGURANÇA E PROTEÇÃO DE DADOS</h4>
                               <p>
-                                Para sua segurança, criaremos um e-mail exclusivo (ex: <code>seu.cpf@hvsf.gmail.com</code>) que será compartilhado com você.
+                                Será criada uma conta de e-mail exclusiva (ex: <code>seu.cpf@hvsf.gmail.com</code>) para centralização das informações financeiras.
                               </p>
                               <ul className="list-disc pl-4 space-y-2">
-                                <li>Todas as suas informações financeiras ficam salvas na agenda desse e-mail.</li>
-                                <li>Nosso sistema acessa apenas o necessário via integração segura com o Google.</li>
-                                <li>Se houver qualquer problema de segurança, seus dados estão protegidos pela senha e autenticação de dois fatores desse e-mail, que só você e o consultor têm acesso.</li>
+                                <li>O acesso aos dados é restrito ao CONTRATANTE e ao CONSULTOR.</li>
+                                <li>A segurança das informações é garantida pelos protocolos de autenticação do provedor (Google), incluindo verificação em duas etapas quando aplicável.</li>
                               </ul>
 
-                              <h4 className="font-bold text-white mt-6">5. PAGAMENTO, CANCELAMENTO E REEMBOLSO</h4>
+                              <h4 className="font-bold text-white mt-6">5. CANCELAMENTO E REEMBOLSO</h4>
                               <ul className="list-disc pl-4 space-y-2">
-                                <li><strong>Sem Multa:</strong> Você pode cancelar a qualquer momento. Não cobramos multa para sair.</li>
-                                <li><strong>Direito de Arrependimento (Lei do Consumidor):</strong> Se você assinou online e se arrependeu, tem <strong>7 dias corridos</strong> para pedir o cancelamento e receber 100% do seu dinheiro de volta. Passou de 7 dias? Não há reembolso do que já foi pago.</li>
-                                <li><strong>Processamento:</strong> Se você cancelar muito em cima da data de renovação, pode ser que a cobrança do mês seguinte já tenha sido enviada ao banco. Nesse caso, não há devolução proporcional (pro-rata).</li>
-                                <li><strong>Seus Dados:</strong> Se cancelar, guardamos seu histórico por 60 dias. Se não voltar nesse prazo, apagamos tudo definitivamente.</li>
+                                <li><strong>Cancelamento:</strong> O contrato pode ser rescindido a qualquer momento pelo CONTRATANTE, sem cobrança de multa rescisória.</li>
+                                <li><strong>Direito de Arrependimento (Art. 49 do CDC):</strong> Para contratações realizadas online, o CONTRATANTE poderá exercer o direito de arrependimento no prazo de <strong>7 (sete) dias corridos</strong> a contar da assinatura, com reembolso integral dos valores pagos. Após este prazo, não haverá reembolso de mensalidades já quitadas.</li>
+                                <li><strong>Processamento de Cobrança:</strong> Cancelamentos solicitados próximos à data de renovação podem não impedir o processamento automático da cobrança seguinte. Nestes casos, não haverá estorno proporcional (pro-rata) se o prazo de arrependimento já tiver expirado.</li>
+                                <li><strong>Exclusão de Dados:</strong> Após o cancelamento, o histórico de dados será mantido por 60 dias para eventual reativação. Após este período, todos os dados serão excluídos permanentemente.</li>
                               </ul>
                             </div>
                           </div>
