@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Calculator, CheckCircle2, RefreshCw } from "lucide-react";
+import { ArrowLeft, Calculator, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
 import { formatCurrency, parseCurrency } from "@/lib/formatters";
@@ -114,8 +114,11 @@ export default function CalculadoraJuros() {
         </button>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8">
-        <Card className="bg-card/50 border-white/10 h-fit">
+      {/* Layout Container */}
+      <div className={`grid gap-8 transition-all duration-500 ease-in-out ${result ? 'md:grid-cols-2' : 'md:grid-cols-1 max-w-xl mx-auto'}`}>
+        
+        {/* Input Form */}
+        <Card className="bg-card/50 border-white/10 h-fit w-full">
           <CardHeader>
             <CardTitle className="text-green-400">
               {mode === 'findRate' ? 'Dados da Compra' : 'Simulação de Financiamento'}
@@ -174,8 +177,9 @@ export default function CalculadoraJuros() {
           </CardContent>
         </Card>
 
+        {/* Results Section */}
         {result && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 w-full">
             <Card className="bg-card border-green-500/30 shadow-lg shadow-green-500/10">
               <CardContent className="p-6 space-y-6">
                 <div className="text-center space-y-2">
@@ -221,14 +225,14 @@ export default function CalculadoraJuros() {
                 <CheckCircle2 className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h3 className="font-bold text-white text-lg">Pare de pagar juros sem saber!</h3>
+                <h3 className="font-bold text-white text-lg">Quer aprender a identificar e fugir dessas armadilhas?</h3>
                 <p className="text-muted-foreground text-sm mt-2">
-                  Pequenas taxas destroem grandes patrimônios. Quer aprender a identificar e fugir dessas armadilhas?
+                  Pequenas taxas destroem grandes patrimônios.
                 </p>
               </div>
               <Link href="/planos">
                 <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary/10">
-                  Quero Blindar meu Patrimônio
+                  Sim, quero blindar meu patrimônio
                 </Button>
               </Link>
             </div>
