@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatCurrency, formatCurrencyInput } from "@/lib/formatters";
-import { ArrowLeft, CheckCircle2, CreditCard, Trophy } from "lucide-react";
+import { ArrowLeft, CheckCircle2, CreditCard, Plane, Trophy } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
 
@@ -296,6 +296,20 @@ export default function ComparadorCartoes() {
                   </div>
                 ))}
               </div>
+
+              {/* Dica sobre Potencial das Milhas */}
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 flex gap-4 items-start text-left mt-6">
+                <Plane className="h-6 w-6 text-blue-400 shrink-0 mt-1" />
+                <div>
+                  <h4 className="font-bold text-blue-400 mb-1">O Poder das Milhas vai além do dinheiro</h4>
+                  <p className="text-sm text-muted-foreground">
+                    O cálculo acima considera a venda das milhas. Porém, o maior potencial está no uso estratégico: 
+                    aproveitar promoções de transferência bonificada e emitir passagens ou diárias pode fazer seu retorno 
+                    valer <strong>muito mais</strong> do que a conversão direta em dinheiro.
+                  </p>
+                </div>
+              </div>
+
             </CardContent>
           </Card>
 
