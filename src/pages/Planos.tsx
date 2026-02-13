@@ -18,8 +18,8 @@ export default function Planos() {
       description: "Para quem quer autonomia com direção profissional.",
       mainFeatures: [
         "Planejamento e metas definidos",
-        "Tire dúvidas no WhatsApp",
-        "Análises durante as reuniões",
+        "WhatsApp Ilimitado (Dúvidas)",
+        "Resolução de demandas em reunião",
         "Você executa, nós orientamos"
       ],
       details: {
@@ -41,9 +41,9 @@ export default function Planos() {
       description: "Mais agilidade e ajuda com pesquisas de preço.",
       mainFeatures: [
         "Tudo do Nível I",
-        "Nós fazemos as cotações para você",
+        "Cotações de itens da reunião",
         "Prioridade maior na agenda",
-        "Ajuda para encontrar os melhores preços"
+        "Pesquisas de preços e opções"
       ],
       details: {
         reunioes: "Ilimitadas (mediante agendamento)",
@@ -65,8 +65,8 @@ export default function Planos() {
       description: "Acompanhamento próximo para garantir que aconteça.",
       mainFeatures: [
         "Tudo do Nível II",
-        "Nós intermediamos contratações",
-        "Relatórios quinzenais de progresso",
+        "Intermediação de contratações",
+        "Relatórios mensais de progresso",
         "Prioridade Alta na agenda"
       ],
       details: {
@@ -90,7 +90,7 @@ export default function Planos() {
       period: "/mês",
       description: "Nós resolvemos tudo para você.",
       mainFeatures: [
-        "Gestão completa por procuração",
+        "Resolução total (o que for possível)",
         "Relatórios semanais de evolução",
         "Prioridade MÁXIMA (horário fixo mensal)",
         "Nós executamos por você"
