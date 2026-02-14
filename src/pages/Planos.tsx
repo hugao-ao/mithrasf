@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Check, Clock, Info, Shield, Star, Target, FileText } from "lucide-react";
+import { Check, Clock, Info, Shield, Star, Target, FileText, AlertTriangle, Lock } from "lucide-react";
 
 export default function Planos() {
   const plans = [
@@ -32,7 +32,9 @@ export default function Planos() {
         adesao_info: "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 6 meses)",
         contract: {
           sla_agenda: "6 meses",
-          sla_whatsapp: "30 dias"
+          sla_whatsapp: "30 dias",
+          incluso: "Orientação estratégica e resolução de dúvidas pontuais.",
+          nao_incluso: "Cotações de preços, pesquisas de mercado, contato com terceiros, execução de tarefas operacionais, relatórios escritos fora de reunião."
         }
       },
       highlight: false,
@@ -60,7 +62,9 @@ export default function Planos() {
         adesao_info: "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 4 meses)",
         contract: {
           sla_agenda: "4 meses",
-          sla_whatsapp: "15 dias"
+          sla_whatsapp: "15 dias",
+          incluso: "Tudo do Nível I + Realização de cotações de preços e pesquisas comparativas de produtos/serviços solicitados em reunião.",
+          nao_incluso: "Contato com terceiros (corretores, gerentes), intermediação de contratações, execução de tarefas operacionais, relatórios mensais."
         }
       },
       highlight: false,
@@ -90,7 +94,9 @@ export default function Planos() {
         adesao_info: "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 2 meses)",
         contract: {
           sla_agenda: "2 meses",
-          sla_whatsapp: "7 dias"
+          sla_whatsapp: "7 dias",
+          incluso: "Tudo do Nível II + Supervisão técnica ativa em reuniões/grupos com terceiros + Relatórios mensais de acompanhamento.",
+          nao_incluso: "Execução operacional de tarefas (preenchimento de formulários, envio de documentos, trâmites burocráticos) em nome do cliente."
         }
       },
       highlight: true,
@@ -121,7 +127,9 @@ export default function Planos() {
         adesao_info: "",
         contract: {
           sla_agenda: "1 mês",
-          sla_whatsapp: "72 horas"
+          sla_whatsapp: "72 horas",
+          incluso: "Tudo do Nível III + Execução operacional completa de demandas burocráticas + Relatórios semanais + Horário fixo garantido.",
+          nao_incluso: "Atos que exijam estritamente a presença física, assinatura biométrica ou uso de senha pessoal intransferível do titular."
         }
       },
       highlight: false,
@@ -258,13 +266,13 @@ export default function Planos() {
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button variant="outline" className="w-full border-primary/30 text-primary hover:bg-primary/10">
-                            <FileText className="mr-2 h-4 w-4" /> Consultar Contrato Completo
+                            <FileText className="mr-2 h-4 w-4" /> Consultar Contrato Específico ({plan.name})
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="bg-card border-primary/20 text-white max-w-4xl max-h-[85vh] overflow-y-auto">
                           <DialogHeader>
-                            <DialogTitle className="text-2xl font-bold text-primary mb-2">CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE CONSULTORIA E PLANEJAMENTO FINANCEIRO</DialogTitle>
-                            <DialogDescription>Leia atentamente os termos e condições abaixo.</DialogDescription>
+                            <DialogTitle className="text-2xl font-bold text-primary mb-2">CONTRATO DE PRESTAÇÃO DE SERVIÇOS - {plan.name.toUpperCase()}</DialogTitle>
+                            <DialogDescription>Leia atentamente os termos e condições específicos para este nível de serviço.</DialogDescription>
                           </DialogHeader>
                           <div className="space-y-6 text-sm text-muted-foreground leading-relaxed pr-4 text-justify">
                             
@@ -285,13 +293,22 @@ export default function Planos() {
                                   <li><strong>Gestão de Benefícios e Fidelidade:</strong> Estratégias para maximização de acúmulo e uso de milhas aéreas, pontos de cartão de crédito e programas de fidelidade.</li>
                                   <li><strong>Consórcios e Financiamentos Imobiliários:</strong> Simulação e comparação de cenários para aquisição de bens (imóveis e veículos), avaliando a viabilidade econômica entre financiamento (SAC/Price), consórcio ou pagamento à vista.</li>
                                 </ul>
-                                <p className="mt-3 bg-primary/10 border-l-4 border-primary pl-4 py-2 text-primary-foreground/90 text-sm">
-                                  <strong>Níveis de Serviço (Supervisão e Execução):</strong>
-                                  <br/>
-                                  <strong>Nível III:</strong> Inclui a <strong>Supervisão Ativa</strong> das contratações. O CONSULTOR participará de reuniões conjuntas (online ou presenciais) ou grupos de WhatsApp com o CONTRATANTE e outros profissionais (corretores, gerentes, contadores), atuando como suporte técnico para garantir a adequação dos produtos oferecidos, sem jamais atuar como representante legal isolado ou receber comissões.
-                                  <br/>
-                                  <strong>Nível IV:</strong> Engloba toda a Supervisão Ativa do Nível III, somada à <strong>Execução Operacional Completa</strong>. O CONSULTOR realizará todas as tarefas burocráticas e administrativas possíveis, entregando as soluções prontas para a validação final do CONTRATANTE, exceto aquelas que exijam estritamente a presença física, biometria ou senha pessoal intransferível do titular.
-                                </p>
+                                
+                                <div className="mt-4 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                                  <h5 className="font-bold text-primary mb-2 flex items-center gap-2">
+                                    <Target className="h-4 w-4" /> ESCOPO ESPECÍFICO DO PLANO CONTRATADO ({plan.name})
+                                  </h5>
+                                  <div className="grid md:grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                      <p className="font-semibold text-green-400 mb-1 flex items-center gap-1"><Check className="h-3 w-3" /> O QUE ESTÁ INCLUSO:</p>
+                                      <p className="text-muted-foreground pl-4 border-l-2 border-green-400/20">{plan.details.contract.incluso}</p>
+                                    </div>
+                                    <div>
+                                      <p className="font-semibold text-red-400 mb-1 flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> O QUE NÃO ESTÁ INCLUSO:</p>
+                                      <p className="text-muted-foreground pl-4 border-l-2 border-red-400/20">{plan.details.contract.nao_incluso}</p>
+                                    </div>
+                                  </div>
+                                </div>
                               </section>
 
                               <section>
@@ -366,7 +383,27 @@ export default function Planos() {
                               </section>
 
                               <section>
-                                <h4 className="font-bold text-white text-lg mb-3 border-b border-primary/20 pb-2">6. VIGÊNCIA, CANCELAMENTO E REEMBOLSO</h4>
+                                <h4 className="font-bold text-white text-lg mb-3 border-b border-primary/20 pb-2">6. POLÍTICA DE PAGAMENTO E SUSPENSÃO DE SERVIÇOS</h4>
+                                <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                                  <p className="mb-3 font-semibold text-red-200 flex items-center gap-2">
+                                    <Lock className="h-4 w-4" /> CONDIÇÃO ESSENCIAL PARA ATENDIMENTO
+                                  </p>
+                                  <ul className="list-disc pl-5 space-y-2 text-red-100/80">
+                                    <li>
+                                      <strong>Adimplência Obrigatória:</strong> O acesso a quaisquer benefícios do plano contratado (incluindo, mas não se limitando a: respostas via WhatsApp, agendamento de reuniões, envio de relatórios e execução de tarefas) está estritamente condicionado à regularidade dos pagamentos.
+                                    </li>
+                                    <li>
+                                      <strong>Verificação Prévia:</strong> O CONSULTOR realizará a verificação do status de pagamento do CONTRATANTE antes de iniciar qualquer atendimento ou responder a solicitações enviadas pelos canais de comunicação.
+                                    </li>
+                                    <li>
+                                      <strong>Suspensão Imediata:</strong> Em caso de inadimplência identificada, o CONSULTOR reserva-se o direito de suspender imediatamente a prestação dos serviços e recusar novos agendamentos até a comprovação da regularização financeira, sem que isso gere qualquer direito a indenização ou compensação ao CONTRATANTE.
+                                    </li>
+                                  </ul>
+                                </div>
+                              </section>
+
+                              <section>
+                                <h4 className="font-bold text-white text-lg mb-3 border-b border-primary/20 pb-2">7. VIGÊNCIA, CANCELAMENTO E REEMBOLSO</h4>
                                 <ul className="list-disc pl-5 space-y-2">
                                   <li>
                                     <strong>Vigência:</strong> Este contrato entra em vigor na data de sua aceitação eletrônica e vigorará por prazo indeterminado, renovando-se automaticamente a cada pagamento mensal.
@@ -384,7 +421,7 @@ export default function Planos() {
                               </section>
 
                               <section>
-                                <h4 className="font-bold text-white text-lg mb-3 border-b border-primary/20 pb-2">7. DISPOSIÇÕES GERAIS</h4>
+                                <h4 className="font-bold text-white text-lg mb-3 border-b border-primary/20 pb-2">8. DISPOSIÇÕES GERAIS</h4>
                                 <p>
                                   As partes elegem o foro da comarca de domicílio do CONSULTOR para dirimir quaisquer dúvidas ou controvérsias oriundas deste contrato, com renúncia expressa a qualquer outro, por mais privilegiado que seja. E por estarem justos e contratados, firmam o presente instrumento através da aceitação eletrônica dos termos aqui dispostos.
                                 </p>
