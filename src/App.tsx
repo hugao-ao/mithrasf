@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Planos from "./pages/Planos";
+import Sucesso from "./pages/Sucesso";
 import Ferramentas from "./pages/Ferramentas";
 import ComparadorPrecos from "./pages/ferramentas/ComparadorPrecos";
 import CalculadoraJuros from "./pages/ferramentas/CalculadoraJuros";
@@ -22,6 +23,7 @@ function Router() {
       <Switch>
         <Route path={"/"} component={Home} />
         <Route path={"/planos"} component={Planos} />
+        <Route path={"/sucesso"} component={Sucesso} />
         
         {/* Ferramentas Routes */}
         <Route path={"/ferramentas"} component={Ferramentas} />
