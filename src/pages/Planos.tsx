@@ -73,7 +73,7 @@ export default function Planos() {
       description: "Acompanhamento próximo para garantir que aconteça.",
       mainFeatures: [
         "Tudo do Nível II",
-        "Intermediação com profissionais",
+        "Supervisão Ativa de contratações",
         "Relatórios mensais de progresso",
         "Prioridade Alta na agenda"
       ],
@@ -84,7 +84,7 @@ export default function Planos() {
           "Contato ilimitado via whatsapp.",
           "Resolução de qualquer tipo de demanda durante o horário da reunião.",
           "Cotações e Pesquisas relativas às demandas da reunião.",
-          "Intermediação técnica com outros profissionais (corretores, gerentes, contadores) para garantir a melhor contratação, sem conflito de interesses (não recebemos comissão).",
+          "Supervisão Ativa: Acompanhamento em tempo real (reuniões conjuntas ou grupos de WhatsApp) das tratativas com outros profissionais (corretores, gerentes, contadores) para garantir a adequação técnica do que está sendo contratado.",
           "Contato via whatsapp mensal para atualizações e/ou relatórios."
         ],
         adesao_info: "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 2 meses)",
@@ -114,8 +114,8 @@ export default function Planos() {
           "Contato ilimitado via whatsapp.",
           "Resolução de qualquer tipo de demanda durante o horário da reunião.",
           "Cotações e Pesquisas relativas às demandas da reunião.",
-          "Intermediação técnica com outros profissionais do mercado.",
-          "Execução operacional completa: Resolvemos tudo o que não exigir a presença física ou biometria do titular, entregando a solução pronta para sua aprovação final.",
+          "Supervisão Ativa com outros profissionais (conforme Nível III).",
+          "Execução Operacional Completa: Realização de todas as tarefas burocráticas e administrativas possíveis, entregando a solução pronta para validação final do cliente.",
           "Contato via whatsapp semanal para atualizações e/ou relatórios."
         ],
         adesao_info: "",
@@ -286,23 +286,23 @@ export default function Planos() {
                                   <li><strong>Consórcios e Financiamentos Imobiliários:</strong> Simulação e comparação de cenários para aquisição de bens (imóveis e veículos), avaliando a viabilidade econômica entre financiamento (SAC/Price), consórcio ou pagamento à vista.</li>
                                 </ul>
                                 <p className="mt-3 bg-primary/10 border-l-4 border-primary pl-4 py-2 text-primary-foreground/90 text-sm">
-                                  <strong>Níveis de Serviço (Intermediação e Execução):</strong>
+                                  <strong>Níveis de Serviço (Supervisão e Execução):</strong>
                                   <br/>
-                                  <strong>Nível III:</strong> Inclui a intermediação técnica com outros profissionais do mercado (corretores, gerentes bancários, contadores, advogados), atuando o CONSULTOR como representante dos interesses técnicos do CONTRATANTE para assegurar a adequação dos produtos contratados, sem qualquer recebimento de comissão ou vínculo comercial com os fornecedores.
+                                  <strong>Nível III:</strong> Inclui a <strong>Supervisão Ativa</strong> das contratações. O CONSULTOR participará de reuniões conjuntas (online ou presenciais) ou grupos de WhatsApp com o CONTRATANTE e outros profissionais (corretores, gerentes, contadores), atuando como suporte técnico para garantir a adequação dos produtos oferecidos, sem jamais atuar como representante legal isolado ou receber comissões.
                                   <br/>
-                                  <strong>Nível IV:</strong> Inclui a execução operacional completa de todas as demandas burocráticas e administrativas que não exijam a presença física, assinatura biométrica ou senha pessoal intransferível do CONTRATANTE, entregando as soluções prontas para validação final.
+                                  <strong>Nível IV:</strong> Engloba toda a Supervisão Ativa do Nível III, somada à <strong>Execução Operacional Completa</strong>. O CONSULTOR realizará todas as tarefas burocráticas e administrativas possíveis, entregando as soluções prontas para a validação final do CONTRATANTE, exceto aquelas que exijam estritamente a presença física, biometria ou senha pessoal intransferível do titular.
                                 </p>
                               </section>
 
                               <section>
                                 <h4 className="font-bold text-white text-lg mb-3 border-b border-primary/20 pb-2">2. METODOLOGIA DE ALOCAÇÃO DE ATIVOS E INVESTIMENTOS</h4>
                                 <p className="mb-3">
-                                  No tocante à gestão de investimentos financeiros, a atuação do CONSULTOR pauta-se exclusivamente pela metodologia de <strong>Alocação de Ativos (Asset Allocation)</strong> e rebalanceamento de carteira, respeitando estritamente o Perfil de Investidor (Suitability) do CONTRATANTE.
+                                  No tocante à gestão de investimentos financeiros, a atuação do CONSULTOR pauta-se exclusivamente pela metodologia de <strong>Alocação de Ativos baseada em Risco</strong> e rebalanceamento de carteira, respeitando estritamente o Perfil de Investidor (Suitability) do CONTRATANTE.
                                 </p>
                                 <ul className="list-disc pl-5 space-y-2">
-                                  <li><strong>Distribuição Estratégica:</strong> O CONSULTOR definirá, em conjunto com o CONTRATANTE, a distribuição percentual ideal do patrimônio entre as diversas classes de ativos (Renda Fixa Pós-fixada, Pré-fixada, Inflação, Renda Variável, Multimercados, Investimentos no Exterior, etc.).</li>
-                                  <li><strong>Rebalanceamento Periódico:</strong> O CONSULTOR monitorará a carteira e indicará a necessidade de ajustes (aportes ou resgates) para manter a aderência à estratégia original e ao perfil de risco do cliente.</li>
-                                  <li><strong>Análise de Produtos:</strong> O CONSULTOR realizará a análise técnica de produtos disponíveis no mercado (CDBs, LCIs, LCAs, Fundos de Investimento, Tesouro Direto, etc.), avaliando rentabilidade histórica, volatilidade, liquidez e custos, para subsidiar a tomada de decisão do CONTRATANTE.</li>
+                                  <li><strong>Distribuição Estratégica por Risco:</strong> O CONSULTOR definirá, em conjunto com o CONTRATANTE, a distribuição percentual ideal do patrimônio entre as diferentes <strong>Classificações de Risco dos Ativos</strong> (ex: Conservador, Moderado, Arrojado, etc.), conforme metodologia proprietária de 7 perfis de risco.</li>
+                                  <li><strong>Rebalanceamento Periódico:</strong> O CONSULTOR monitorará a carteira e indicará a necessidade de ajustes (aportes ou resgates) para manter a aderência à estratégia de risco definida, garantindo que a exposição do patrimônio não ultrapasse os limites de tolerância do CONTRATANTE.</li>
+                                  <li><strong>Análise de Produtos:</strong> O CONSULTOR realizará a análise técnica de produtos disponíveis no mercado, avaliando sua adequação à classificação de risco desejada, rentabilidade histórica, liquidez e custos, para subsidiar a tomada de decisão do CONTRATANTE.</li>
                                 </ul>
                                 <p className="mt-3 bg-yellow-500/10 border-l-4 border-yellow-500 pl-4 py-2 text-yellow-200/90 text-sm italic">
                                   <strong>Parágrafo Único:</strong> O CONSULTOR não realiza a gestão discricionária de recursos, nem detém procuração para movimentar contas em nome do CONTRATANTE. A execução final das ordens de compra e venda de ativos é de responsabilidade exclusiva do CONTRATANTE junto à sua instituição financeira.
