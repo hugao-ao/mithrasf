@@ -73,7 +73,7 @@ export default function Planos() {
       description: "Acompanhamento próximo para garantir que aconteça.",
       mainFeatures: [
         "Tudo do Nível II",
-        "Intermediação de contratações",
+        "Intermediação com profissionais",
         "Relatórios mensais de progresso",
         "Prioridade Alta na agenda"
       ],
@@ -84,7 +84,7 @@ export default function Planos() {
           "Contato ilimitado via whatsapp.",
           "Resolução de qualquer tipo de demanda durante o horário da reunião.",
           "Cotações e Pesquisas relativas às demandas da reunião.",
-          "Intermediação de contratação de produtos e serviços.",
+          "Intermediação técnica com outros profissionais (corretores, gerentes, contadores) para garantir a melhor contratação, sem conflito de interesses (não recebemos comissão).",
           "Contato via whatsapp mensal para atualizações e/ou relatórios."
         ],
         adesao_info: "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 2 meses)",
@@ -114,7 +114,8 @@ export default function Planos() {
           "Contato ilimitado via whatsapp.",
           "Resolução de qualquer tipo de demanda durante o horário da reunião.",
           "Cotações e Pesquisas relativas às demandas da reunião.",
-          "Intermediação de contratação de produtos e serviços que não puderem ser resolvidos pelo consultor no seu lugar.",
+          "Intermediação técnica com outros profissionais do mercado.",
+          "Execução operacional completa: Resolvemos tudo o que não exigir a presença física ou biometria do titular, entregando a solução pronta para sua aprovação final.",
           "Contato via whatsapp semanal para atualizações e/ou relatórios."
         ],
         adesao_info: "",
@@ -260,64 +261,135 @@ export default function Planos() {
                             <FileText className="mr-2 h-4 w-4" /> Consultar Contrato Completo
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="bg-card border-primary/20 text-white max-w-2xl max-h-[80vh] overflow-y-auto">
+                        <DialogContent className="bg-card border-primary/20 text-white max-w-4xl max-h-[85vh] overflow-y-auto">
                           <DialogHeader>
-                            <DialogTitle className="text-xl font-bold text-primary">Contrato de Prestação de Serviços - {plan.name}</DialogTitle>
-                            <DialogDescription>Termos e condições do serviço de Consultoria Administrativa Financeira.</DialogDescription>
+                            <DialogTitle className="text-2xl font-bold text-primary mb-2">CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE CONSULTORIA E PLANEJAMENTO FINANCEIRO</DialogTitle>
+                            <DialogDescription>Leia atentamente os termos e condições abaixo.</DialogDescription>
                           </DialogHeader>
-                          <div className="space-y-4 text-sm text-muted-foreground leading-relaxed pr-2">
-                            <div className="p-4 bg-white/5 rounded-lg border border-white/5 space-y-4">
-                              <h4 className="font-bold text-white">1. OBJETO DO CONTRATO</h4>
-                              <p>
-                                O presente contrato tem por objeto a prestação de serviços de <strong>Organização e Apoio Administrativo Financeiro</strong>. 
-                                O CONSULTOR atuará na organização de dados, controle de fluxo de caixa, pesquisas de preços e resolução de burocracias, conforme o escopo do plano contratado.
-                              </p>
-                              <p className="bg-yellow-500/10 border-l-2 border-yellow-500 pl-3 py-1 text-yellow-200/90 text-xs">
-                                <strong>CLÁUSULA DE ISENÇÃO (CVM):</strong> Este serviço NÃO constitui consultoria, análise ou recomendação de valores mobiliários ou investimentos. O CONSULTOR não realizará recomendações de compra ou venda de ativos financeiros. Todas as decisões de investimento são de exclusiva responsabilidade do CONTRATANTE.
-                              </p>
+                          <div className="space-y-6 text-sm text-muted-foreground leading-relaxed pr-4 text-justify">
+                            
+                            <div className="p-6 bg-white/5 rounded-lg border border-white/5 space-y-6">
+                              
+                              <section>
+                                <h4 className="font-bold text-white text-lg mb-3 border-b border-primary/20 pb-2">1. OBJETO E ESCOPO DOS SERVIÇOS</h4>
+                                <p className="mb-3">
+                                  O presente instrumento tem por objeto a prestação de serviços de <strong>Consultoria, Organização e Planejamento Financeiro Pessoal</strong>, visando a estruturação, otimização e proteção do patrimônio do CONTRATANTE. O escopo dos serviços abrange, de forma não exaustiva, as seguintes áreas de atuação:
+                                </p>
+                                <ul className="list-disc pl-5 space-y-2">
+                                  <li><strong>Planejamento Orçamentário e Fluxo de Caixa:</strong> Diagnóstico de receitas e despesas, categorização de gastos, definição de teto de gastos e estratégias para aumento da capacidade de poupança.</li>
+                                  <li><strong>Gestão de Passivos e Dívidas:</strong> Análise de contratos de crédito, renegociação de dívidas, portabilidade de crédito, cálculo de Custo Efetivo Total (CET) e estratégias para quitação antecipada.</li>
+                                  <li><strong>Gestão de Riscos e Seguros:</strong> Cálculo de necessidade de capital segurado para proteção familiar e patrimonial. Análise técnica e comparativa de apólices de Seguro de Vida, Seguro Residencial, Seguro Auto, Seguro de Responsabilidade Civil Profissional, Planos de Saúde e Odontológicos.</li>
+                                  <li><strong>Planejamento Previdenciário:</strong> Projeção de necessidade de renda futura, análise de planos de previdência privada (PGBL/VGBL), avaliação de custos (taxas de administração e carregamento) e regime tributário (Progressivo vs. Regressivo).</li>
+                                  <li><strong>Planejamento Sucessório:</strong> Orientação sobre transmissão de bens, holding familiar, testamentos e doações, visando a eficiência tributária e a preservação do patrimônio familiar.</li>
+                                  <li><strong>Otimização Fiscal:</strong> Análise e orientação para declaração de Imposto de Renda Pessoa Física (IRPF), ganho de capital e estratégias legais para elisão fiscal.</li>
+                                  <li><strong>Gestão de Benefícios e Fidelidade:</strong> Estratégias para maximização de acúmulo e uso de milhas aéreas, pontos de cartão de crédito e programas de fidelidade.</li>
+                                  <li><strong>Consórcios e Financiamentos Imobiliários:</strong> Simulação e comparação de cenários para aquisição de bens (imóveis e veículos), avaliando a viabilidade econômica entre financiamento (SAC/Price), consórcio ou pagamento à vista.</li>
+                                </ul>
+                                <p className="mt-3 bg-primary/10 border-l-4 border-primary pl-4 py-2 text-primary-foreground/90 text-sm">
+                                  <strong>Níveis de Serviço (Intermediação e Execução):</strong>
+                                  <br/>
+                                  <strong>Nível III:</strong> Inclui a intermediação técnica com outros profissionais do mercado (corretores, gerentes bancários, contadores, advogados), atuando o CONSULTOR como representante dos interesses técnicos do CONTRATANTE para assegurar a adequação dos produtos contratados, sem qualquer recebimento de comissão ou vínculo comercial com os fornecedores.
+                                  <br/>
+                                  <strong>Nível IV:</strong> Inclui a execução operacional completa de todas as demandas burocráticas e administrativas que não exijam a presença física, assinatura biométrica ou senha pessoal intransferível do CONTRATANTE, entregando as soluções prontas para validação final.
+                                </p>
+                              </section>
 
-                              <h4 className="font-bold text-white mt-6">2. PRAZOS E NÍVEIS DE SERVIÇO (SLA)</h4>
-                              <ul className="list-disc pl-4 space-y-2">
-                                <li>
-                                  <strong>Agendamento de Reuniões:</strong> O prazo máximo para disponibilização de horário na agenda é de <strong>{plan.details.contract.sla_agenda}</strong>, contados a partir da solicitação formal.
-                                </li>
-                                <li>
-                                  <strong>Atendimento via WhatsApp:</strong> As solicitações enviadas terão prazo de resposta de até <strong>{plan.details.contract.sla_whatsapp}</strong> (dias úteis).
-                                </li>
-                                <li>
-                                  <strong>Canais Oficiais:</strong> Para fins de registro e contagem de prazos, são válidas apenas as solicitações realizadas em reunião ou via WhatsApp oficial. Solicitações por outros meios (redes sociais pessoais, e-mail não-oficial) não geram obrigação de atendimento.
-                                </li>
-                              </ul>
+                              <section>
+                                <h4 className="font-bold text-white text-lg mb-3 border-b border-primary/20 pb-2">2. METODOLOGIA DE ALOCAÇÃO DE ATIVOS E INVESTIMENTOS</h4>
+                                <p className="mb-3">
+                                  No tocante à gestão de investimentos financeiros, a atuação do CONSULTOR pauta-se exclusivamente pela metodologia de <strong>Alocação de Ativos (Asset Allocation)</strong> e rebalanceamento de carteira, respeitando estritamente o Perfil de Investidor (Suitability) do CONTRATANTE.
+                                </p>
+                                <ul className="list-disc pl-5 space-y-2">
+                                  <li><strong>Distribuição Estratégica:</strong> O CONSULTOR definirá, em conjunto com o CONTRATANTE, a distribuição percentual ideal do patrimônio entre as diversas classes de ativos (Renda Fixa Pós-fixada, Pré-fixada, Inflação, Renda Variável, Multimercados, Investimentos no Exterior, etc.).</li>
+                                  <li><strong>Rebalanceamento Periódico:</strong> O CONSULTOR monitorará a carteira e indicará a necessidade de ajustes (aportes ou resgates) para manter a aderência à estratégia original e ao perfil de risco do cliente.</li>
+                                  <li><strong>Análise de Produtos:</strong> O CONSULTOR realizará a análise técnica de produtos disponíveis no mercado (CDBs, LCIs, LCAs, Fundos de Investimento, Tesouro Direto, etc.), avaliando rentabilidade histórica, volatilidade, liquidez e custos, para subsidiar a tomada de decisão do CONTRATANTE.</li>
+                                </ul>
+                                <p className="mt-3 bg-yellow-500/10 border-l-4 border-yellow-500 pl-4 py-2 text-yellow-200/90 text-sm italic">
+                                  <strong>Parágrafo Único:</strong> O CONSULTOR não realiza a gestão discricionária de recursos, nem detém procuração para movimentar contas em nome do CONTRATANTE. A execução final das ordens de compra e venda de ativos é de responsabilidade exclusiva do CONTRATANTE junto à sua instituição financeira.
+                                </p>
+                              </section>
 
-                              <h4 className="font-bold text-white mt-6">3. POLÍTICA DE AGENDAMENTO E AUSÊNCIAS</h4>
-                              <ul className="list-disc pl-4 space-y-2">
-                                <li>
-                                  <strong>Antecedência Mínima:</strong> Reuniões devem ser solicitadas com antecedência mínima de <strong>7 (sete) dias corridos</strong>. Solicitações com prazo inferior dependerão exclusivamente de disponibilidade eventual, sem garantia de atendimento.
-                                </li>
-                                <li>
-                                  <strong>Política de "No-Show" (Ausência):</strong> O não comparecimento à reunião agendada, sem aviso prévio de cancelamento, implicará na consideração do serviço como <strong>PRESTADO</strong>. A data da reunião não realizada será registrada como a data oficial da última atualização do planejamento.
-                                </li>
-                                <li>
-                                  <strong>Remarcações:</strong> A garantia de remarcação aplica-se apenas em casos de cancelamento por parte do CONSULTOR. Cancelamentos por parte do CONTRATANTE sujeitam-se à disponibilidade de agenda, sem garantia de nova data imediata.
-                                </li>
-                              </ul>
+                              <section>
+                                <h4 className="font-bold text-white text-lg mb-3 border-b border-primary/20 pb-2">3. OBRIGAÇÕES DAS PARTES</h4>
+                                <p className="mb-2 font-semibold text-white">3.1. Do CONSULTOR:</p>
+                                <ul className="list-disc pl-5 space-y-1 mb-3">
+                                  <li>Empregar as melhores técnicas e conhecimentos para a realização dos serviços contratados.</li>
+                                  <li>Manter sigilo absoluto sobre todas as informações e dados fornecidos pelo CONTRATANTE.</li>
+                                  <li>Cumprir os prazos de atendimento e entrega de relatórios estabelecidos neste contrato.</li>
+                                  <li>Atuar com total isenção e ausência de conflito de interesses, não recebendo comissões, rebates ou incentivos de instituições financeiras ou seguradoras pela indicação de produtos.</li>
+                                </ul>
+                                <p className="mb-2 font-semibold text-white">3.2. Do CONTRATANTE:</p>
+                                <ul className="list-disc pl-5 space-y-1">
+                                  <li>Fornecer informações verídicas, completas e atualizadas sobre sua situação financeira e patrimonial.</li>
+                                  <li>Participar das reuniões agendadas e responder às solicitações de informações necessárias para a execução do planejamento.</li>
+                                  <li>Efetuar o pagamento dos honorários acordados nas datas de vencimento.</li>
+                                </ul>
+                              </section>
 
-                              <h4 className="font-bold text-white mt-6">4. SEGURANÇA E PROTEÇÃO DE DADOS</h4>
-                              <p>
-                                Será criada uma conta de e-mail exclusiva (ex: <code>seu.cpf@hvsf.gmail.com</code>) para centralização das informações financeiras.
-                              </p>
-                              <ul className="list-disc pl-4 space-y-2">
-                                <li>O acesso aos dados é restrito ao CONTRATANTE e ao CONSULTOR.</li>
-                                <li>A segurança das informações é garantida pelos protocolos de autenticação do provedor (Google), incluindo verificação em duas etapas quando aplicável.</li>
-                              </ul>
+                              <section>
+                                <h4 className="font-bold text-white text-lg mb-3 border-b border-primary/20 pb-2">4. PRAZOS, AGENDAMENTOS E NÍVEL DE SERVIÇO (SLA)</h4>
+                                <ul className="list-disc pl-5 space-y-2">
+                                  <li>
+                                    <strong>Disponibilidade de Agenda:</strong> O CONSULTOR compromete-se a disponibilizar horário para reunião em até <strong>{plan.details.contract.sla_agenda}</strong> após a solicitação formal do CONTRATANTE.
+                                  </li>
+                                  <li>
+                                    <strong>Tempo de Resposta (WhatsApp):</strong> As dúvidas e solicitações enviadas pelos canais oficiais serão respondidas em até <strong>{plan.details.contract.sla_whatsapp}</strong> (dias úteis).
+                                  </li>
+                                  <li>
+                                    <strong>Antecedência de Agendamento:</strong> As reuniões devem ser solicitadas com antecedência mínima de <strong>7 (sete) dias corridos</strong>. Solicitações com prazo inferior estarão sujeitas à disponibilidade eventual da agenda.
+                                  </li>
+                                  <li>
+                                    <strong>Política de "No-Show" (Ausência):</strong> O não comparecimento do CONTRATANTE à reunião agendada, sem comunicação de cancelamento com antecedência mínima de 24 horas, implicará na contabilização da reunião como <strong>REALIZADA</strong> para todos os fins contratuais. A data da reunião não realizada será considerada como a data oficial da última atualização do planejamento.
+                                  </li>
+                                  <li>
+                                    <strong>Remarcações:</strong> Em caso de cancelamento por parte do CONSULTOR, a remarcação será garantida na data mais próxima possível. Cancelamentos por iniciativa do CONTRATANTE não garantem prioridade de reagendamento imediato.
+                                  </li>
+                                </ul>
+                              </section>
 
-                              <h4 className="font-bold text-white mt-6">5. CANCELAMENTO E REEMBOLSO</h4>
-                              <ul className="list-disc pl-4 space-y-2">
-                                <li><strong>Cancelamento:</strong> O contrato pode ser rescindido a qualquer momento pelo CONTRATANTE, sem cobrança de multa rescisória.</li>
-                                <li><strong>Direito de Arrependimento (Art. 49 do CDC):</strong> Para contratações realizadas online, o CONTRATANTE poderá exercer o direito de arrependimento no prazo de <strong>7 (sete) dias corridos</strong> a contar da assinatura, com reembolso integral dos valores pagos. Após este prazo, não haverá reembolso de mensalidades já quitadas.</li>
-                                <li><strong>Processamento de Cobrança:</strong> Cancelamentos solicitados próximos à data de renovação podem não impedir o processamento automático da cobrança seguinte. Nestes casos, não haverá estorno proporcional (pro-rata) se o prazo de arrependimento já tiver expirado.</li>
-                                <li><strong>Exclusão de Dados:</strong> Após o cancelamento, o histórico de dados será mantido por 60 dias para eventual reativação. Após este período, todos os dados serão excluídos permanentemente.</li>
-                              </ul>
+                              <section>
+                                <h4 className="font-bold text-white text-lg mb-3 border-b border-primary/20 pb-2">5. CONFIDENCIALIDADE E PROTEÇÃO DE DADOS (LGPD)</h4>
+                                <p className="mb-3">
+                                  As partes comprometem-se a tratar os dados pessoais e financeiros envolvidos nesta prestação de serviços em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).
+                                </p>
+                                <ul className="list-disc pl-5 space-y-2">
+                                  <li>
+                                    <strong>Segurança da Informação:</strong> Será criada uma conta de e-mail exclusiva e criptografada (ex: <code>seu.cpf@hvsf.gmail.com</code>) para centralização e armazenamento seguro de documentos e informações financeiras. O acesso a esta conta é restrito e monitorado.
+                                  </li>
+                                  <li>
+                                    <strong>Finalidade:</strong> Os dados coletados serão utilizados exclusivamente para a execução do planejamento financeiro, sendo vedado o seu compartilhamento com terceiros sem autorização expressa do CONTRATANTE.
+                                  </li>
+                                  <li>
+                                    <strong>Retenção e Exclusão:</strong> Após o término do contrato, os dados serão mantidos em arquivo morto seguro pelo prazo de 60 (sessenta) dias para eventual reativação ou auditoria. Após este período, serão permanentemente excluídos dos sistemas do CONSULTOR.
+                                  </li>
+                                </ul>
+                              </section>
+
+                              <section>
+                                <h4 className="font-bold text-white text-lg mb-3 border-b border-primary/20 pb-2">6. VIGÊNCIA, CANCELAMENTO E REEMBOLSO</h4>
+                                <ul className="list-disc pl-5 space-y-2">
+                                  <li>
+                                    <strong>Vigência:</strong> Este contrato entra em vigor na data de sua aceitação eletrônica e vigorará por prazo indeterminado, renovando-se automaticamente a cada pagamento mensal.
+                                  </li>
+                                  <li>
+                                    <strong>Cancelamento:</strong> O CONTRATANTE poderá solicitar o cancelamento do serviço a qualquer tempo, sem incidência de multa rescisória, mediante comunicação formal pelos canais oficiais.
+                                  </li>
+                                  <li>
+                                    <strong>Direito de Arrependimento:</strong> Em conformidade com o Art. 49 do Código de Defesa do Consumidor, o CONTRATANTE poderá exercer o direito de arrependimento no prazo de <strong>7 (sete) dias corridos</strong> a contar da contratação, caso em que terá direito ao reembolso integral dos valores pagos.
+                                  </li>
+                                  <li>
+                                    <strong>Reembolso após 7 dias:</strong> Após o prazo de arrependimento legal, não haverá reembolso de mensalidades já pagas, nem estorno proporcional (pro-rata) em caso de cancelamento no meio do ciclo de faturamento.
+                                  </li>
+                                </ul>
+                              </section>
+
+                              <section>
+                                <h4 className="font-bold text-white text-lg mb-3 border-b border-primary/20 pb-2">7. DISPOSIÇÕES GERAIS</h4>
+                                <p>
+                                  As partes elegem o foro da comarca de domicílio do CONSULTOR para dirimir quaisquer dúvidas ou controvérsias oriundas deste contrato, com renúncia expressa a qualquer outro, por mais privilegiado que seja. E por estarem justos e contratados, firmam o presente instrumento através da aceitação eletrônica dos termos aqui dispostos.
+                                </p>
+                              </section>
+
                             </div>
                           </div>
                         </DialogContent>
