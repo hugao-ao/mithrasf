@@ -38,8 +38,7 @@ export default function Planos() {
         }
       },
       highlight: false,
-      icon: Target
-    },
+      icon: Target,        checkoutUrl: "https://planofinanceiro.cyclopay.com/checkout/WrKjwGYR4p",   },
     {
       name: "HV Nível II",
       price: "59,90",
@@ -68,7 +67,7 @@ export default function Planos() {
         }
       },
       highlight: false,
-      icon: Clock
+      icon: Cloc        checkoutUrl: "https://planofinanceiro.cyclopay.com/checkout/2GoFRSHleo",
     },
     {
       name: "HV Nível III",
@@ -100,8 +99,7 @@ export default function Planos() {
         }
       },
       highlight: true,
-      icon: Star
-    },
+      icon: Star,        checkoutUrl: "https://planofinanceiro.cyclopay.com/checkout/kgl3pLDplo",   },
     {
       name: "HV Nível IV",
       price: "299,90",
@@ -134,8 +132,7 @@ export default function Planos() {
       },
       highlight: false,
       isPremium: true,
-      icon: Shield
-    }
+      icon: Shield,        checkoutUrl: "https://planofinanceiro.cyclopay.com/checkout/rHe327XILq",   }
   ];
 
   return (
@@ -213,6 +210,7 @@ export default function Planos() {
                     ? "bg-primary text-black hover:bg-primary/90 shadow-lg shadow-primary/20" 
                     : "bg-white/10 text-white hover:bg-white/20"
                 }`}
+                onClick={() => window.open(plan.checkoutUrl, "_blank")}
               >
                 Assinar Agora
               </Button>
