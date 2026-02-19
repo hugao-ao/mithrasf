@@ -15,6 +15,7 @@ import ComparadorCartoes from "./pages/ferramentas/ComparadorCartoes";
 import FluxoCaixa from "./pages/ferramentas/FluxoCaixa";
 import Oraculo from "./pages/ferramentas/Oraculo";
 import UnderConstruction from "./pages/UnderConstruction";
+import Login from "./pages/Login";
 import { Layout } from "./components/Layout";
 
 function Router() {
@@ -24,6 +25,7 @@ function Router() {
         <Route path={"/"} component={Home} />
         <Route path={"/planos"} component={Planos} />
         <Route path={"/sucesso"} component={Sucesso} />
+        <Route path={"/login"} component={Login} />
         
         {/* Ferramentas Routes */}
         <Route path={"/ferramentas"} component={Ferramentas} />
@@ -33,7 +35,6 @@ function Router() {
         <Route path={"/ferramentas/comparador-cartoes"} component={ComparadorCartoes} />
         <Route path={"/ferramentas/fluxo-caixa"} component={FluxoCaixa} />
         <Route path={"/ferramentas/oraculo"} component={Oraculo} />
-
         <Route path={"/conheca-me"} component={UnderConstruction} />
         <Route path={"/404"} component={NotFound} />
         {/* Final fallback route */}
