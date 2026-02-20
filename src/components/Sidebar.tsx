@@ -109,7 +109,7 @@ export function Sidebar() {
       {/* Footer Actions */}
       <div className="border-t border-sidebar-border p-4 space-y-4 bg-sidebar/50">
         <a 
-          href="https://siteteste-flame.vercel.app/" 
+          href="/login" 
           target="_blank" 
           rel="noopener noreferrer"
           className={cn(
