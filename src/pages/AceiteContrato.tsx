@@ -161,22 +161,6 @@ function ContratoCompleto({ planoNome }: { planoNome: string }) {
 
   return (
     <div className="text-sm text-muted-foreground space-y-4 text-justify">
-      {/* Destaque: Condição de Pagamento */}
-      <div className="bg-red-500/10 border border-red-500/30 p-3 rounded">
-        <h4 className="text-red-400 font-bold mb-1 flex items-center gap-2 text-xs">
-          <AlertTriangle className="h-4 w-4" /> CONDIÇÃO ESSENCIAL PARA ATENDIMENTO
-        </h4>
-        <p className="text-xs text-white">
-          <strong>6. POLÍTICA DE PAGAMENTO E SUSPENSÃO DE SERVIÇOS:</strong> O acesso a
-          quaisquer benefícios deste plano (incluindo respostas no WhatsApp, agendamento de
-          reuniões e envio de relatórios) está estritamente condicionado à regularidade dos
-          pagamentos. O CONSULTOR realizará a verificação de adimplência antes de iniciar
-          qualquer atendimento. Havendo pendência financeira, a prestação de serviços será{" "}
-          <strong>IMEDIATAMENTE SUSPENSA</strong> até a regularização, sem que isso gere
-          qualquer direito a indenização ou extensão de prazo contratual.
-        </p>
-      </div>
-
       <p>
         <strong>1. OBJETO:</strong> Prestação de serviços de Consultoria e Planejamento
         Financeiro Pessoal, abrangendo, conforme o nível contratado: Planejamento
@@ -284,6 +268,21 @@ function ContratoCompleto({ planoNome }: { planoNome: string }) {
         nem gestão de carteira administrada. O CONSULTOR não promete rentabilidade futura
         nem se responsabiliza por prejuízos decorrentes de riscos de mercado.
       </p>
+
+      <div className="bg-red-500/10 border border-red-500/30 p-3 rounded">
+        <h4 className="text-red-400 font-bold mb-1 flex items-center gap-2 text-xs">
+          <AlertTriangle className="h-4 w-4" /> CONDIÇÃO ESSENCIAL PARA ATENDIMENTO
+        </h4>
+        <p className="text-xs text-white">
+          <strong>8. POLÍTICA DE PAGAMENTO E SUSPENSÃO DE SERVIÇOS:</strong> O acesso a
+          quaisquer benefícios deste plano (incluindo respostas no WhatsApp, agendamento de
+          reuniões e envio de relatórios) está estritamente condicionado à regularidade dos
+          pagamentos. O CONSULTOR realizará a verificação de adimplência antes de iniciar
+          qualquer atendimento. Havendo pendência financeira, a prestação de serviços será{" "}
+          <strong>IMEDIATAMENTE SUSPENSA</strong> até a regularização, sem que isso gere
+          qualquer direito a indenização ou extensão de prazo contratual.
+        </p>
+      </div>
     </div>
   );
 }
