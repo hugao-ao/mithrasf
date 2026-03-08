@@ -9,7 +9,7 @@ const SUPABASE_ANON_KEY =
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const FORM_BASE_URL = "https://siteteste-flame.vercel.app/formulario-cliente.html";
+const FORM_BASE_URL = "https://app.hvsaudefinanceira.com.br/formulario-cliente.html";
 const POLLING_INTERVAL_MS = 3000;
 const MAX_WAIT_MS = 5 * 60 * 1000; // 5 minutos
 

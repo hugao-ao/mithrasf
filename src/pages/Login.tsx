@@ -4,8 +4,8 @@ import { User, Users } from "lucide-react";
 
 export default function Login() {
   // URLs do Siteteste (Substitua pelos links reais do seu deploy no Vercel)
-  const CLIENT_LOGIN_URL = "https://siteteste-flame.vercel.app/login-cliente.html";
-  const TEAM_LOGIN_URL = "https://siteteste-flame.vercel.app/";
+  const CLIENT_LOGIN_URL = "https://app.hvsaudefinanceira.com.br/login-cliente.html";
+  const TEAM_LOGIN_URL = "https://app.hvsaudefinanceira.com.br/";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
