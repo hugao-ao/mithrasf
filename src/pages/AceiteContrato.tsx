@@ -2,7 +2,16 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Check, AlertTriangle, FileText, Shield, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Check,
+  AlertTriangle,
+  FileText,
+  Shield,
+  Loader2,
+  ChevronDown,
+  ChevronUp,
+  ShieldCheck,
+} from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 
 // ─── Configurações ────────────────────────────────────────────────────────────
@@ -16,68 +25,139 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ─── Mapa de planos ────────────────────────────────────────────────────────────
 const PLANOS_CONFIG: Record<
   string,
-  { planId: number; checkoutId: number; preco: string }
+  {
+    planId: number;
+    checkoutId: number;
+    preco: string;
+    checkoutFallback: string;
+    sla_agenda: string;
+    sla_whatsapp: string;
+    incluso: string;
+    nao_incluso: string;
+    escopo: string[];
+  }
 > = {
-  "HV Nível I":   { planId: 11830, checkoutId: 11649, preco: "29,90" },
-  "HV Nível II":  { planId: 11831, checkoutId: 11650, preco: "59,90" },
-  "HV Nível III": { planId: 11833, checkoutId: 11652, preco: "119,90" },
-  "HV Nível IV":  { planId: 11835, checkoutId: 11653, preco: "299,90" },
+  "HV Nível I": {
+    planId: 11830,
+    checkoutId: 11649,
+    preco: "29,90",
+    checkoutFallback: "WrKjwGYR4p",
+    sla_agenda: "6 meses",
+    sla_whatsapp: "30 dias",
+    incluso:
+      "Orientação estratégica e resolução de dúvidas pontuais.",
+    nao_incluso:
+      "Cotações de preços, pesquisas de mercado, contato com terceiros, execução de tarefas operacionais, relatórios escritos fora de reunião.",
+    escopo: [
+      "Contato ilimitado via WhatsApp (sem análises novas ou cotações).",
+      "Resolução de qualquer tipo de demanda durante o horário da reunião.",
+    ],
+  },
+  "HV Nível II": {
+    planId: 11831,
+    checkoutId: 11650,
+    preco: "59,90",
+    checkoutFallback: "2GoFRSHleo",
+    sla_agenda: "4 meses",
+    sla_whatsapp: "15 dias",
+    incluso:
+      "Tudo do Nível I + Realização de cotações de preços e pesquisas comparativas de produtos/serviços solicitados em reunião.",
+    nao_incluso:
+      "Contato com terceiros (corretores, gerentes), intermediação de contratações, execução de tarefas operacionais, relatórios mensais.",
+    escopo: [
+      "Contato ilimitado via WhatsApp (sem novas análises).",
+      "Resolução de qualquer tipo de demanda durante o horário da reunião.",
+      "Cotações e pesquisas relativas às demandas da reunião.",
+    ],
+  },
+  "HV Nível III": {
+    planId: 11833,
+    checkoutId: 11652,
+    preco: "119,90",
+    checkoutFallback: "kgl3pLDplo",
+    sla_agenda: "2 meses",
+    sla_whatsapp: "7 dias",
+    incluso:
+      "Tudo do Nível II + Supervisão técnica ativa em reuniões/grupos com terceiros + Relatórios mensais de acompanhamento.",
+    nao_incluso:
+      "Execução operacional de tarefas (preenchimento de formulários, envio de documentos, trâmites burocráticos) em nome do cliente.",
+    escopo: [
+      "Contato ilimitado via WhatsApp.",
+      "Resolução de qualquer tipo de demanda durante o horário da reunião.",
+      "Cotações e pesquisas relativas às demandas da reunião.",
+      "Supervisão Ativa: Acompanhamento em tempo real (reuniões conjuntas ou grupos de WhatsApp) das tratativas com outros profissionais para garantir a adequação técnica do que está sendo contratado.",
+      "Contato via WhatsApp mensal para atualizações e/ou relatórios.",
+    ],
+  },
+  "HV Nível IV": {
+    planId: 11835,
+    checkoutId: 11653,
+    preco: "299,90",
+    checkoutFallback: "rHe327XILq",
+    sla_agenda: "1 mês",
+    sla_whatsapp: "72 horas",
+    incluso:
+      "Tudo do Nível III + Execução operacional completa de demandas burocráticas + Relatórios semanais + Horário fixo garantido.",
+    nao_incluso:
+      "Atos que exijam estritamente a presença física, assinatura biométrica ou uso de senha pessoal intransferível do titular.",
+    escopo: [
+      "Contato ilimitado via WhatsApp.",
+      "Resolução de qualquer tipo de demanda durante o horário da reunião.",
+      "Cotações e pesquisas relativas às demandas da reunião.",
+      "Supervisão Ativa com outros profissionais (conforme Nível III).",
+      "Execução Operacional Completa: Realização de todas as tarefas burocráticas e administrativas possíveis, entregando a solução pronta para validação final do cliente.",
+      "Contato via WhatsApp semanal para atualizações e/ou relatórios.",
+    ],
+  },
 };
 
-// ─── Texto do contrato (resumido para exibição) ────────────────────────────────
-const CONTRATO_CLAUSULAS = [
-  {
-    titulo: "1. OBJETO",
-    texto:
-      "Prestação de serviços de Consultoria e Planejamento Financeiro Pessoal, abrangendo, conforme o nível contratado: Planejamento Orçamentário, Gestão de Passivos e Dívidas, Análise de Viabilidade de Seguros, Planejamento Previdenciário, Estratégia de Alocação de Ativos, Otimização Fiscal (IRPF), Planejamento Sucessório, Gestão de Cartões/Milhas e Análise de Crédito.",
-  },
-  {
-    titulo: "2. METODOLOGIA",
-    texto:
-      "O serviço limita-se à definição de estratégia e orientação técnica. O CONSULTOR não realiza custódia de valores, não emite ordens de compra/venda e não promete rentabilidade futura. A execução final é de responsabilidade exclusiva do cliente.",
-  },
-  {
-    titulo: "3. OBRIGAÇÕES DO CONSULTOR",
-    texto:
-      "Prestar as orientações técnicas com diligência; manter sigilo absoluto das informações (LGPD); cumprir os prazos de resposta (SLA) estabelecidos no plano contratado.",
-  },
-  {
-    titulo: "4. OBRIGAÇÕES DO CONTRATANTE",
-    texto:
-      "Fornecer informações verídicas; manter os pagamentos em dia; comparecer às reuniões agendadas.",
-  },
-  {
-    titulo: "5. AGENDAMENTOS E SLA",
-    texto:
-      'Política de "No-Show": O não comparecimento à reunião agendada, sem aviso prévio mínimo de 24 horas, implica na consideração do serviço como PRESTADO. Canais oficiais: apenas WhatsApp oficial e reuniões agendadas.',
-  },
-  {
-    titulo: "6. CANCELAMENTO E ARREPENDIMENTO",
-    texto:
-      "Conforme o Art. 49 do CDC, o cliente tem direito ao arrependimento em até 7 dias após a contratação, com reembolso integral. Após este prazo, o cancelamento pode ser feito a qualquer momento, interrompendo cobranças futuras, sem reembolso dos dias já utilizados no mês corrente.",
-    destaque: true,
-  },
-  {
-    titulo: "7. ISENÇÃO DE RESPONSABILIDADE (CVM)",
-    texto:
-      "Este serviço NÃO constitui consultoria de valores mobiliários (CVM Resolução 19) nem gestão de carteira administrada. O CONSULTOR não promete rentabilidade futura nem se responsabiliza por prejuízos decorrentes de riscos de mercado.",
-  },
-];
+// ─── Checkbox customizado ──────────────────────────────────────────────────────
+function CustomCheckbox({
+  checked,
+  onChange,
+  color = "primary",
+}: {
+  checked: boolean;
+  onChange: () => void;
+  color?: "primary" | "green" | "yellow" | "red";
+}) {
+  const colorMap = {
+    primary: checked ? "bg-primary border-primary" : "border-white/30",
+    green: checked ? "bg-green-500 border-green-500" : "border-green-500/40",
+    yellow: checked ? "bg-yellow-400 border-yellow-400" : "border-yellow-400/40",
+    red: checked ? "bg-red-500 border-red-500" : "border-red-500/40",
+  };
+  return (
+    <div
+      onClick={onChange}
+      className={`mt-0.5 h-5 w-5 shrink-0 rounded border-2 flex items-center justify-center transition-colors cursor-pointer ${colorMap[color]}`}
+    >
+      {checked && (
+        <Check
+          className={`h-3 w-3 ${
+            color === "yellow" ? "text-black" : "text-white"
+          }`}
+        />
+      )}
+    </div>
+  );
+}
 
 // ─── Componente principal ──────────────────────────────────────────────────────
 export default function AceiteContrato() {
-  // Lê o plano da URL: /aceite-contrato?plano=HV+Nível+I
   const params = new URLSearchParams(window.location.search);
   const planoNome = decodeURIComponent(params.get("plano") || "HV Nível I");
-  const planoConfig = PLANOS_CONFIG[planoNome] || PLANOS_CONFIG["HV Nível I"];
+  const plano = PLANOS_CONFIG[planoNome] || PLANOS_CONFIG["HV Nível I"];
 
   // ─── Estado ────────────────────────────────────────────────────────────────
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [cpf, setCpf] = useState("");
   const [telefone, setTelefone] = useState("");
+  const [dataNascimento, setDataNascimento] = useState("");
   const [aceiteTermos, setAceiteTermos] = useState(false);
   const [aceiteCancelamento, setAceiteCancelamento] = useState(false);
+  const [aceiteCondicao, setAceiteCondicao] = useState(false);
   const [contratoExpandido, setContratoExpandido] = useState(false);
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState("");
@@ -100,6 +180,22 @@ export default function AceiteContrato() {
       .slice(0, 15);
   }
 
+  // Converte "DD/MM/AAAA" ou "AAAA-MM-DD" para "AAAA/MM/DD" (formato Cyclopay)
+  function formatarNascimentoCyclopay(valor: string): string {
+    const limpo = valor.replace(/\D/g, "");
+    if (limpo.length === 8) {
+      // Detecta se está em formato DDMMAAAA (digitação) ou AAAAMMDD (input date)
+      // Input date HTML retorna AAAA-MM-DD
+      const raw = valor; // valor original do input
+      if (raw.includes("-")) {
+        // AAAA-MM-DD → AAAA/MM/DD
+        const [y, m, d] = raw.split("-");
+        return `${y}/${m}/${d}`;
+      }
+    }
+    return valor;
+  }
+
   // ─── Submissão ─────────────────────────────────────────────────────────────
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -109,19 +205,23 @@ export default function AceiteContrato() {
       setErro("Por favor, preencha nome e e-mail.");
       return;
     }
-    if (!aceiteTermos || !aceiteCancelamento) {
-      setErro("Você precisa aceitar os termos e a política de cancelamento.");
+    if (!aceiteTermos || !aceiteCancelamento || !aceiteCondicao) {
+      setErro(
+        "Você precisa marcar todos os checkboxes obrigatórios para continuar."
+      );
       return;
     }
 
     setLoading(true);
 
     try {
-      // 1. Criar ou buscar assinante no Cyclopay
       const [firstName, ...rest] = nome.trim().split(" ");
       const lastName = rest.join(" ") || firstName;
       const cpfLimpo = cpf.replace(/\D/g, "");
       const telefoneLimpo = telefone.replace(/\D/g, "");
+      const nascimentoFormatado = dataNascimento
+        ? formatarNascimentoCyclopay(dataNascimento)
+        : undefined;
 
       const customerPayload: Record<string, unknown> = {
         email: email.trim(),
@@ -134,7 +234,14 @@ export default function AceiteContrato() {
       if (telefoneLimpo) {
         customerPayload.mobile_phone = telefoneLimpo;
       }
+      if (nascimentoFormatado) {
+        customerPayload.birth = nascimentoFormatado;
+      }
 
+      let customerId: string | null = null;
+      let checkoutUrl: string | null = null;
+
+      // 1. Criar assinante no Cyclopay
       const customerRes = await fetch("https://api.cyclopay.com/v1/customers", {
         method: "POST",
         headers: {
@@ -145,35 +252,15 @@ export default function AceiteContrato() {
         body: JSON.stringify(customerPayload),
       });
 
-      let customerId: string | null = null;
-      let checkoutUrl: string | null = null;
-
       if (customerRes.ok) {
         const customerData = await customerRes.json();
         customerId = customerData.customer_id;
-
-        // 2. Gerar link de checkout personalizado
-        const linkRes = await fetch(
-          `https://api.cyclopay.com/v1/customers/${customerId}/checkout/${planoConfig.checkoutId}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-              api_key: CYCLOPAY_API_KEY,
-            },
-            body: JSON.stringify({ language: "pt-br" }),
-          }
-        );
-
-        if (linkRes.ok) {
-          const linkData = await linkRes.json();
-          checkoutUrl = linkData.url || null;
-        }
       } else if (customerRes.status === 409) {
         // Assinante já existe — buscar pelo e-mail
         const searchRes = await fetch(
-          `https://api.cyclopay.com/v1/customers?email=${encodeURIComponent(email.trim())}`,
+          `https://api.cyclopay.com/v1/customers?email=${encodeURIComponent(
+            email.trim()
+          )}`,
           {
             headers: {
               Accept: "application/json",
@@ -184,26 +271,27 @@ export default function AceiteContrato() {
         if (searchRes.ok) {
           const searchData = await searchRes.json();
           const existing = searchData.items?.[0];
-          if (existing) {
-            customerId = existing.customer_id;
+          if (existing) customerId = existing.customer_id;
+        }
+      }
 
-            const linkRes = await fetch(
-              `https://api.cyclopay.com/v1/customers/${customerId}/checkout/${planoConfig.checkoutId}`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Accept: "application/json",
-                  api_key: CYCLOPAY_API_KEY,
-                },
-                body: JSON.stringify({ language: "pt-br" }),
-              }
-            );
-            if (linkRes.ok) {
-              const linkData = await linkRes.json();
-              checkoutUrl = linkData.url || null;
-            }
+      // 2. Gerar link de checkout personalizado
+      if (customerId) {
+        const linkRes = await fetch(
+          `https://api.cyclopay.com/v1/customers/${customerId}/checkout/${plano.checkoutId}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              api_key: CYCLOPAY_API_KEY,
+            },
+            body: JSON.stringify({ language: "pt-br" }),
           }
+        );
+        if (linkRes.ok) {
+          const linkData = await linkRes.json();
+          checkoutUrl = linkData.url || null;
         }
       }
 
@@ -213,11 +301,15 @@ export default function AceiteContrato() {
         email: email.trim(),
         cpf: cpfLimpo || null,
         telefone: telefoneLimpo || null,
+        data_nascimento: dataNascimento || null,
         plano_nome: planoNome,
-        plano_preco: planoConfig.preco,
-        plano_checkout_url: checkoutUrl || `https://planofinanceiro.cyclopay.com/checkout/`,
+        plano_preco: plano.preco,
+        plano_checkout_url:
+          checkoutUrl ||
+          `https://planofinanceiro.cyclopay.com/checkout/${plano.checkoutFallback}`,
         aceite_termos: aceiteTermos,
         aceite_politica_cancelamento: aceiteCancelamento,
+        aceite_condicao_atendimento: aceiteCondicao,
         user_agent: navigator.userAgent,
         versao_contrato: "v1.0",
         cyclopay_customer_id: customerId,
@@ -225,18 +317,10 @@ export default function AceiteContrato() {
         status: checkoutUrl ? "checkout_gerado" : "pendente",
       });
 
-      // 4. Redirecionar para o checkout
+      // 4. Redirecionar
       const destino =
         checkoutUrl ||
-        `https://planofinanceiro.cyclopay.com/checkout/${
-          planoNome === "HV Nível I"
-            ? "WrKjwGYR4p"
-            : planoNome === "HV Nível II"
-            ? "2GoFRSHleo"
-            : planoNome === "HV Nível III"
-            ? "kgl3pLDplo"
-            : "rHe327XILq"
-        }`;
+        `https://planofinanceiro.cyclopay.com/checkout/${plano.checkoutFallback}`;
 
       window.location.href = destino;
     } catch (err) {
@@ -246,6 +330,8 @@ export default function AceiteContrato() {
       setLoading(false);
     }
   }
+
+  const podeEnviar = aceiteTermos && aceiteCancelamento && aceiteCondicao;
 
   // ─── Render ────────────────────────────────────────────────────────────────
   return (
@@ -279,13 +365,14 @@ export default function AceiteContrato() {
           <div className="text-right">
             <p className="text-xs text-muted-foreground">Valor mensal</p>
             <p className="gold-gradient-text font-bold text-2xl">
-              R$ {planoConfig.preco}
+              R$ {plano.preco}
             </p>
           </div>
         </div>
 
         {/* Formulário */}
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Dados pessoais */}
           <div className="grid grid-cols-1 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="nome" className="text-white text-sm">
@@ -337,14 +424,29 @@ export default function AceiteContrato() {
                   id="telefone"
                   placeholder="(00) 00000-0000"
                   value={telefone}
-                  onChange={(e) => setTelefone(formatarTelefone(e.target.value))}
+                  onChange={(e) =>
+                    setTelefone(formatarTelefone(e.target.value))
+                  }
                   className="bg-white/5 border-white/10 text-white placeholder:text-muted-foreground"
                 />
               </div>
             </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="dataNascimento" className="text-white text-sm">
+                Data de Nascimento
+              </Label>
+              <Input
+                id="dataNascimento"
+                type="date"
+                value={dataNascimento}
+                onChange={(e) => setDataNascimento(e.target.value)}
+                className="bg-white/5 border-white/10 text-white placeholder:text-muted-foreground"
+              />
+            </div>
           </div>
 
-          {/* Contrato */}
+          {/* Contrato específico do plano */}
           <div className="space-y-3">
             <button
               type="button"
@@ -354,7 +456,7 @@ export default function AceiteContrato() {
               <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium">
-                  Contrato de Prestação de Serviços
+                  Contrato de Prestação de Serviços — {planoNome}
                 </span>
               </div>
               {contratoExpandido ? (
@@ -365,84 +467,205 @@ export default function AceiteContrato() {
             </button>
 
             {contratoExpandido && (
-              <div className="bg-black/30 border border-white/10 rounded-xl p-4 max-h-72 overflow-y-auto space-y-4 text-sm">
-                {CONTRATO_CLAUSULAS.map((c, i) => (
-                  <div key={i} className={c.destaque ? "bg-red-500/10 border border-red-500/30 rounded-lg p-3" : ""}>
-                    <p className={`font-bold mb-1 ${c.destaque ? "text-red-400" : "text-primary"}`}>
-                      {c.titulo}
-                    </p>
-                    <p className="text-muted-foreground leading-relaxed">{c.texto}</p>
+              <div className="bg-black/30 border border-white/10 rounded-xl p-4 max-h-80 overflow-y-auto space-y-4 text-sm">
+                {/* Destaque: Condição de Pagamento */}
+                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+                  <p className="font-bold text-red-400 mb-1 flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    CONDIÇÃO ESSENCIAL PARA ATENDIMENTO
+                  </p>
+                  <p className="text-white text-xs leading-relaxed">
+                    <strong>6. POLÍTICA DE PAGAMENTO E SUSPENSÃO:</strong> O
+                    acesso a quaisquer benefícios deste plano está estritamente
+                    condicionado à regularidade dos pagamentos. Havendo
+                    pendência financeira, a prestação de serviços será{" "}
+                    <strong>IMEDIATAMENTE SUSPENSA</strong> até a regularização,
+                    sem direito a indenização ou extensão de prazo.
+                  </p>
+                </div>
+
+                {/* Escopo específico do plano */}
+                <div className="bg-primary/10 border border-primary/20 rounded-lg p-3">
+                  <p className="font-bold text-primary text-xs mb-2">
+                    ESCOPO ESPECÍFICO — {planoNome.toUpperCase()}
+                  </p>
+                  <ul className="space-y-1">
+                    {plano.escopo.map((item, i) => (
+                      <li key={i} className="flex gap-2 text-xs text-muted-foreground">
+                        <span className="text-primary shrink-0">•</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-2 pt-2 border-t border-white/10">
+                    <p className="text-xs text-green-400 font-bold mb-1">INCLUSO:</p>
+                    <p className="text-xs text-muted-foreground">{plano.incluso}</p>
+                    <p className="text-xs text-red-400 font-bold mt-1 mb-1">VEDADO (NÃO INCLUSO):</p>
+                    <p className="text-xs text-muted-foreground">{plano.nao_incluso}</p>
                   </div>
-                ))}
+                </div>
+
+                <div>
+                  <p className="font-bold text-primary text-xs mb-1">SLA DESTE PLANO</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-black/20 p-2 rounded text-xs">
+                      <span className="text-muted-foreground block">SLA Agenda</span>
+                      <span className="font-bold text-white">{plano.sla_agenda}</span>
+                    </div>
+                    <div className="bg-black/20 p-2 rounded text-xs">
+                      <span className="text-muted-foreground block">SLA WhatsApp</span>
+                      <span className="font-bold text-white">{plano.sla_whatsapp}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="font-bold text-primary text-xs mb-1">1. OBJETO</p>
+                  <p className="text-muted-foreground text-xs leading-relaxed">
+                    Prestação de serviços de Consultoria e Planejamento Financeiro Pessoal, abrangendo, conforme o nível contratado: Planejamento Orçamentário, Gestão de Passivos e Dívidas, Análise de Viabilidade de Seguros, Planejamento Previdenciário, Estratégia de Alocação de Ativos, Otimização Fiscal (IRPF), Planejamento Sucessório, Gestão de Cartões/Milhas e Análise de Crédito.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-bold text-primary text-xs mb-1">2. METODOLOGIA</p>
+                  <p className="text-muted-foreground text-xs leading-relaxed">
+                    O serviço limita-se à definição de estratégia e orientação técnica. O CONSULTOR não realiza custódia de valores, não emite ordens de compra/venda e não promete rentabilidade futura. A execução final é de responsabilidade exclusiva do cliente.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-bold text-primary text-xs mb-1">3. OBRIGAÇÕES DO CONSULTOR</p>
+                  <p className="text-muted-foreground text-xs leading-relaxed">
+                    Prestar as orientações técnicas com diligência; manter sigilo absoluto das informações (LGPD); cumprir os prazos de resposta (SLA) estabelecidos no plano contratado.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-bold text-primary text-xs mb-1">4. OBRIGAÇÕES DO CONTRATANTE</p>
+                  <p className="text-muted-foreground text-xs leading-relaxed">
+                    Fornecer informações verídicas; manter os pagamentos em dia; comparecer às reuniões agendadas.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-bold text-primary text-xs mb-1">5. AGENDAMENTOS E SLA</p>
+                  <p className="text-muted-foreground text-xs leading-relaxed">
+                    <strong className="text-white">Política de "No-Show":</strong> O não comparecimento à reunião agendada, sem aviso prévio mínimo de 24 horas, implica na consideração do serviço como PRESTADO.{" "}
+                    <strong className="text-white">Canais Oficiais:</strong> Apenas WhatsApp oficial e reuniões agendadas.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-bold text-primary text-xs mb-1">6. CANCELAMENTO E ARREPENDIMENTO</p>
+                  <p className="text-muted-foreground text-xs leading-relaxed">
+                    Conforme o Art. 49 do CDC, o cliente tem direito ao arrependimento em até{" "}
+                    <strong className="text-white">7 dias</strong> após a contratação, com reembolso integral. Após este prazo, o cancelamento pode ser feito a qualquer momento, interrompendo cobranças futuras,{" "}
+                    <strong className="text-white">sem reembolso dos dias já utilizados no mês corrente</strong>.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-bold text-primary text-xs mb-1">7. ISENÇÃO DE RESPONSABILIDADE (CVM)</p>
+                  <p className="text-muted-foreground text-xs leading-relaxed">
+                    Este serviço NÃO constitui consultoria de valores mobiliários (CVM Resolução 19) nem gestão de carteira administrada. O CONSULTOR não promete rentabilidade futura nem se responsabiliza por prejuízos decorrentes de riscos de mercado.
+                  </p>
+                </div>
               </div>
             )}
           </div>
 
-          {/* Checkboxes de aceite */}
-          <div className="space-y-3">
-            <label className="flex items-start gap-3 cursor-pointer group">
-              <div
-                onClick={() => setAceiteTermos(!aceiteTermos)}
-                className={`mt-0.5 h-5 w-5 shrink-0 rounded border-2 flex items-center justify-center transition-colors ${
-                  aceiteTermos
-                    ? "bg-primary border-primary"
-                    : "border-white/30 group-hover:border-primary/60"
-                }`}
+          {/* ── Aceite dos termos gerais ── */}
+          <label className="flex items-start gap-3 cursor-pointer">
+            <CustomCheckbox
+              checked={aceiteTermos}
+              onChange={() => setAceiteTermos(!aceiteTermos)}
+              color="primary"
+            />
+            <span className="text-sm text-muted-foreground leading-relaxed">
+              <span className="text-yellow-400 font-semibold">Li e aceito</span>{" "}
+              os{" "}
+              <button
+                type="button"
+                onClick={() => setContratoExpandido(true)}
+                className="text-primary underline underline-offset-2"
               >
-                {aceiteTermos && <Check className="h-3 w-3 text-black" />}
-              </div>
-              <span className="text-sm text-muted-foreground leading-relaxed">
-                Li e aceito os{" "}
-                <button
-                  type="button"
-                  onClick={() => setContratoExpandido(true)}
-                  className="text-primary underline underline-offset-2"
-                >
-                  Termos do Contrato de Prestação de Serviços
-                </button>{" "}
-                e estou ciente do escopo do plano {planoNome}.
-              </span>
-            </label>
+                Termos do Contrato de Prestação de Serviços
+              </button>{" "}
+              e estou ciente do escopo do plano {planoNome}.
+            </span>
+          </label>
 
-            <label className="flex items-start gap-3 cursor-pointer group">
-              <div
-                onClick={() => setAceiteCancelamento(!aceiteCancelamento)}
-                className={`mt-0.5 h-5 w-5 shrink-0 rounded border-2 flex items-center justify-center transition-colors ${
-                  aceiteCancelamento
-                    ? "bg-primary border-primary"
-                    : "border-white/30 group-hover:border-primary/60"
-                }`}
-              >
-                {aceiteCancelamento && <Check className="h-3 w-3 text-black" />}
+          {/* ── Política de Cancelamento (verde) ── */}
+          <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <ShieldCheck className="h-5 w-5 text-green-400 shrink-0 mt-0.5" />
+              <div className="flex-1 space-y-3">
+                <div>
+                  <p className="text-green-400 font-bold text-sm mb-1">
+                    POLÍTICA DE CANCELAMENTO
+                  </p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Você tem direito ao arrependimento em até{" "}
+                    <strong className="text-white">7 dias</strong> (com reembolso
+                    integral). Após esse prazo, pode cancelar a qualquer momento,
+                    mas{" "}
+                    <strong className="text-white">
+                      não haverá reembolso dos dias já utilizados no mês corrente
+                    </strong>
+                    .
+                  </p>
+                </div>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <CustomCheckbox
+                    checked={aceiteCancelamento}
+                    onChange={() => setAceiteCancelamento(!aceiteCancelamento)}
+                    color="green"
+                  />
+                  <span className="text-sm text-muted-foreground leading-relaxed">
+                    <span className="text-yellow-400 font-semibold">
+                      Li e estou ciente
+                    </span>{" "}
+                    da Política de Cancelamento acima.
+                  </span>
+                </label>
               </div>
-              <span className="text-sm text-muted-foreground leading-relaxed">
-                <span className="text-white font-medium">Política de Cancelamento:</span>{" "}
-                Estou ciente de que tenho direito ao arrependimento em até{" "}
-                <strong className="text-white">7 dias</strong> (com reembolso integral). Após
-                esse prazo, posso cancelar a qualquer momento, mas{" "}
-                <strong className="text-white">
-                  não haverá reembolso dos dias já utilizados no mês corrente
-                </strong>
-                .
-              </span>
-            </label>
+            </div>
           </div>
 
-          {/* Aviso de suspensão por inadimplência */}
+          {/* ── Condição Essencial para Atendimento (vermelho + checkbox) ── */}
           <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
             <div className="flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
-              <div className="text-sm">
-                <p className="text-red-400 font-bold mb-1">
-                  CONDIÇÃO ESSENCIAL PARA ATENDIMENTO
-                </p>
-                <p className="text-muted-foreground leading-relaxed">
-                  O acesso a todos os benefícios do plano está condicionado à{" "}
-                  <strong className="text-white">regularidade dos pagamentos</strong>. Havendo
-                  pendência financeira, a prestação de serviços será{" "}
-                  <strong className="text-white">IMEDIATAMENTE SUSPENSA</strong> até a
-                  regularização.
-                </p>
+              <div className="flex-1 space-y-3">
+                <div>
+                  <p className="text-red-400 font-bold text-sm mb-1">
+                    CONDIÇÃO ESSENCIAL PARA ATENDIMENTO
+                  </p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    O acesso a todos os benefícios do plano está condicionado à{" "}
+                    <strong className="text-white">
+                      regularidade dos pagamentos
+                    </strong>
+                    . Havendo pendência financeira, a prestação de serviços será{" "}
+                    <strong className="text-white">
+                      IMEDIATAMENTE SUSPENSA
+                    </strong>{" "}
+                    até a regularização.
+                  </p>
+                </div>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <CustomCheckbox
+                    checked={aceiteCondicao}
+                    onChange={() => setAceiteCondicao(!aceiteCondicao)}
+                    color="red"
+                  />
+                  <span className="text-sm text-muted-foreground leading-relaxed">
+                    <span className="text-yellow-400 font-semibold">
+                      Estou ciente
+                    </span>{" "}
+                    de que o não pagamento suspende imediatamente o atendimento.
+                  </span>
+                </label>
               </div>
             </div>
           </div>
@@ -457,7 +680,7 @@ export default function AceiteContrato() {
           {/* Botão */}
           <Button
             type="submit"
-            disabled={loading || !aceiteTermos || !aceiteCancelamento}
+            disabled={loading || !podeEnviar}
             className="w-full h-14 text-base font-bold bg-primary text-black hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/20"
           >
             {loading ? (
@@ -474,7 +697,8 @@ export default function AceiteContrato() {
           </Button>
 
           <p className="text-center text-xs text-muted-foreground">
-            Ao clicar, você será redirecionado para o ambiente seguro de pagamento do Cyclopay.
+            Ao clicar, você será redirecionado para o ambiente seguro de
+            pagamento do Cyclopay.
           </p>
         </form>
       </div>
