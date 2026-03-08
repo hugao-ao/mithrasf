@@ -11,6 +11,7 @@ import {
   ChevronDown,
   ChevronUp,
   ShieldCheck,
+  BookOpen,
 } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 
@@ -35,6 +36,7 @@ const PLANOS_CONFIG: Record<
     incluso: string;
     nao_incluso: string;
     escopo: string[];
+    adesao_info: string;
   }
 > = {
   "HV Nível I": {
@@ -44,14 +46,15 @@ const PLANOS_CONFIG: Record<
     checkoutFallback: "WrKjwGYR4p",
     sla_agenda: "6 meses",
     sla_whatsapp: "30 dias",
-    incluso:
-      "Orientação estratégica e resolução de dúvidas pontuais.",
+    incluso: "Orientação estratégica e resolução de dúvidas pontuais.",
     nao_incluso:
       "Cotações de preços, pesquisas de mercado, contato com terceiros, execução de tarefas operacionais, relatórios escritos fora de reunião.",
     escopo: [
       "Contato ilimitado via WhatsApp (sem análises novas ou cotações).",
       "Resolução de qualquer tipo de demanda durante o horário da reunião.",
     ],
+    adesao_info:
+      "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 6 meses)",
   },
   "HV Nível II": {
     planId: 11831,
@@ -69,6 +72,8 @@ const PLANOS_CONFIG: Record<
       "Resolução de qualquer tipo de demanda durante o horário da reunião.",
       "Cotações e pesquisas relativas às demandas da reunião.",
     ],
+    adesao_info:
+      "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 4 meses)",
   },
   "HV Nível III": {
     planId: 11833,
@@ -88,6 +93,8 @@ const PLANOS_CONFIG: Record<
       "Supervisão Ativa: Acompanhamento em tempo real (reuniões conjuntas ou grupos de WhatsApp) das tratativas com outros profissionais para garantir a adequação técnica do que está sendo contratado.",
       "Contato via WhatsApp mensal para atualizações e/ou relatórios.",
     ],
+    adesao_info:
+      "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 2 meses)",
   },
   "HV Nível IV": {
     planId: 11835,
@@ -108,6 +115,7 @@ const PLANOS_CONFIG: Record<
       "Execução Operacional Completa: Realização de todas as tarefas burocráticas e administrativas possíveis, entregando a solução pronta para validação final do cliente.",
       "Contato via WhatsApp semanal para atualizações e/ou relatórios.",
     ],
+    adesao_info: "",
   },
 };
 
@@ -119,26 +127,163 @@ function CustomCheckbox({
 }: {
   checked: boolean;
   onChange: () => void;
-  color?: "primary" | "green" | "yellow" | "red";
+  color?: "yellow" | "green" | "red";
 }) {
   const colorMap = {
-    primary: checked ? "bg-primary border-primary" : "border-white/30",
-    green: checked ? "bg-green-500 border-green-500" : "border-green-500/40",
-    yellow: checked ? "bg-yellow-400 border-yellow-400" : "border-yellow-400/40",
-    red: checked ? "bg-red-500 border-red-500" : "border-red-500/40",
+    yellow: checked
+      ? "bg-yellow-400 border-yellow-400"
+      : "border-yellow-400/50 hover:border-yellow-400",
+    green: checked
+      ? "bg-green-500 border-green-500"
+      : "border-green-500/50 hover:border-green-500",
+    red: checked
+      ? "bg-red-500 border-red-500"
+      : "border-red-500/50 hover:border-red-500",
+  };
+  const checkColor = {
+    yellow: "text-black",
+    green: "text-white",
+    red: "text-white",
   };
   return (
     <div
       onClick={onChange}
       className={`mt-0.5 h-5 w-5 shrink-0 rounded border-2 flex items-center justify-center transition-colors cursor-pointer ${colorMap[color]}`}
     >
-      {checked && (
-        <Check
-          className={`h-3 w-3 ${
-            color === "yellow" ? "text-black" : "text-white"
-          }`}
-        />
-      )}
+      {checked && <Check className={`h-3 w-3 ${checkColor[color]}`} />}
+    </div>
+  );
+}
+
+// ─── Contrato completo por plano (idêntico ao de Planos.tsx) ─────────────────
+function ContratoCompleto({ planoNome }: { planoNome: string }) {
+  const plano = PLANOS_CONFIG[planoNome] || PLANOS_CONFIG["HV Nível I"];
+
+  return (
+    <div className="text-sm text-muted-foreground space-y-4 text-justify">
+      {/* Destaque: Condição de Pagamento */}
+      <div className="bg-red-500/10 border border-red-500/30 p-3 rounded">
+        <h4 className="text-red-400 font-bold mb-1 flex items-center gap-2 text-xs">
+          <AlertTriangle className="h-4 w-4" /> CONDIÇÃO ESSENCIAL PARA ATENDIMENTO
+        </h4>
+        <p className="text-xs text-white">
+          <strong>6. POLÍTICA DE PAGAMENTO E SUSPENSÃO DE SERVIÇOS:</strong> O acesso a
+          quaisquer benefícios deste plano (incluindo respostas no WhatsApp, agendamento de
+          reuniões e envio de relatórios) está estritamente condicionado à regularidade dos
+          pagamentos. O CONSULTOR realizará a verificação de adimplência antes de iniciar
+          qualquer atendimento. Havendo pendência financeira, a prestação de serviços será{" "}
+          <strong>IMEDIATAMENTE SUSPENSA</strong> até a regularização, sem que isso gere
+          qualquer direito a indenização ou extensão de prazo contratual.
+        </p>
+      </div>
+
+      <p>
+        <strong>1. OBJETO:</strong> Prestação de serviços de Consultoria e Planejamento
+        Financeiro Pessoal, abrangendo, conforme o nível contratado: Planejamento
+        Orçamentário, Gestão de Passivos e Dívidas, Análise de Viabilidade de Seguros
+        (Vida, Auto, Residencial, Saúde), Planejamento Previdenciário (PGBL/VGBL),
+        Estratégia de Alocação de Ativos, Otimização Fiscal (IRPF), Planejamento
+        Sucessório, Gestão de Cartões/Milhas e Análise de Crédito
+        (Financiamentos/Consórcios).
+      </p>
+
+      {/* Escopo específico do plano */}
+      <div className="bg-primary/10 p-3 rounded border border-primary/20">
+        <p className="text-xs font-bold text-primary mb-1">
+          ESCOPO ESPECÍFICO DESTE PLANO ({planoNome}):
+        </p>
+        <ul className="space-y-1 mb-2">
+          {plano.escopo.map((item, i) => (
+            <li key={i} className="flex gap-2 text-xs text-white">
+              <span className="text-primary shrink-0">•</span>
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+        {plano.adesao_info && (
+          <p className="text-xs text-muted-foreground italic mb-2">{plano.adesao_info}</p>
+        )}
+        <p className="text-xs text-white">{plano.incluso}</p>
+        <p className="text-xs text-red-300 mt-1">
+          <strong>VEDAÇÕES:</strong> {plano.nao_incluso}
+        </p>
+      </div>
+
+      <p>
+        <strong>Níveis de Serviço (Intermediação e Execução):</strong>
+        <br />
+        <strong>Nível III:</strong> Inclui a Supervisão Ativa, onde o CONSULTOR participa
+        em conjunto com o CONTRATANTE (via reuniões ou grupos de WhatsApp) nas tratativas
+        com outros profissionais do mercado, atuando como suporte técnico para assegurar a
+        adequação dos produtos, sem qualquer recebimento de comissão ou vínculo comercial
+        com os fornecedores.
+        <br />
+        <strong>Nível IV:</strong> Inclui a Supervisão Ativa do Nível III somada à execução
+        operacional completa de todas as demandas burocráticas e administrativas que não
+        exijam a presença física, assinatura biométrica ou senha pessoal intransferível do
+        CONTRATANTE, entregando as soluções prontas para validação final.
+      </p>
+
+      <p>
+        <strong>2. METODOLOGIA DE INVESTIMENTOS E SEGUROS:</strong>
+        <br />
+        <strong>Investimentos:</strong> O serviço limita-se à definição da estratégia de
+        Alocação de Ativos (Asset Allocation) e Rebalanceamento Periódico, baseando-se
+        exclusivamente na metodologia de Classificação de Risco dos Ativos (7 perfis de
+        risco). O CONSULTOR não realiza custódia de valores nem emite ordens de
+        compra/venda. A execução final é de responsabilidade exclusiva do cliente junto à
+        sua corretora.
+        <br />
+        <strong>Seguros e Previdência:</strong> O trabalho consiste na análise de
+        necessidade, cálculo de capital segurado e comparação técnica de apólices. A
+        contratação final deve ser realizada através de corretor habilitado (SUSEP) ou
+        instituição financeira de escolha do cliente.
+      </p>
+
+      <p>
+        <strong>3. OBRIGAÇÕES DO CONSULTOR:</strong> Prestar as orientações técnicas com
+        diligência; manter sigilo absoluto das informações (LGPD); cumprir os prazos de
+        resposta (SLA) estabelecidos neste plano.
+      </p>
+
+      <p>
+        <strong>4. OBRIGAÇÕES DO CONTRATANTE:</strong> Fornecer informações verídicas;
+        manter os pagamentos em dia; comparecer às reuniões agendadas.
+      </p>
+
+      <p>
+        <strong>5. AGENDAMENTOS E SLA:</strong>
+        <br />
+        <strong>Política de "No-Show" (Ausência):</strong> O não comparecimento à reunião
+        agendada, sem aviso prévio de cancelamento com antecedência mínima de 24 horas,
+        implicará na consideração do serviço como PRESTADO, descontando-se do saldo de
+        reuniões ou considerando-se cumprida a agenda do mês.
+        <br />
+        <strong>Canais Oficiais:</strong> Para fins de registro e contagem de prazos, são
+        válidas apenas as solicitações realizadas em reunião ou via WhatsApp oficial. Áudios
+        com mais de 2 minutos ou mensagens fora do horário comercial poderão ter prazo de
+        resposta estendido.
+        <br />
+        <strong>SLA deste plano — Agenda:</strong> {plano.sla_agenda} |{" "}
+        <strong>WhatsApp:</strong> {plano.sla_whatsapp}
+      </p>
+
+      <p>
+        <strong>6. CANCELAMENTO E ARREPENDIMENTO:</strong>
+        <br />
+        Conforme o Art. 49 do CDC, o cliente tem direito ao arrependimento em até 7 dias
+        após a contratação, com reembolso integral. Após este prazo, o cancelamento da
+        assinatura mensal pode ser feito a qualquer momento, interrompendo-se as cobranças
+        futuras, sem reembolso dos dias já utilizados no mês corrente.
+      </p>
+
+      <p>
+        <strong>7. ISENÇÃO DE RESPONSABILIDADE (CVM):</strong>
+        <br />
+        Este serviço NÃO constitui consultoria de valores mobiliários (CVM Resolução 19)
+        nem gestão de carteira administrada. O CONSULTOR não promete rentabilidade futura
+        nem se responsabiliza por prejuízos decorrentes de riscos de mercado.
+      </p>
     </div>
   );
 }
@@ -180,18 +325,10 @@ export default function AceiteContrato() {
       .slice(0, 15);
   }
 
-  // Converte "DD/MM/AAAA" ou "AAAA-MM-DD" para "AAAA/MM/DD" (formato Cyclopay)
   function formatarNascimentoCyclopay(valor: string): string {
-    const limpo = valor.replace(/\D/g, "");
-    if (limpo.length === 8) {
-      // Detecta se está em formato DDMMAAAA (digitação) ou AAAAMMDD (input date)
-      // Input date HTML retorna AAAA-MM-DD
-      const raw = valor; // valor original do input
-      if (raw.includes("-")) {
-        // AAAA-MM-DD → AAAA/MM/DD
-        const [y, m, d] = raw.split("-");
-        return `${y}/${m}/${d}`;
-      }
+    if (valor.includes("-")) {
+      const [y, m, d] = valor.split("-");
+      return `${y}/${m}/${d}`;
     }
     return valor;
   }
@@ -206,9 +343,7 @@ export default function AceiteContrato() {
       return;
     }
     if (!aceiteTermos || !aceiteCancelamento || !aceiteCondicao) {
-      setErro(
-        "Você precisa marcar todos os checkboxes obrigatórios para continuar."
-      );
+      setErro("Você precisa marcar todos os checkboxes obrigatórios para continuar.");
       return;
     }
 
@@ -228,15 +363,9 @@ export default function AceiteContrato() {
         first_name: firstName,
         last_name: lastName,
       };
-      if (cpfLimpo) {
-        customerPayload.document = { type: "CPF", number: cpfLimpo };
-      }
-      if (telefoneLimpo) {
-        customerPayload.mobile_phone = telefoneLimpo;
-      }
-      if (nascimentoFormatado) {
-        customerPayload.birth = nascimentoFormatado;
-      }
+      if (cpfLimpo) customerPayload.document = { type: "CPF", number: cpfLimpo };
+      if (telefoneLimpo) customerPayload.mobile_phone = telefoneLimpo;
+      if (nascimentoFormatado) customerPayload.birth = nascimentoFormatado;
 
       let customerId: string | null = null;
       let checkoutUrl: string | null = null;
@@ -256,17 +385,9 @@ export default function AceiteContrato() {
         const customerData = await customerRes.json();
         customerId = customerData.customer_id;
       } else if (customerRes.status === 409) {
-        // Assinante já existe — buscar pelo e-mail
         const searchRes = await fetch(
-          `https://api.cyclopay.com/v1/customers?email=${encodeURIComponent(
-            email.trim()
-          )}`,
-          {
-            headers: {
-              Accept: "application/json",
-              api_key: CYCLOPAY_API_KEY,
-            },
-          }
+          `https://api.cyclopay.com/v1/customers?email=${encodeURIComponent(email.trim())}`,
+          { headers: { Accept: "application/json", api_key: CYCLOPAY_API_KEY } }
         );
         if (searchRes.ok) {
           const searchData = await searchRes.json();
@@ -318,11 +439,9 @@ export default function AceiteContrato() {
       });
 
       // 4. Redirecionar
-      const destino =
+      window.location.href =
         checkoutUrl ||
         `https://planofinanceiro.cyclopay.com/checkout/${plano.checkoutFallback}`;
-
-      window.location.href = destino;
     } catch (err) {
       console.error(err);
       setErro("Ocorreu um erro. Por favor, tente novamente.");
@@ -347,8 +466,8 @@ export default function AceiteContrato() {
           <span className="gold-gradient-text">{planoNome}</span>
         </h1>
         <p className="text-muted-foreground">
-          Antes de prosseguir para o pagamento, preencha seus dados e leia os
-          termos do serviço.
+          Antes de prosseguir para o pagamento, preencha seus dados e leia os termos do
+          serviço.
         </p>
       </div>
 
@@ -364,9 +483,7 @@ export default function AceiteContrato() {
           </div>
           <div className="text-right">
             <p className="text-xs text-muted-foreground">Valor mensal</p>
-            <p className="gold-gradient-text font-bold text-2xl">
-              R$ {plano.preco}
-            </p>
+            <p className="gold-gradient-text font-bold text-2xl">R$ {plano.preco}</p>
           </div>
         </div>
 
@@ -424,9 +541,7 @@ export default function AceiteContrato() {
                   id="telefone"
                   placeholder="(00) 00000-0000"
                   value={telefone}
-                  onChange={(e) =>
-                    setTelefone(formatarTelefone(e.target.value))
-                  }
+                  onChange={(e) => setTelefone(formatarTelefone(e.target.value))}
                   className="bg-white/5 border-white/10 text-white placeholder:text-muted-foreground"
                 />
               </div>
@@ -446,7 +561,7 @@ export default function AceiteContrato() {
             </div>
           </div>
 
-          {/* Contrato específico do plano */}
+          {/* ── Contrato completo (expansível) ── */}
           <div className="space-y-3">
             <button
               type="button"
@@ -467,135 +582,51 @@ export default function AceiteContrato() {
             </button>
 
             {contratoExpandido && (
-              <div className="bg-black/30 border border-white/10 rounded-xl p-4 max-h-80 overflow-y-auto space-y-4 text-sm">
-                {/* Destaque: Condição de Pagamento */}
-                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
-                  <p className="font-bold text-red-400 mb-1 flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4" />
-                    CONDIÇÃO ESSENCIAL PARA ATENDIMENTO
-                  </p>
-                  <p className="text-white text-xs leading-relaxed">
-                    <strong>6. POLÍTICA DE PAGAMENTO E SUSPENSÃO:</strong> O
-                    acesso a quaisquer benefícios deste plano está estritamente
-                    condicionado à regularidade dos pagamentos. Havendo
-                    pendência financeira, a prestação de serviços será{" "}
-                    <strong>IMEDIATAMENTE SUSPENSA</strong> até a regularização,
-                    sem direito a indenização ou extensão de prazo.
-                  </p>
-                </div>
-
-                {/* Escopo específico do plano */}
-                <div className="bg-primary/10 border border-primary/20 rounded-lg p-3">
-                  <p className="font-bold text-primary text-xs mb-2">
-                    ESCOPO ESPECÍFICO — {planoNome.toUpperCase()}
-                  </p>
-                  <ul className="space-y-1">
-                    {plano.escopo.map((item, i) => (
-                      <li key={i} className="flex gap-2 text-xs text-muted-foreground">
-                        <span className="text-primary shrink-0">•</span>
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="mt-2 pt-2 border-t border-white/10">
-                    <p className="text-xs text-green-400 font-bold mb-1">INCLUSO:</p>
-                    <p className="text-xs text-muted-foreground">{plano.incluso}</p>
-                    <p className="text-xs text-red-400 font-bold mt-1 mb-1">VEDADO (NÃO INCLUSO):</p>
-                    <p className="text-xs text-muted-foreground">{plano.nao_incluso}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="font-bold text-primary text-xs mb-1">SLA DESTE PLANO</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-black/20 p-2 rounded text-xs">
-                      <span className="text-muted-foreground block">SLA Agenda</span>
-                      <span className="font-bold text-white">{plano.sla_agenda}</span>
-                    </div>
-                    <div className="bg-black/20 p-2 rounded text-xs">
-                      <span className="text-muted-foreground block">SLA WhatsApp</span>
-                      <span className="font-bold text-white">{plano.sla_whatsapp}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="font-bold text-primary text-xs mb-1">1. OBJETO</p>
-                  <p className="text-muted-foreground text-xs leading-relaxed">
-                    Prestação de serviços de Consultoria e Planejamento Financeiro Pessoal, abrangendo, conforme o nível contratado: Planejamento Orçamentário, Gestão de Passivos e Dívidas, Análise de Viabilidade de Seguros, Planejamento Previdenciário, Estratégia de Alocação de Ativos, Otimização Fiscal (IRPF), Planejamento Sucessório, Gestão de Cartões/Milhas e Análise de Crédito.
-                  </p>
-                </div>
-
-                <div>
-                  <p className="font-bold text-primary text-xs mb-1">2. METODOLOGIA</p>
-                  <p className="text-muted-foreground text-xs leading-relaxed">
-                    O serviço limita-se à definição de estratégia e orientação técnica. O CONSULTOR não realiza custódia de valores, não emite ordens de compra/venda e não promete rentabilidade futura. A execução final é de responsabilidade exclusiva do cliente.
-                  </p>
-                </div>
-
-                <div>
-                  <p className="font-bold text-primary text-xs mb-1">3. OBRIGAÇÕES DO CONSULTOR</p>
-                  <p className="text-muted-foreground text-xs leading-relaxed">
-                    Prestar as orientações técnicas com diligência; manter sigilo absoluto das informações (LGPD); cumprir os prazos de resposta (SLA) estabelecidos no plano contratado.
-                  </p>
-                </div>
-
-                <div>
-                  <p className="font-bold text-primary text-xs mb-1">4. OBRIGAÇÕES DO CONTRATANTE</p>
-                  <p className="text-muted-foreground text-xs leading-relaxed">
-                    Fornecer informações verídicas; manter os pagamentos em dia; comparecer às reuniões agendadas.
-                  </p>
-                </div>
-
-                <div>
-                  <p className="font-bold text-primary text-xs mb-1">5. AGENDAMENTOS E SLA</p>
-                  <p className="text-muted-foreground text-xs leading-relaxed">
-                    <strong className="text-white">Política de "No-Show":</strong> O não comparecimento à reunião agendada, sem aviso prévio mínimo de 24 horas, implica na consideração do serviço como PRESTADO.{" "}
-                    <strong className="text-white">Canais Oficiais:</strong> Apenas WhatsApp oficial e reuniões agendadas.
-                  </p>
-                </div>
-
-                <div>
-                  <p className="font-bold text-primary text-xs mb-1">6. CANCELAMENTO E ARREPENDIMENTO</p>
-                  <p className="text-muted-foreground text-xs leading-relaxed">
-                    Conforme o Art. 49 do CDC, o cliente tem direito ao arrependimento em até{" "}
-                    <strong className="text-white">7 dias</strong> após a contratação, com reembolso integral. Após este prazo, o cancelamento pode ser feito a qualquer momento, interrompendo cobranças futuras,{" "}
-                    <strong className="text-white">sem reembolso dos dias já utilizados no mês corrente</strong>.
-                  </p>
-                </div>
-
-                <div>
-                  <p className="font-bold text-primary text-xs mb-1">7. ISENÇÃO DE RESPONSABILIDADE (CVM)</p>
-                  <p className="text-muted-foreground text-xs leading-relaxed">
-                    Este serviço NÃO constitui consultoria de valores mobiliários (CVM Resolução 19) nem gestão de carteira administrada. O CONSULTOR não promete rentabilidade futura nem se responsabiliza por prejuízos decorrentes de riscos de mercado.
-                  </p>
-                </div>
+              <div className="bg-black/30 border border-white/10 rounded-xl p-4 max-h-96 overflow-y-auto">
+                <ContratoCompleto planoNome={planoNome} />
               </div>
             )}
           </div>
 
-          {/* ── Aceite dos termos gerais ── */}
-          <label className="flex items-start gap-3 cursor-pointer">
-            <CustomCheckbox
-              checked={aceiteTermos}
-              onChange={() => setAceiteTermos(!aceiteTermos)}
-              color="primary"
-            />
-            <span className="text-sm text-muted-foreground leading-relaxed">
-              <span className="text-yellow-400 font-semibold">Li e aceito</span>{" "}
-              os{" "}
-              <button
-                type="button"
-                onClick={() => setContratoExpandido(true)}
-                className="text-primary underline underline-offset-2"
-              >
-                Termos do Contrato de Prestação de Serviços
-              </button>{" "}
-              e estou ciente do escopo do plano {planoNome}.
-            </span>
-          </label>
+          {/* ── 1. Li e aceito (caixa amarela) ── */}
+          <div className="bg-yellow-400/10 border border-yellow-400/30 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <BookOpen className="h-5 w-5 text-yellow-400 shrink-0 mt-0.5" />
+              <div className="flex-1 space-y-3">
+                <div>
+                  <p className="text-yellow-400 font-bold text-sm mb-1">
+                    TERMOS DO CONTRATO
+                  </p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Leia o contrato completo acima antes de marcar. Ao aceitar, você
+                    confirma que leu e compreendeu todas as cláusulas do{" "}
+                    <button
+                      type="button"
+                      onClick={() => setContratoExpandido(true)}
+                      className="text-primary underline underline-offset-2"
+                    >
+                      Contrato de Prestação de Serviços — {planoNome}
+                    </button>
+                    .
+                  </p>
+                </div>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <CustomCheckbox
+                    checked={aceiteTermos}
+                    onChange={() => setAceiteTermos(!aceiteTermos)}
+                    color="yellow"
+                  />
+                  <span className="text-sm text-muted-foreground leading-relaxed">
+                    <span className="text-yellow-400 font-semibold">Li e aceito</span> os
+                    Termos do Contrato de Prestação de Serviços e estou ciente do escopo
+                    do plano {planoNome}.
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
 
-          {/* ── Política de Cancelamento (verde) ── */}
+          {/* ── 2. Política de Cancelamento (caixa verde) ── */}
           <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
             <div className="flex items-start gap-3">
               <ShieldCheck className="h-5 w-5 text-green-400 shrink-0 mt-0.5" />
@@ -607,8 +638,7 @@ export default function AceiteContrato() {
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     Você tem direito ao arrependimento em até{" "}
                     <strong className="text-white">7 dias</strong> (com reembolso
-                    integral). Após esse prazo, pode cancelar a qualquer momento,
-                    mas{" "}
+                    integral). Após esse prazo, pode cancelar a qualquer momento, mas{" "}
                     <strong className="text-white">
                       não haverá reembolso dos dias já utilizados no mês corrente
                     </strong>
@@ -632,7 +662,7 @@ export default function AceiteContrato() {
             </div>
           </div>
 
-          {/* ── Condição Essencial para Atendimento (vermelho + checkbox) ── */}
+          {/* ── 3. Condição Essencial para Atendimento (caixa vermelha) ── */}
           <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
             <div className="flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
@@ -643,14 +673,10 @@ export default function AceiteContrato() {
                   </p>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     O acesso a todos os benefícios do plano está condicionado à{" "}
-                    <strong className="text-white">
-                      regularidade dos pagamentos
-                    </strong>
-                    . Havendo pendência financeira, a prestação de serviços será{" "}
-                    <strong className="text-white">
-                      IMEDIATAMENTE SUSPENSA
-                    </strong>{" "}
-                    até a regularização.
+                    <strong className="text-white">regularidade dos pagamentos</strong>.
+                    Havendo pendência financeira, a prestação de serviços será{" "}
+                    <strong className="text-white">IMEDIATAMENTE SUSPENSA</strong> até a
+                    regularização.
                   </p>
                 </div>
                 <label className="flex items-start gap-3 cursor-pointer">
@@ -660,10 +686,8 @@ export default function AceiteContrato() {
                     color="red"
                   />
                   <span className="text-sm text-muted-foreground leading-relaxed">
-                    <span className="text-yellow-400 font-semibold">
-                      Estou ciente
-                    </span>{" "}
-                    de que o não pagamento suspende imediatamente o atendimento.
+                    <span className="text-yellow-400 font-semibold">Estou ciente</span> de
+                    que o não pagamento suspende imediatamente o atendimento.
                   </span>
                 </label>
               </div>
@@ -697,8 +721,8 @@ export default function AceiteContrato() {
           </Button>
 
           <p className="text-center text-xs text-muted-foreground">
-            Ao clicar, você será redirecionado para o ambiente seguro de
-            pagamento do Cyclopay.
+            Ao clicar, você será redirecionado para o ambiente seguro de pagamento do
+            Cyclopay.
           </p>
         </form>
       </div>
