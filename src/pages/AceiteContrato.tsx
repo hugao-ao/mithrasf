@@ -413,10 +413,16 @@ export default function AceiteContrato() {
         status: checkoutUrl ? "checkout_gerado" : "pendente",
       });
 
-      // 4. Redirecionar
+      // 4. Salvar email no sessionStorage para o polling na página de aguardo
+      sessionStorage.setItem('hvsf_pending_email', email.trim().toLowerCase());
+      sessionStorage.setItem('hvsf_pending_plano', planoNome);
+
+      // 5. Redirecionar para o checkout do Cyclopay
+      // Após o pagamento, o cliente deve navegar manualmente para /aguardando-formulario
+      // (ou o Cyclopay redireciona se configurado com success_url)
       window.location.href =
         checkoutUrl ||
-        `https://planofinanceiro.cyclopay.com/checkout/${plano.checkoutFallback}`;
+        `https://planofinanceiro.cyclopay.com/checkout?hash=${plano.checkoutFallback}`;
     } catch (err) {
       console.error(err);
       setErro("Ocorreu um erro. Por favor, tente novamente.");

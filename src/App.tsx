@@ -17,6 +17,8 @@ import Oraculo from "./pages/ferramentas/Oraculo";
 import UnderConstruction from "./pages/UnderConstruction";
 import Login from "./pages/Login";
 import AceiteContrato from "./pages/AceiteContrato";
+import AguardandoFormulario from "./pages/AguardandoFormulario";
+import BemVindo from "./pages/BemVindo";
 import { Layout } from "./components/Layout";
 
 function Router() {
@@ -28,7 +30,9 @@ function Router() {
         <Route path={"/sucesso"} component={Sucesso} />
         <Route path={"/login"} component={Login} />
         <Route path={"/aceite-contrato"} component={AceiteContrato} />
-        
+        <Route path={"/aguardando-formulario"} component={AguardandoFormulario} />
+        <Route path={"/bem-vindo"} component={BemVindo} />
+
         {/* Ferramentas Routes */}
         <Route path={"/ferramentas"} component={Ferramentas} />
         <Route path={"/ferramentas/comparador-precos"} component={ComparadorPrecos} />
