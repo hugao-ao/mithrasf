@@ -297,8 +297,7 @@ export default function AceiteContrato() {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [cpf, setCpf] = useState("");
-  const [telefone, setTelefone] = useState("");
-  const [dataNascimento, setDataNascimento] = useState("");
+
   const [aceiteTermos, setAceiteTermos] = useState(false);
   const [aceiteCancelamento, setAceiteCancelamento] = useState(false);
   const [aceiteCondicao, setAceiteCondicao] = useState(false);
@@ -316,21 +315,6 @@ export default function AceiteContrato() {
       .slice(0, 14);
   }
 
-  function formatarTelefone(valor: string) {
-    return valor
-      .replace(/\D/g, "")
-      .replace(/(\d{2})(\d)/, "($1) $2")
-      .replace(/(\d{5})(\d{4})$/, "$1-$2")
-      .slice(0, 15);
-  }
-
-  function formatarNascimentoCyclopay(valor: string): string {
-    if (valor.includes("-")) {
-      const [y, m, d] = valor.split("-");
-      return `${y}/${m}/${d}`;
-    }
-    return valor;
-  }
 
   // ─── Submissão ─────────────────────────────────────────────────────────────
   async function handleSubmit(e: React.FormEvent) {
@@ -352,10 +336,6 @@ export default function AceiteContrato() {
       const [firstName, ...rest] = nome.trim().split(" ");
       const lastName = rest.join(" ") || firstName;
       const cpfLimpo = cpf.replace(/\D/g, "");
-      const telefoneLimpo = telefone.replace(/\D/g, "");
-      const nascimentoFormatado = dataNascimento
-        ? formatarNascimentoCyclopay(dataNascimento)
-        : undefined;
 
       const customerPayload: Record<string, unknown> = {
         email: email.trim(),
@@ -363,8 +343,6 @@ export default function AceiteContrato() {
         last_name: lastName,
       };
       if (cpfLimpo) customerPayload.document = { type: "CPF", number: cpfLimpo };
-      if (telefoneLimpo) customerPayload.mobile_phone = telefoneLimpo;
-      if (nascimentoFormatado) customerPayload.birth = nascimentoFormatado;
 
       let customerId: string | null = null;
       let checkoutUrl: string | null = null;
@@ -420,8 +398,6 @@ export default function AceiteContrato() {
         nome: nome.trim(),
         email: email.trim(),
         cpf: cpfLimpo || null,
-        telefone: telefoneLimpo || null,
-        data_nascimento: dataNascimento || null,
         plano_nome: planoNome,
         plano_preco: plano.preco,
         plano_checkout_url:
@@ -519,42 +495,15 @@ export default function AceiteContrato() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="cpf" className="text-white text-sm">
-                  CPF
-                </Label>
-                <Input
-                  id="cpf"
-                  placeholder="000.000.000-00"
-                  value={cpf}
-                  onChange={(e) => setCpf(formatarCPF(e.target.value))}
-                  className="bg-white/5 border-white/10 text-white placeholder:text-muted-foreground"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="telefone" className="text-white text-sm">
-                  Telefone / WhatsApp
-                </Label>
-                <Input
-                  id="telefone"
-                  placeholder="(00) 00000-0000"
-                  value={telefone}
-                  onChange={(e) => setTelefone(formatarTelefone(e.target.value))}
-                  className="bg-white/5 border-white/10 text-white placeholder:text-muted-foreground"
-                />
-              </div>
-            </div>
-
             <div className="space-y-1.5">
-              <Label htmlFor="dataNascimento" className="text-white text-sm">
-                Data de Nascimento
+              <Label htmlFor="cpf" className="text-white text-sm">
+                CPF
               </Label>
               <Input
-                id="dataNascimento"
-                type="date"
-                value={dataNascimento}
-                onChange={(e) => setDataNascimento(e.target.value)}
+                id="cpf"
+                placeholder="000.000.000-00"
+                value={cpf}
+                onChange={(e) => setCpf(formatarCPF(e.target.value))}
                 className="bg-white/5 border-white/10 text-white placeholder:text-muted-foreground"
               />
             </div>
