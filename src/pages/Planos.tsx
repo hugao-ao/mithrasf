@@ -217,7 +217,10 @@ export default function Planos() {
                     ? "bg-primary text-black hover:bg-primary/90 shadow-lg shadow-primary/20" 
                     : "bg-white/10 text-white hover:bg-white/20"
                 }`}
-                onClick={() => window.open(plan.checkoutUrl, "_blank")}
+                onClick={() => {
+                  const planoEncoded = encodeURIComponent(plan.name);
+                  window.location.href = `/aceite-contrato?plano=${planoEncoded}`;
+                }}
               >
                 Assinar Agora
               </Button>
