@@ -16,8 +16,12 @@ const MAX_WAIT_MS = 5 * 60 * 1000; // 5 minutos
 export default function AguardandoFormulario() {
   const [, navigate] = useLocation();
   const params = new URLSearchParams(window.location.search);
-  const email = decodeURIComponent(params.get("email") || "");
-  const plano = decodeURIComponent(params.get("plano") || "");
+  const email = decodeURIComponent(
+    params.get("email") || sessionStorage.getItem("hvsf_pending_email") || ""
+  );
+  const plano = decodeURIComponent(
+    params.get("plano") || sessionStorage.getItem("hvsf_pending_plano") || ""
+  );
 
   const [status, setStatus] = useState<"aguardando" | "pronto" | "timeout">("aguardando");
   const [formUrl, setFormUrl] = useState<string | null>(null);
