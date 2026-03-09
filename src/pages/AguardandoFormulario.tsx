@@ -176,17 +176,17 @@ export default function AguardandoFormulario() {
               </h1>
               <div className="text-muted-foreground text-base leading-relaxed space-y-3 text-left bg-card/60 border border-white/10 rounded-2xl p-6">
                 <p>
-                  Sério, parabéns — não pela compra em si, mas pela decisão. A maioria das pessoas passa anos
+                  Sério, parabéns — não pela decisão em si, mas pela coragem. A maioria das pessoas passa anos
                   sabendo que poderia ter feito as coisas de um jeito melhor e nunca dá o primeiro passo.{" "}
                   <strong className="text-white">Você deu.</strong>
                 </p>
                 <p>
-                  Agora vem o segundo: antes de começar, quero entender um pouco melhor onde você está hoje
+                  Agora vem o segundo: Entender um pouco melhor como você está hoje
                   e o que você quer alcançar. São algumas perguntas rápidas — quanto mais honesto você for,
                   mais objetivo eu consigo ser com você.
                 </p>
                 <p>
-                  Ah, e uma coisa: o que você está comprando aqui não é só consultoria.{" "}
+                  Ah, e uma coisa: o que você está comprando aqui não é só assistência financeira.{" "}
                   <strong className="text-white">É tempo.</strong> Tempo que você vai parar de perder
                   analisando as informações que você pesquisa na internet, antes você ter confiança para tomar
                   alguma decisão — e vai poder usar com outras coisas, afinal, nem tudo na vida é só sobre
@@ -219,17 +219,17 @@ export default function AguardandoFormulario() {
               </h1>
               <div className="text-muted-foreground text-base leading-relaxed space-y-3 text-left bg-card/60 border border-white/10 rounded-2xl p-6">
                 <p>
-                  Sério, parabéns — não pela compra em si, mas pela decisão. A maioria das pessoas passa anos
+                  Sério, parabéns — não pela decisão em si, mas pela coragem. A maioria das pessoas passa anos
                   sabendo que poderia ter feito as coisas de um jeito melhor e nunca dá o primeiro passo.{" "}
                   <strong className="text-white">Você deu.</strong>
                 </p>
                 <p>
-                  Agora vem o segundo: antes de começar, quero entender um pouco melhor onde você está hoje
+                  Agora vem o segundo: Entender um pouco melhor como você está hoje
                   e o que você quer alcançar. São algumas perguntas rápidas — quanto mais honesto você for,
                   mais objetivo eu consigo ser com você.
                 </p>
                 <p>
-                  Ah, e uma coisa: o que você está comprando aqui não é só consultoria.{" "}
+                  Ah, e uma coisa: o que você está comprando aqui não é só assistência financeira.{" "}
                   <strong className="text-white">É tempo.</strong> Tempo que você vai parar de perder
                   analisando as informações que você pesquisa na internet, antes você ter confiança para tomar
                   alguma decisão — e vai poder usar com outras coisas, afinal, nem tudo na vida é só sobre
