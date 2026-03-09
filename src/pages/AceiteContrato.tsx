@@ -374,6 +374,7 @@ export default function AceiteContrato() {
       }
 
       // 2. Gerar link de checkout personalizado
+      const successUrl = `https://hvsaudefinanceira.com.br/aguardando-formulario?email=${encodeURIComponent(email.trim().toLowerCase())}&plano=${encodeURIComponent(planoNome)}`;
       if (customerId) {
         const linkRes = await fetch(
           `https://api.cyclopay.com/v1/customers/${customerId}/checkout/${plano.checkoutId}`,
@@ -384,7 +385,7 @@ export default function AceiteContrato() {
               Accept: "application/json",
               api_key: CYCLOPAY_API_KEY,
             },
-            body: JSON.stringify({ language: "pt-br" }),
+            body: JSON.stringify({ language: "pt-br", success_url: successUrl }),
           }
         );
         if (linkRes.ok) {
