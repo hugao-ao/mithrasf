@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useLocation } from "wouter";
 import { createClient } from "@supabase/supabase-js";
-import { Loader2, CheckCircle2, ArrowRight, Pause, Play } from "lucide-react";
+import { Loader2, CheckCircle2, ArrowRight, Pause, Play, AlertCircle } from "lucide-react";
 
 const SUPABASE_URL = "https://vbikskbfkhundhropykf.supabase.co";
 const SUPABASE_ANON_KEY =
@@ -13,6 +13,8 @@ const FORM_BASE_URL = "https://app.hvsaudefinanceira.com.br/formulario-cliente.h
 const POLLING_INTERVAL_MS = 3000;
 const MAX_WAIT_MS = 5 * 60 * 1000; // 5 minutos
 const COUNTDOWN_SECONDS = 60; // 1 minuto de leitura
+const WHATSAPP_URL =
+  "https://wa.me/5581994297920?text=Oi%2C%20acabei%20de%20me%20tornar%20cliente%20e%20estou%20precisando%20falar%20com%20voc%C3%AA%2C%20Hugo.";
 
 export default function AguardandoFormulario() {
   const [, navigate] = useLocation();
@@ -24,7 +26,7 @@ export default function AguardandoFormulario() {
     params.get("plano") || sessionStorage.getItem("hvsf_pending_plano") || ""
   );
 
-  const [status, setStatus] = useState<"aguardando" | "pronto" | "timeout">("aguardando");
+  const [status, setStatus] = useState<"aguardando" | "pronto" | "timeout" | "erro">("aguardando");
   const [formUrl, setFormUrl] = useState<string | null>(null);
 
   // Relógio regressivo
@@ -37,6 +39,7 @@ export default function AguardandoFormulario() {
   const startTimeRef = useRef<number>(Date.now());
   const formUrlRef = useRef<string | null>(null);
   const pausedRef = useRef<boolean>(false);
+  const errorCountRef = useRef<number>(0);
 
   // Mantém pausedRef sincronizado com o estado
   useEffect(() => {
@@ -88,26 +91,42 @@ export default function AguardandoFormulario() {
     }
 
     async function checkFormReady() {
-      const { data } = await supabase
-        .from("aceites_contrato")
-        .select("form_token, status")
-        .eq("email", email.toLowerCase().trim())
-        .eq("status", "cliente_criado")
-        .limit(1)
-        .maybeSingle();
+      try {
+        const { data, error } = await supabase
+          .from("aceites_contrato")
+          .select("form_token, status")
+          .eq("email", email.toLowerCase().trim())
+          .eq("status", "cliente_criado")
+          .limit(1)
+          .maybeSingle();
 
-      if (data?.form_token) {
-        const url = `${FORM_BASE_URL}?token=${data.form_token}`;
-        formUrlRef.current = url;
-        setFormUrl(url);
-        setStatus("pronto");
-        if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
-        return;
-      }
+        if (error) throw error;
 
-      if (Date.now() - startTimeRef.current > MAX_WAIT_MS) {
-        setStatus("timeout");
-        if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+        // Reseta contador de erros em caso de sucesso
+        errorCountRef.current = 0;
+
+        if (data?.form_token) {
+          const url = `${FORM_BASE_URL}?token=${data.form_token}`;
+          formUrlRef.current = url;
+          setFormUrl(url);
+          setStatus("pronto");
+          if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+          return;
+        }
+
+        if (Date.now() - startTimeRef.current > MAX_WAIT_MS) {
+          setStatus("timeout");
+          if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+        }
+      } catch (err) {
+        // Incrementa contador de erros consecutivos
+        errorCountRef.current += 1;
+
+        // Após 5 erros consecutivos, exibe tela de erro com WhatsApp
+        if (errorCountRef.current >= 5) {
+          setStatus("erro");
+          if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+        }
       }
     }
 
@@ -124,6 +143,19 @@ export default function AguardandoFormulario() {
   const radius = 36;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference * (1 - progress);
+
+  // Bloco de botão WhatsApp reutilizável
+  const WhatsAppButton = () => (
+    <a
+      href={WHATSAPP_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-medium transition-colors"
+    >
+      Falar no WhatsApp
+      <ArrowRight className="h-4 w-4" />
+    </a>
+  );
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
@@ -277,27 +309,45 @@ export default function AguardandoFormulario() {
           </>
         )}
 
-        {/* Status: timeout */}
+        {/* Status: timeout — formulário demorou mais de 5 minutos */}
         {status === "timeout" && (
           <>
+            <div className="flex justify-center">
+              <div className="w-20 h-20 rounded-full bg-yellow-500/10 flex items-center justify-center">
+                <AlertCircle className="h-10 w-10 text-yellow-400" />
+              </div>
+            </div>
             <div className="space-y-4">
               <h1 className="text-2xl font-bold text-white">
                 Quase lá!
               </h1>
               <p className="text-muted-foreground leading-relaxed">
-                Seu pagamento foi confirmado, mas o formulário ainda está sendo preparado.
-                Você receberá um link por e-mail em instantes, ou pode nos chamar no WhatsApp.
+                Seu pagamento foi confirmado, mas o formulário está demorando um pouco mais do que o esperado.
+                Me chame no WhatsApp e eu resolvo isso agora para você.
               </p>
             </div>
-            <a
-              href="https://wa.me/5581994297920?text=Oi%2C%20acabei%20de%20me%20tornar%20cliente%20e%20estou%20precisando%20falar%20com%20voc%C3%AA%2C%20Hugo."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-medium transition-colors"
-            >
-              Falar no WhatsApp
-              <ArrowRight className="h-4 w-4" />
-            </a>
+            <WhatsAppButton />
+          </>
+        )}
+
+        {/* Status: erro — falha de conexão ou erro inesperado */}
+        {status === "erro" && (
+          <>
+            <div className="flex justify-center">
+              <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center">
+                <AlertCircle className="h-10 w-10 text-red-400" />
+              </div>
+            </div>
+            <div className="space-y-4">
+              <h1 className="text-2xl font-bold text-white">
+                Algo deu errado
+              </h1>
+              <p className="text-muted-foreground leading-relaxed">
+                Houve um problema ao preparar seu formulário. Não se preocupe — seu pagamento foi confirmado.
+                Me chame no WhatsApp e eu resolvo isso agora para você.
+              </p>
+            </div>
+            <WhatsAppButton />
           </>
         )}
 
