@@ -314,19 +314,17 @@ export default function ComparadorCartoes() {
           </Card>
 
           {/* Gatilho de Venda */}
-          <div className="bg-card border border-primary/20 rounded-xl p-6 flex flex-col md:flex-row items-center gap-6">
-            <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="h-6 w-6 text-primary" />
-            </div>
-            <div className="flex-1 text-center md:text-left">
-              <h3 className="font-bold text-white text-lg">Será que você consegue um cartão ainda melhor?</h3>
-              <p className="text-muted-foreground">
-                Você pode estar deixando de ganhar muito mais milhas ou cashback. Quer um especialista para analisar seu perfil e te ajudar a conseguir os melhores cartões do mercado?
-              </p>
-            </div>
+          <div className="bg-card border border-white/10 rounded-xl p-6 space-y-4">
+            <p className="text-sm font-semibold text-white">O que essa ferramenta não faz:</p>
+            <p className="text-sm text-muted-foreground">
+              Ela compara os benefícios que você informou, mas não analisa o <span className="text-white font-medium">seu perfil de gasto real</span>. Por exemplo: um cartão com cashback alto pode ser pior do que um com anuidade zero se você não gasta o suficiente para compensar. E se você usa o cartão como crédito rotativo, nenhum benefício compensa os juros.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Para saber qual cartão faz sentido para <span className="text-white font-medium">o seu padrão de consumo e objetivos</span>, isso exige uma análise do seu orçamento completo.
+            </p>
             <Link href="/planos">
-              <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 whitespace-nowrap">
-                Falar com Consultor
+              <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 w-full">
+                Quero uma análise do meu perfil financeiro
               </Button>
             </Link>
           </div>

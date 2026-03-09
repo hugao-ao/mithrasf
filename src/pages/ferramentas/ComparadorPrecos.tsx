@@ -147,19 +147,17 @@ export default function ComparadorPrecos() {
           </Card>
 
           {/* Gatilho de Venda */}
-          <div className="bg-card border border-primary/20 rounded-xl p-6 flex flex-col md:flex-row items-center gap-6">
-            <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="h-6 w-6 text-primary" />
-            </div>
-            <div className="flex-1 text-center md:text-left">
-              <h3 className="font-bold text-white text-lg">Economizar no mercado é bom...</h3>
-              <p className="text-muted-foreground">
-                Mas saber investir essa economia é o que muda sua vida. Quer um especialista para fazer seu dinheiro render mais?
-              </p>
-            </div>
+          <div className="bg-card border border-white/10 rounded-xl p-6 space-y-4">
+            <p className="text-sm font-semibold text-white">O que essa ferramenta não faz:</p>
+            <p className="text-sm text-muted-foreground">
+              Ela compara dois produtos isolados, mas não considera o seu orçamento real. A embalagem maior só é vantagem se você realmente vai usar tudo — se o produto estraga ou fica parado, você perdeu dinheiro mesmo pagando menos por grama.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Para saber se essa economia faz sentido dentro do <span className="text-white font-medium">seu</span> padrão de consumo mensal, isso exige uma análise completa do seu orçamento.
+            </p>
             <Link href="/planos">
-              <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 whitespace-nowrap">
-                Sim, quero um especialista
+              <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 w-full">
+                Quero uma análise completa do meu orçamento
               </Button>
             </Link>
           </div>

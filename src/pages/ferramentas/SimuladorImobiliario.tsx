@@ -229,21 +229,17 @@ export default function SimuladorImobiliario() {
             </div>
 
             {/* Gatilho de Venda */}
-            <div className="bg-card border border-primary/20 rounded-xl p-6 flex flex-col items-center text-center gap-4">
-              <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                <CheckCircle2 className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-bold text-white text-lg">
-                  Você vai pagar de {result.sac.multiplier.toFixed(1)}x a {result.price.multiplier.toFixed(1)}x o valor do imóvel!
-                </h3>
-                <p className="text-muted-foreground text-sm mt-2 max-w-2xl mx-auto">
-                  Quer um especialista para te ajudar a pagar menos juros e quitar em menos tempo?
-                </p>
-              </div>
+            <div className="bg-card border border-white/10 rounded-xl p-6 space-y-4">
+              <p className="text-sm font-semibold text-white">O que essa ferramenta não faz:</p>
+              <p className="text-sm text-muted-foreground">
+                Ela simula SAC e Price com base nos dados que você informou, mas não considera variáveis que mudam muito o resultado real: <span className="text-white font-medium">FGTS disponível, capacidade real de amortização antecipada, impacto no orçamento mensal e alternativas ao financiamento</span>. Por exemplo — dependendo da sua situação, alugar e investir a diferença pode gerar mais patrimônio do que comprar agora.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Para saber se esse financiamento faz sentido para <span className="text-white font-medium">o seu momento financeiro</span>, isso exige uma análise completa.
+              </p>
               <Link href="/planos">
                 <Button variant="outline" className="w-full md:w-auto border-primary text-primary hover:bg-primary/10">
-                  Sim, quero um especialista
+                  Quero analisar se comprar agora faz sentido para mim
                 </Button>
               </Link>
             </div>

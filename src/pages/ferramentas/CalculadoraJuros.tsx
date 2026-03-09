@@ -220,19 +220,17 @@ export default function CalculadoraJuros() {
             </Card>
 
             {/* Gatilho de Venda */}
-            <div className="bg-card border border-primary/20 rounded-xl p-6 flex flex-col items-center text-center gap-4">
-              <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                <CheckCircle2 className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-bold text-white text-lg">Quer aprender a identificar e fugir dessas armadilhas?</h3>
-                <p className="text-muted-foreground text-sm mt-2">
-                  Pequenas taxas destroem grandes patrimônios.
-                </p>
-              </div>
+            <div className="bg-card border border-white/10 rounded-xl p-6 space-y-4">
+              <p className="text-sm font-semibold text-white">O que essa ferramenta não faz:</p>
+              <p className="text-sm text-muted-foreground">
+                Ela calcula a taxa embutida em uma compra específica, mas não avalia <span className="text-white font-medium">se essa compra faz sentido no seu orçamento</span>. Por exemplo — mesmo que pagar à vista seja matematicamente vantajoso, se isso zera sua reserva de emergência, você pode estar trocando uma taxa por um risco muito maior.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Para saber se uma compra faz sentido considerando <span className="text-white font-medium">sua reserva, seus investimentos e seu fluxo de caixa</span>, isso exige uma análise completa.
+              </p>
               <Link href="/planos">
                 <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary/10">
-                  Sim, quero blindar meu patrimônio
+                  Quero tomar decisões de compra com mais segurança
                 </Button>
               </Link>
             </div>

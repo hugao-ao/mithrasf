@@ -330,19 +330,17 @@ export default function Oraculo() {
             </Card>
 
             {/* Gatilho de Venda */}
-            <div className="bg-card border border-primary/20 rounded-xl p-6 flex flex-col items-center text-center gap-4">
-              <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                <CheckCircle2 className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-bold text-white text-lg">Quer um especialista para planejar seu futuro financeiro?</h3>
-                <p className="text-muted-foreground text-sm mt-2">
-                  Ter clareza sobre o futuro é o primeiro passo para a liberdade.
-                </p>
-              </div>
+            <div className="bg-card border border-white/10 rounded-xl p-6 space-y-4">
+              <p className="text-sm font-semibold text-white">O que essa ferramenta não faz:</p>
+              <p className="text-sm text-muted-foreground">
+                Ela projeta um cenário com base nos números que você informou, mas não valida se esses números são realistas. Por exemplo — a taxa de juros que você usou é a que você <span className="text-white font-medium">realmente consegue</span> no seu perfil de investidor? Você está considerando o imposto de renda sobre os rendimentos? E o aporte mensal é sustentável ou é o valor que você <em>gostaria</em> de investir?
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Para transformar essa projeção em um plano real — com <span className="text-white font-medium">alocacao adequada, metas concretas e acompanhamento</span> — isso exige uma análise personalizada.
+              </p>
               <Link href="/planos">
                 <Button variant="outline" className="w-full md:w-auto border-primary text-primary hover:bg-primary/10">
-                  Sim, quero um especialista
+                  Quero transformar essa projeção em um plano real
                 </Button>
               </Link>
             </div>

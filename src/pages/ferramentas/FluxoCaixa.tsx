@@ -70,7 +70,11 @@ export default function FluxoCaixa() {
 
     const totalExpenses = totalFixed + totalVariable + totalInvest;
     const balance = totalIncome - totalExpenses;
-    const yearlyLoss = balance * 12;
+    const yearlyBalance = balance * 12;
+    const yearlyIncome = totalIncome * 12;
+
+    // Calcula a intensidade do alerta: |diferença anual| / entradas anuais
+    const alertRatio = yearlyIncome > 0 ? Math.abs(yearlyBalance) / yearlyIncome : 0;
 
     setResult({
       totalIncome,
@@ -79,7 +83,9 @@ export default function FluxoCaixa() {
       totalVariable,
       totalExpenses,
       balance,
-      yearlyLoss
+      yearlyLoss: yearlyBalance,
+      yearlyIncome,
+      alertRatio
     });
     setStep(5);
   };
@@ -227,13 +233,102 @@ export default function FluxoCaixa() {
         "bg-red-500"
       )}
 
-      {step === 5 && result && (
+      {step === 5 && result && (() => {
+        // --- Lógica de alerta progressivo ---
+        // alertRatio = |diferença anual| / entradas anuais
+        const r = result.alertRatio; // 0 a 1+
+        const isPositive = result.balance >= 0;
+
+        // Classificação de intensidade (só aplica quando há diferença)
+        // < 1% das entradas anuais: equilíbrio (elogio permitido)
+        // 1% a 10%: atenção leve
+        // 10% a 25%: alerta moderado
+        // 25% a 50%: alerta sério
+        // > 50%: crise
+        const isEquilibrio = r < 0.01;
+        const isLeve = r >= 0.01 && r < 0.10;
+        const isModerado = r >= 0.10 && r < 0.25;
+        const isSério = r >= 0.25 && r < 0.50;
+        const isCrise = r >= 0.50;
+
+        // Cores e títulos do card principal
+        const cardBorder = isEquilibrio
+          ? 'border-green-500 bg-green-500/10'
+          : isLeve
+          ? (isPositive ? 'border-green-500 bg-green-500/10' : 'border-yellow-500 bg-yellow-500/10')
+          : isModerado
+          ? 'border-orange-500 bg-orange-500/10'
+          : isSério
+          ? 'border-red-500 bg-red-500/10'
+          : 'border-red-700 bg-red-700/10';
+
+        const mainTitle = isEquilibrio
+          ? (isPositive ? 'Seu orçamento está equilibrado.' : 'Quase no zero a zero.')
+          : isLeve
+          ? (isPositive ? 'Sobra pouca coisa — mas sobra.' : 'Pequeno vazamento no orçamento.')
+          : isModerado
+          ? (isPositive ? 'Sobra existe, mas some rápido.' : 'Seu orçamento está no vermelho.')
+          : isSério
+          ? (isPositive ? 'Sobra significativa sem destino.' : 'Descontrole financeiro sério.')
+          : (isPositive ? 'Dinheiro sobrando sem trabalhar por você.' : 'Situação crítica. Isso não é sustentável.');
+
+        const yearlyLabel = isPositive ? 'Potencial Anual Acumulado' : 'Rombo Anual Projetado';
+        const yearlyColor = isEquilibrio || isLeve
+          ? (isPositive ? 'text-green-500' : 'text-yellow-400')
+          : isModerado
+          ? 'text-orange-400'
+          : 'text-red-500';
+        const yearlySubtext = isPositive
+          ? 'Isso é o que você acumula em 1 ano mantendo esse ritmo.'
+          : 'Se nada mudar, esse é o tamanho da sua dívida em 1 ano.';
+
+        // Mensagem de alerta progressiva
+        const alertMsg = isEquilibrio
+          ? null // sem alerta
+          : isLeve && isPositive
+          ? `Você tem ${formatCurrency(result.balance)}/mês sobrando, mas essa margem é pequena. Qualquer imprevisto pode virar dívida. Saber para onde esse dinheiro vai é o que separa quem acumula de quem fica no mesmo lugar.`
+          : isLeve && !isPositive
+          ? `Você está gastando ${formatCurrency(Math.abs(result.balance))}/mês a mais do que ganha. Parece pouco, mas em 1 ano já são ${formatCurrency(Math.abs(result.yearlyLoss))}. Pequenos vazamentos afundam qualquer plano.`
+          : isModerado && isPositive
+          ? `Você tem ${formatCurrency(result.balance)}/mês sobrando — mas onde esse dinheiro está? Se você não sabe responder, ele está desaparecendo. Dinheiro sem destino não constrói patrimônio.`
+          : isModerado && !isPositive
+          ? `Você está consumindo ${formatCurrency(Math.abs(result.balance))} a mais por mês. Em 1 ano: ${formatCurrency(Math.abs(result.yearlyLoss))} no buraco. Esse ritmo inviabiliza qualquer objetivo financeiro.`
+          : isSério && isPositive
+          ? `Você tem ${formatCurrency(result.balance)}/mês sem destino definido. Em 1 ano, são ${formatCurrency(result.yearlyLoss)} que deveriam estar trabalhando por você. Dinheiro parado ou gasto sem planejamento é patrimônio desperdiçado.`
+          : isSério && !isPositive
+          ? `Você está gastando ${formatCurrency(Math.abs(result.balance))} a mais por mês. Em 1 ano: ${formatCurrency(Math.abs(result.yearlyLoss))} de dívida acumulada. Esse nível de descontrole destrói reservas, crédito e qualquer chance de avançar.`
+          : isPositive
+          ? `Você tem ${formatCurrency(result.balance)}/mês sem destino — em 1 ano são ${formatCurrency(result.yearlyLoss)} evaporando. Nesse volume, a ausência de planejamento é o maior inimigo do seu patrimônio.`
+          : `Você está gastando ${formatCurrency(Math.abs(result.balance))} a mais por mês. Em 1 ano: ${formatCurrency(Math.abs(result.yearlyLoss))} de rombo. Isso é uma emergência financeira. Cada mês sem ação aprofunda o buraco.`;
+
+        // CTA do card de venda
+        const ctaTitle = isEquilibrio
+          ? 'Equilíbrio é o ponto de partida, não o destino.'
+          : isLeve
+          ? 'Essa ferramenta mostra o diagnóstico. O tratamento é outra coisa.'
+          : isModerado
+          ? 'Saber o número é o primeiro passo. O segundo é fazer algo com ele.'
+          : isSério
+          ? 'Esse nível de desequilíbrio não se resolve sozinho.'
+          : 'Isso precisa de ação imediata, não de mais ferramentas.';
+
+        const ctaBody = isEquilibrio
+          ? `Essa ferramenta mostra que suas contas fecham, mas não analisa se você está investindo bem, se tem reserva de emergência adequada ou se seus objetivos são alcançáveis com esse ritmo. Para isso, é preciso ir além dos números.`
+          : `Essa ferramenta mapeia o fluxo, mas não diz o que cortar, o que priorizar nem como reorganizar. Para transformar esse diagnóstico em um plano real de ação, é preciso uma análise personalizada.`;
+
+        const ctaButton = isEquilibrio
+          ? 'Quero ir além do equilíbrio e construir patrimônio'
+          : isLeve
+          ? 'Quero entender o que fazer com esse diagnóstico'
+          : isModerado || isSério
+          ? 'Quero um plano para reorganizar meu orçamento'
+          : 'Quero resolver isso agora';
+
+        return (
         <div className="space-y-6 animate-in fade-in zoom-in-95">
-          <Card className={`border-2 ${result.balance >= 0 ? 'border-green-500 bg-green-500/10' : 'border-red-500 bg-red-500/10'}`}>
+          <Card className={`border-2 ${cardBorder}`}>
             <CardContent className="p-8 text-center space-y-6">
-              <h2 className="text-3xl font-bold text-white">
-                {result.balance >= 0 ? "Você está no Azul!" : "Alerta Vermelho!"}
-              </h2>
+              <h2 className="text-3xl font-bold text-white">{mainTitle}</h2>
               
               <div className="grid md:grid-cols-2 gap-8 py-6">
                 <div className="space-y-2 text-left">
@@ -256,49 +351,44 @@ export default function FluxoCaixa() {
                   <div className="h-px bg-white/10 my-2" />
                   <div className="flex justify-between text-lg font-bold">
                     <span>Saldo Final</span>
-                    <span className={result.balance >= 0 ? 'text-green-400' : 'text-red-400'}>
+                    <span className={isPositive ? 'text-green-400' : 'text-red-400'}>
                       {formatCurrency(result.balance)}
                     </span>
                   </div>
                 </div>
 
                 <div className="flex flex-col justify-center items-center bg-black/20 p-4 rounded-xl">
-                  <p className="text-lg text-white mb-2">
-                    {result.balance >= 0 ? "Potencial Anual Acumulado" : "Rombo Anual Projetado"}
-                  </p>
-                  <p className={`text-4xl font-bold ${result.balance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  <p className="text-lg text-white mb-2">{yearlyLabel}</p>
+                  <p className={`text-4xl font-bold ${yearlyColor}`}>
                     {formatCurrency(Math.abs(result.yearlyLoss))}
                   </p>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    {result.balance >= 0 
-                      ? "Isso é o que você acumula em 1 ano mantendo esse ritmo."
-                      : "Se nada mudar, esse é o tamanho da sua dívida em 1 ano."}
-                  </p>
+                  <p className="text-sm text-muted-foreground mt-2">{yearlySubtext}</p>
                 </div>
               </div>
+
+              {/* Mensagem de alerta progressiva */}
+              {alertMsg && (
+                <div className={`text-left p-4 rounded-xl border ${
+                  isLeve ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-200'
+                  : isModerado ? 'bg-orange-500/10 border-orange-500/30 text-orange-200'
+                  : 'bg-red-500/10 border-red-500/30 text-red-200'
+                } text-sm leading-relaxed`}>
+                  {alertMsg}
+                </div>
+              )}
             </CardContent>
           </Card>
 
           {/* Gatilho de Venda */}
-          <div className="bg-card border border-primary/20 rounded-xl p-6 flex flex-col items-center text-center gap-4">
-            <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h3 className="font-bold text-white text-lg">
-                {result.balance >= 0 
-                  ? "Você tem dinheiro sobrando, mas onde ele está?" 
-                  : "Alerta Vermelho! Você está sangrando financeiramente."}
-              </h3>
-              <p className="text-muted-foreground text-sm mt-2">
-                {result.balance >= 0 
-                  ? `Você tem ${formatCurrency(result.balance)} que deveriam estar construindo sua liberdade, mas onde eles estão? Se você não vê esse dinheiro, você está queimando patrimônio.`
-                  : `Você está perdendo ${formatCurrency(Math.abs(result.balance))} por mês. Isso destrói qualquer plano de futuro. É uma emergência.`}
-              </p>
-            </div>
+          <div className="bg-card border border-white/10 rounded-xl p-6 space-y-4">
+            <p className="text-sm font-semibold text-white">{ctaTitle}</p>
+            <p className="text-sm text-muted-foreground">{ctaBody}</p>
+            <p className="text-sm text-muted-foreground">
+              O que essa ferramenta não faz: ela não analisa <span className="text-white font-medium">qual categoria cortar, como reorganizar prioridades nem se seus investimentos estão adequados ao seu perfil</span>. Para isso, é preciso ir além do mapeamento.
+            </p>
             <Link href="/planos">
               <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary/10">
-                Sim, quero um especialista
+                {ctaButton}
               </Button>
             </Link>
           </div>
@@ -313,7 +403,8 @@ export default function FluxoCaixa() {
             Refazer Raio-X
           </Button>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
