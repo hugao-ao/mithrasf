@@ -145,7 +145,7 @@ export default function AguardandoFormulario() {
               <div className="text-muted-foreground text-base leading-relaxed space-y-3 text-left bg-card/60 border border-white/10 rounded-2xl p-6">
                 <p>
                   Sério, parabéns — não pela compra em si, mas pela decisão. A maioria das pessoas passa anos
-                  sabendo que precisa organizar as finanças e nunca dá o primeiro passo.{" "}
+                  sabendo que poderia ter feito as coisas de um jeito melhor e nunca dá o primeiro passo.{" "}
                   <strong className="text-white">Você deu.</strong>
                 </p>
                 <p>
@@ -156,7 +156,7 @@ export default function AguardandoFormulario() {
                 <p>
                   Ah, e uma coisa: o que você está comprando aqui não é só consultoria.{" "}
                   <strong className="text-white">É tempo.</strong> Tempo que você vai parar de perder
-                  analisando as informações que você pesquisa na internet, antes você ter confiança em tomar
+                  analisando as informações que você pesquisa na internet, antes você ter confiança para tomar
                   alguma decisão — e vai poder usar com outras coisas, afinal, nem tudo na vida é só sobre
                   dinheiro.
                 </p>
@@ -188,7 +188,7 @@ export default function AguardandoFormulario() {
               <div className="text-muted-foreground text-base leading-relaxed space-y-3 text-left bg-card/60 border border-white/10 rounded-2xl p-6">
                 <p>
                   Sério, parabéns — não pela compra em si, mas pela decisão. A maioria das pessoas passa anos
-                  sabendo que precisa organizar as finanças e nunca dá o primeiro passo.{" "}
+                  sabendo que poderia ter feito as coisas de um jeito melhor e nunca dá o primeiro passo.{" "}
                   <strong className="text-white">Você deu.</strong>
                 </p>
                 <p>
@@ -199,7 +199,7 @@ export default function AguardandoFormulario() {
                 <p>
                   Ah, e uma coisa: o que você está comprando aqui não é só consultoria.{" "}
                   <strong className="text-white">É tempo.</strong> Tempo que você vai parar de perder
-                  analisando as informações que você pesquisa na internet, antes você ter confiança em tomar
+                  analisando as informações que você pesquisa na internet, antes você ter confiança para tomar
                   alguma decisão — e vai poder usar com outras coisas, afinal, nem tudo na vida é só sobre
                   dinheiro.
                 </p>
