@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useLocation } from "wouter";
 import { createClient } from "@supabase/supabase-js";
-import { Loader2, CheckCircle2, ArrowRight } from "lucide-react";
+import { Loader2, CheckCircle2, ArrowRight, Pause, Play } from "lucide-react";
 
 const SUPABASE_URL = "https://vbikskbfkhundhropykf.supabase.co";
 const SUPABASE_ANON_KEY =
@@ -12,6 +12,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const FORM_BASE_URL = "https://app.hvsaudefinanceira.com.br/formulario-cliente.html";
 const POLLING_INTERVAL_MS = 3000;
 const MAX_WAIT_MS = 5 * 60 * 1000; // 5 minutos
+const COUNTDOWN_SECONDS = 60; // 1 minuto de leitura
 
 export default function AguardandoFormulario() {
   const [, navigate] = useLocation();
@@ -25,18 +26,68 @@ export default function AguardandoFormulario() {
 
   const [status, setStatus] = useState<"aguardando" | "pronto" | "timeout">("aguardando");
   const [formUrl, setFormUrl] = useState<string | null>(null);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const startTimeRef = useRef<number>(Date.now());
 
+  // Relógio regressivo
+  const [countdown, setCountdown] = useState<number>(COUNTDOWN_SECONDS);
+  const [paused, setPaused] = useState<boolean>(false);
+  const [countdownDone, setCountdownDone] = useState<boolean>(false);
+
+  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startTimeRef = useRef<number>(Date.now());
+  const formUrlRef = useRef<string | null>(null);
+  const pausedRef = useRef<boolean>(false);
+
+  // Mantém pausedRef sincronizado com o estado
+  useEffect(() => {
+    pausedRef.current = paused;
+  }, [paused]);
+
+  // Função para avançar para o formulário
+  const goToForm = useCallback(() => {
+    if (formUrlRef.current) {
+      window.location.href = formUrlRef.current;
+    }
+  }, []);
+
+  // Relógio regressivo — só começa quando o formulário estiver pronto
+  useEffect(() => {
+    if (!countdownDone) return;
+    // Formulário pronto e countdown zerou — redireciona
+    if (formUrlRef.current) {
+      window.location.href = formUrlRef.current;
+    }
+  }, [countdownDone]);
+
+  // Inicia o countdown quando status muda para "pronto"
+  useEffect(() => {
+    if (status !== "pronto") return;
+
+    countdownIntervalRef.current = setInterval(() => {
+      if (pausedRef.current) return; // pausado, não decrementa
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+          setCountdownDone(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    };
+  }, [status]);
+
+  // Polling para verificar se o formulário foi criado
   useEffect(() => {
     if (!email) {
-      // Sem e-mail, não tem como fazer polling — redireciona para home
       navigate("/");
       return;
     }
 
     async function checkFormReady() {
-      // Verifica se o aceite_contrato já tem form_token preenchido
       const { data } = await supabase
         .from("aceites_contrato")
         .select("form_token, status")
@@ -47,33 +98,32 @@ export default function AguardandoFormulario() {
 
       if (data?.form_token) {
         const url = `${FORM_BASE_URL}?token=${data.form_token}`;
+        formUrlRef.current = url;
         setFormUrl(url);
         setStatus("pronto");
-        if (intervalRef.current) clearInterval(intervalRef.current);
-        // Redireciona automaticamente após 2 segundos
-        setTimeout(() => {
-          window.location.href = url;
-        }, 2000);
+        if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
         return;
       }
 
-      // Verifica timeout
       if (Date.now() - startTimeRef.current > MAX_WAIT_MS) {
         setStatus("timeout");
-        if (intervalRef.current) clearInterval(intervalRef.current);
+        if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
       }
     }
 
-    // Primeira verificação imediata
     checkFormReady();
-
-    // Polling a cada 3 segundos
-    intervalRef.current = setInterval(checkFormReady, POLLING_INTERVAL_MS);
+    pollingIntervalRef.current = setInterval(checkFormReady, POLLING_INTERVAL_MS);
 
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
     };
   }, [email, navigate]);
+
+  // Calcula a porcentagem para o anel SVG
+  const progress = countdown / COUNTDOWN_SECONDS;
+  const radius = 36;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference * (1 - progress);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
@@ -82,15 +132,54 @@ export default function AguardandoFormulario() {
         {/* Status: aguardando */}
         {status === "aguardando" && (
           <>
-            {/* Ícone animado */}
             <div className="flex justify-center">
-              <div className="relative">
-                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Loader2 className="h-10 w-10 text-primary animate-spin" />
-                </div>
+              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
+                <Loader2 className="h-10 w-10 text-primary animate-spin" />
               </div>
             </div>
 
+            <div className="space-y-4">
+              <h1 className="text-3xl font-bold text-white">
+                Que bom ter você aqui!
+              </h1>
+              <div className="text-muted-foreground text-base leading-relaxed space-y-3 text-left bg-card/60 border border-white/10 rounded-2xl p-6">
+                <p>
+                  Sério, parabéns — não pela compra em si, mas pela decisão. A maioria das pessoas passa anos
+                  sabendo que precisa organizar as finanças e nunca dá o primeiro passo.{" "}
+                  <strong className="text-white">Você deu.</strong>
+                </p>
+                <p>
+                  Agora vem o segundo: antes de começar, quero entender um pouco melhor onde você está hoje
+                  e o que você quer alcançar. São algumas perguntas rápidas — quanto mais honesto você for,
+                  mais objetivo eu consigo ser com você.
+                </p>
+                <p>
+                  Ah, e uma coisa: o que você está comprando aqui não é só consultoria.{" "}
+                  <strong className="text-white">É tempo.</strong> Tempo que você vai parar de perder
+                  analisando as informações que você pesquisa na internet, antes você ter confiança em tomar
+                  alguma decisão — e vai poder usar com outras coisas, afinal, nem tudo na vida é só sobre
+                  dinheiro.
+                </p>
+                <p className="font-medium text-white">Vamos lá?</p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Preparando seu formulário personalizado...</span>
+            </div>
+
+            {plano && (
+              <p className="text-xs text-muted-foreground">
+                Plano contratado: <span className="text-primary font-medium">{plano}</span>
+              </p>
+            )}
+          </>
+        )}
+
+        {/* Status: pronto — mostra mensagem + relógio regressivo */}
+        {status === "pronto" && (
+          <>
             {/* Mensagem principal */}
             <div className="space-y-4">
               <h1 className="text-3xl font-bold text-white">
@@ -118,42 +207,72 @@ export default function AguardandoFormulario() {
               </div>
             </div>
 
-            {/* Indicador de carregamento */}
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Preparando seu formulário personalizado...</span>
+            {/* Relógio regressivo + controles */}
+            <div className="flex flex-col items-center gap-4">
+              {/* Anel SVG com contagem */}
+              <div className="relative w-24 h-24 flex items-center justify-center">
+                <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 88 88">
+                  {/* Trilha de fundo */}
+                  <circle
+                    cx="44" cy="44" r={radius}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="6"
+                    className="text-white/10"
+                  />
+                  {/* Arco de progresso */}
+                  <circle
+                    cx="44" cy="44" r={radius}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={strokeDashoffset}
+                    className={`transition-all duration-1000 ${paused ? "text-yellow-400" : "text-primary"}`}
+                  />
+                </svg>
+                {/* Número no centro */}
+                <span className={`text-2xl font-bold tabular-nums ${paused ? "text-yellow-400" : "text-white"}`}>
+                  {countdown}
+                </span>
+              </div>
+
+              <p className="text-sm text-muted-foreground">
+                {paused
+                  ? "Relógio pausado — leia com calma"
+                  : `Seu formulário abre em ${countdown} segundo${countdown !== 1 ? "s" : ""}...`}
+              </p>
+
+              {/* Botões */}
+              <div className="flex items-center gap-3">
+                {/* Pausar / Retomar */}
+                <button
+                  onClick={() => setPaused((p) => !p)}
+                  className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                >
+                  {paused ? (
+                    <><Play className="h-4 w-4" /> Retomar</>
+                  ) : (
+                    <><Pause className="h-4 w-4" /> Pausar</>
+                  )}
+                </button>
+
+                {/* Avançar */}
+                <button
+                  onClick={goToForm}
+                  className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                >
+                  Ir para o formulário
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
             </div>
 
             {plano && (
               <p className="text-xs text-muted-foreground">
                 Plano contratado: <span className="text-primary font-medium">{plano}</span>
               </p>
-            )}
-          </>
-        )}
-
-        {/* Status: pronto */}
-        {status === "pronto" && (
-          <>
-            <div className="flex justify-center">
-              <div className="w-20 h-20 rounded-full bg-green-500/10 flex items-center justify-center">
-                <CheckCircle2 className="h-10 w-10 text-green-500" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <h1 className="text-2xl font-bold text-white">Tudo pronto!</h1>
-              <p className="text-muted-foreground">
-                Redirecionando para o seu formulário...
-              </p>
-            </div>
-            {formUrl && (
-              <a
-                href={formUrl}
-                className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-xl font-medium hover:bg-primary/90 transition-colors"
-              >
-                Ir para o formulário agora
-                <ArrowRight className="h-4 w-4" />
-              </a>
             )}
           </>
         )}
