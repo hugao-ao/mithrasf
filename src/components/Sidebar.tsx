@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
+  BookOpen,
   ChevronLeft,
   ChevronRight,
   Hammer,
@@ -29,6 +30,7 @@ export function Sidebar() {
   const navItems = [
     { icon: Home, label: "Início", href: "/" },
     { icon: LayoutDashboard, label: "Planos", href: "/planos" },
+    { icon: BookOpen, label: "Planejamento de Referência", href: "/planejamento-de-referencia" },
     { icon: Hammer, label: "Ferramentas", href: "/ferramentas" },
     { icon: User, label: "Conheça-me", href: "/conheca-me" },
   ];
