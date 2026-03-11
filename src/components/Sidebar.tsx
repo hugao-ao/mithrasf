@@ -89,8 +89,9 @@ export function Sidebar() {
                 />
                 <span
                   className={cn(
-                    "whitespace-nowrap transition-all duration-300 font-medium",
-                    collapsed ? "opacity-0 w-0 hidden" : "opacity-100 w-auto"
+                    "transition-all duration-300 font-medium leading-tight",
+                    collapsed ? "opacity-0 w-0 hidden" : "opacity-100 w-auto",
+                    item.label.length > 12 ? "text-xs" : "text-sm whitespace-nowrap"
                   )}
                 >
                   {item.label}
