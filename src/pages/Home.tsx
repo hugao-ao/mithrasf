@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Calculator, CheckCircle2, MessageCircle, ShieldCheck, Target, TrendingUp, Wallet } from "lucide-react";
+import { ArrowRight, BookOpen, Calculator, CheckCircle2, MessageCircle, ShieldCheck, Target, TrendingUp, Wallet } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Home() {
@@ -36,6 +36,14 @@ export default function Home() {
                 <Button size="lg" variant="outline" className="border-primary/30 text-primary hover:bg-primary/10 rounded-lg h-14 px-8 text-lg w-full sm:w-auto">
                   Testar Ferramentas Grátis
                 </Button>
+              </Link>
+            </div>
+            <div className="pt-2">
+              <Link href="/planejamento-de-referencia">
+                <span className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                  <BookOpen className="h-4 w-4" />
+                  Conheça o Planejamento Financeiro de Referência &rarr;
+                </span>
               </Link>
             </div>
           </div>
@@ -203,9 +211,15 @@ export default function Home() {
                   Escolher meu Plano
                 </Button>
               </Link>
-              <div className="flex items-center gap-2 text-muted-foreground text-sm justify-center">
-                <CheckCircle2 className="h-4 w-4 text-primary" /> A partir de R$ 29,90/mês
-              </div>
+              <Link href="/planejamento-de-referencia">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto border-primary/30 text-primary hover:bg-primary/10 rounded-lg h-14 px-8 text-lg">
+                  <BookOpen className="mr-2 h-5 w-5" />
+                  Planejamento de Referência
+                </Button>
+              </Link>
+            </div>
+            <div className="flex items-center gap-2 text-muted-foreground text-sm justify-center">
+              <CheckCircle2 className="h-4 w-4 text-primary" /> Planos a partir de R$ 29,90/mês
             </div>
           </div>
         </div>

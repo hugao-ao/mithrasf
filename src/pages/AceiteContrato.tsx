@@ -54,7 +54,7 @@ const PLANOS_CONFIG: Record<
       "Resolução de qualquer tipo de demanda durante o horário da reunião.",
     ],
     adesao_info:
-      "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 6 meses)",
+      "(Com um Planejamento de Referência, tem direito a pedir 1 reunião de monitoramento a cada 6 meses)",
   },
   "HV Nível II": {
     planId: 11831,
@@ -73,7 +73,7 @@ const PLANOS_CONFIG: Record<
       "Cotações e pesquisas relativas às demandas da reunião.",
     ],
     adesao_info:
-      "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 4 meses)",
+      "(Com um Planejamento de Referência, tem direito a pedir 1 reunião de monitoramento a cada 4 meses)",
   },
   "HV Nível III": {
     planId: 11833,
@@ -94,7 +94,7 @@ const PLANOS_CONFIG: Record<
       "Contato via WhatsApp mensal para atualizações e/ou relatórios.",
     ],
     adesao_info:
-      "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 2 meses)",
+      "(Com um Planejamento de Referência, tem direito a pedir 1 reunião de monitoramento a cada 2 meses)",
   },
   "HV Nível IV": {
     planId: 11835,

@@ -19,6 +19,7 @@ import Login from "./pages/Login";
 import AceiteContrato from "./pages/AceiteContrato";
 import AguardandoFormulario from "./pages/AguardandoFormulario";
 import BemVindo from "./pages/BemVindo";
+import PlanejamentoReferencia from "./pages/PlanejamentoReferencia";
 import { Layout } from "./components/Layout";
 
 function Router() {
@@ -32,6 +33,7 @@ function Router() {
         <Route path={"/aceite-contrato"} component={AceiteContrato} />
         <Route path={"/aguardando-formulario"} component={AguardandoFormulario} />
         <Route path={"/bem-vindo"} component={BemVindo} />
+        <Route path={"/planejamento-de-referencia"} component={PlanejamentoReferencia} />
 
         {/* Ferramentas Routes */}
         <Route path={"/ferramentas"} component={Ferramentas} />

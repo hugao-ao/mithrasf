@@ -7,7 +7,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Check, Clock, Info, Shield, Star, Target, FileText, AlertTriangle, Lock } from "lucide-react";
+import { BookOpen, Check, Clock, Info, Shield, Star, Target, FileText, AlertTriangle, Lock } from "lucide-react";
+import { Link } from "wouter";
 
 export default function Planos() {
   const plans = [
@@ -29,7 +30,7 @@ export default function Planos() {
           "Contato ilimitado via whatsapp (Sem análises novas ou cotações).",
           "Resolução de qualquer tipo de demanda durante o horário da reunião."
         ],
-        adesao_info: "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 6 meses)",
+        adesao_info: "(Com um Planejamento de Referência, tem direito a pedir 1 reunião de monitoramento a cada 6 meses)",
         contract: {
           sla_agenda: "6 meses",
           sla_whatsapp: "30 dias",
@@ -60,7 +61,7 @@ export default function Planos() {
           "Resolução de qualquer tipo de demanda durante o horário da reunião.",
           "Cotações e Pesquisas relativas às demandas da reunião."
         ],
-        adesao_info: "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 4 meses)",
+        adesao_info: "(Com um Planejamento de Referência, tem direito a pedir 1 reunião de monitoramento a cada 4 meses)",
         contract: {
           sla_agenda: "4 meses",
           sla_whatsapp: "15 dias",
@@ -93,7 +94,7 @@ export default function Planos() {
           "Supervisão Ativa: Acompanhamento em tempo real (reuniões conjuntas ou grupos de WhatsApp) das tratativas com outros profissionais (corretores, gerentes, contadores) para garantir a adequação técnica do que está sendo contratado.",
           "Contato via whatsapp mensal para atualizações e/ou relatórios."
         ],
-        adesao_info: "(Contratando a ADESÃO, tem direito a pedir 1 reunião de monitoramento a cada 2 meses)",
+        adesao_info: "(Com um Planejamento de Referência, tem direito a pedir 1 reunião de monitoramento a cada 2 meses)",
         contract: {
           sla_agenda: "2 meses",
           sla_whatsapp: "7 dias",
@@ -154,6 +155,26 @@ export default function Planos() {
           <br />
           <span className="text-primary font-medium">Não é necessário fazer o Diagnóstico para assinar os planos mensais.</span>
         </p>
+      </div>
+
+      {/* Banner Planejamento de Referência */}
+      <div className="bg-primary/5 border border-primary/20 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex items-start gap-4">
+          <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <BookOpen className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-white font-bold text-lg">Tem um Planejamento Financeiro de Referência?</h3>
+            <p className="text-muted-foreground text-sm mt-1 max-w-xl">
+              Antes de assinar um plano, considere ter um Planejamento de Referência — um documento completo que define estratégias para cada área da sua vida financeira e serve de base para toda a assistência que você receberá.
+            </p>
+          </div>
+        </div>
+        <Link href="/planejamento-de-referencia">
+          <Button className="bg-primary text-black hover:bg-primary/90 font-bold shrink-0 whitespace-nowrap">
+            Conhecer o Planejamento &rarr;
+          </Button>
+        </Link>
       </div>
 
       {/* Plans Grid */}
