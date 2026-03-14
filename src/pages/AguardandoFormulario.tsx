@@ -11,7 +11,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const FORM_BASE_URL = "https://app.hvsaudefinanceira.com.br/formulario-cliente.html";
 const POLLING_INTERVAL_MS = 3000;
-const MAX_WAIT_MS = 5 * 60 * 1000; // 5 minutos
+const MAX_WAIT_MS = 5 * 60 * 1000; // 5 minutos total de polling
 const COUNTDOWN_SECONDS = 60; // 1 minuto de leitura
 const WHATSAPP_URL =
   "https://wa.me/5581994297920?text=Oi%2C%20acabei%20de%20me%20tornar%20cliente%20e%20estou%20precisando%20falar%20com%20voc%C3%AA%2C%20Hugo.";
@@ -26,7 +26,7 @@ export default function AguardandoFormulario() {
     params.get("plano") || sessionStorage.getItem("hvsf_pending_plano") || ""
   );
 
-  const [status, setStatus] = useState<"aguardando" | "pronto" | "timeout" | "erro">("aguardando");
+  const [status, setStatus] = useState<"aguardando" | "pronto" | "erro">("aguardando");
   const [formUrl, setFormUrl] = useState<string | null>(null);
 
   // Relógio regressivo
@@ -46,17 +46,16 @@ export default function AguardandoFormulario() {
     pausedRef.current = paused;
   }, [paused]);
 
-  // Função para avançar para o formulário
+  // Função para avançar para o formulário — só funciona se o form_token estiver confirmado
   const goToForm = useCallback(() => {
     if (formUrlRef.current) {
       window.location.href = formUrlRef.current;
     }
   }, []);
 
-  // Relógio regressivo — só começa quando o formulário estiver pronto
+  // Relógio regressivo — dispara redirecionamento automático ao zerar
   useEffect(() => {
     if (!countdownDone) return;
-    // Formulário pronto e countdown zerou — redireciona
     if (formUrlRef.current) {
       window.location.href = formUrlRef.current;
     }
@@ -66,8 +65,12 @@ export default function AguardandoFormulario() {
   useEffect(() => {
     if (status !== "pronto") return;
 
+    // Reinicia o contador sempre que o status mudar para "pronto"
+    setCountdown(COUNTDOWN_SECONDS);
+    setCountdownDone(false);
+
     countdownIntervalRef.current = setInterval(() => {
-      if (pausedRef.current) return; // pausado, não decrementa
+      if (pausedRef.current) return;
       setCountdown((prev) => {
         if (prev <= 1) {
           if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
@@ -114,15 +117,15 @@ export default function AguardandoFormulario() {
           return;
         }
 
+        // Se passou do tempo máximo de espera, reinicia o timer em vez de mostrar timeout
         if (Date.now() - startTimeRef.current > MAX_WAIT_MS) {
-          setStatus("timeout");
-          if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+          startTimeRef.current = Date.now(); // reinicia a contagem
+          // Continua aguardando — não muda status para timeout
         }
       } catch (err) {
-        // Incrementa contador de erros consecutivos
         errorCountRef.current += 1;
 
-        // Após 5 erros consecutivos, exibe tela de erro com WhatsApp
+        // Após 5 erros consecutivos de conexão, exibe tela de erro com WhatsApp
         if (errorCountRef.current >= 5) {
           setStatus("erro");
           if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
@@ -290,10 +293,11 @@ export default function AguardandoFormulario() {
                   )}
                 </button>
 
-                {/* Avançar */}
+                {/* Avançar — só habilitado quando form_token confirmado (status === "pronto") */}
                 <button
                   onClick={goToForm}
-                  className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                  disabled={!formUrl}
+                  className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-xl text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Ir para o formulário
                   <ArrowRight className="h-4 w-4" />
@@ -306,27 +310,6 @@ export default function AguardandoFormulario() {
                 Plano contratado: <span className="text-primary font-medium">{plano}</span>
               </p>
             )}
-          </>
-        )}
-
-        {/* Status: timeout — formulário demorou mais de 5 minutos */}
-        {status === "timeout" && (
-          <>
-            <div className="flex justify-center">
-              <div className="w-20 h-20 rounded-full bg-yellow-500/10 flex items-center justify-center">
-                <AlertCircle className="h-10 w-10 text-yellow-400" />
-              </div>
-            </div>
-            <div className="space-y-4">
-              <h1 className="text-2xl font-bold text-white">
-                Quase lá!
-              </h1>
-              <p className="text-muted-foreground leading-relaxed">
-                Seu pagamento foi confirmado, mas o formulário está demorando um pouco mais do que o esperado.
-                Me chame no WhatsApp e eu resolvo isso agora para você.
-              </p>
-            </div>
-            <WhatsAppButton />
           </>
         )}
 
