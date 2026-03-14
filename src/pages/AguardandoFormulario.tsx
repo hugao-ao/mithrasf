@@ -1,20 +1,14 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useLocation } from "wouter";
-import { createClient } from "@supabase/supabase-js";
-import { Loader2, CheckCircle2, ArrowRight, Pause, Play, AlertCircle } from "lucide-react";
+import { Loader2, ArrowRight, Pause, Play, AlertCircle } from "lucide-react";
 
-const SUPABASE_URL = "https://vbikskbfkhundhropykf.supabase.co";
-const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZiaWtza2Jma2h1bmRocm9weWtmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU1MTk5NjEsImV4cCI6MjA2MTA5NTk2MX0.-n-Tj_5JnF1NL2ZImWlMeTcobWDl_VD6Vqp0lxRQFFU";
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-const FORM_BASE_URL = "https://app.hvsaudefinanceira.com.br/formulario-cliente.html";
-const POLLING_INTERVAL_MS = 3000;
-const MAX_WAIT_MS = 5 * 60 * 1000; // 5 minutos total de polling
-const COUNTDOWN_SECONDS = 60; // 1 minuto de leitura
-const WHATSAPP_URL =
+const FORM_BASE_URL      = "https://app.hvsaudefinanceira.com.br/formulario-cliente.html";
+const COUNTDOWN_SECONDS  = 60; // 1 minuto de leitura antes do redirecionamento automático
+const ONBOARDING_URL     = "https://vbikskbfkhundhropykf.supabase.co/functions/v1/onboarding-auto";
+const WHATSAPP_URL       =
   "https://wa.me/5581994297920?text=Oi%2C%20acabei%20de%20me%20tornar%20cliente%20e%20estou%20precisando%20falar%20com%20voc%C3%AA%2C%20Hugo.";
+const SUPABASE_ANON_KEY  =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZiaWtza2Jma2h1bmRocm9weWtmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU1MTk5NjEsImV4cCI6MjA2MTA5NTk2MX0.-n-Tj_5JnF1NL2ZImWlMeTcobWDl_VD6Vqp0lxRQFFU";
 
 export default function AguardandoFormulario() {
   const [, navigate] = useLocation();
@@ -22,50 +16,36 @@ export default function AguardandoFormulario() {
   const email = decodeURIComponent(
     params.get("email") || sessionStorage.getItem("hvsf_pending_email") || ""
   );
+  const cpf = decodeURIComponent(
+    params.get("cpf") || sessionStorage.getItem("hvsf_pending_cpf") || ""
+  );
   const plano = decodeURIComponent(
     params.get("plano") || sessionStorage.getItem("hvsf_pending_plano") || ""
   );
 
-  const [status, setStatus] = useState<"aguardando" | "pronto" | "erro">("aguardando");
-  const [formUrl, setFormUrl] = useState<string | null>(null);
-
-  // Relógio regressivo
-  const [countdown, setCountdown] = useState<number>(COUNTDOWN_SECONDS);
-  const [paused, setPaused] = useState<boolean>(false);
+  const [status, setStatus]           = useState<"aguardando" | "pronto" | "erro">("aguardando");
+  const [formUrl, setFormUrl]         = useState<string | null>(null);
+  const [countdown, setCountdown]     = useState<number>(COUNTDOWN_SECONDS);
+  const [paused, setPaused]           = useState<boolean>(false);
   const [countdownDone, setCountdownDone] = useState<boolean>(false);
 
-  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const startTimeRef = useRef<number>(Date.now());
-  const formUrlRef = useRef<string | null>(null);
-  const pausedRef = useRef<boolean>(false);
-  const errorCountRef = useRef<number>(0);
+  const formUrlRef           = useRef<string | null>(null);
+  const pausedRef            = useRef<boolean>(false);
+  const calledRef            = useRef<boolean>(false); // evita chamada dupla
 
-  // Mantém pausedRef sincronizado com o estado
-  useEffect(() => {
-    pausedRef.current = paused;
-  }, [paused]);
+  // Mantém pausedRef sincronizado
+  useEffect(() => { pausedRef.current = paused; }, [paused]);
 
-  // Função para avançar para o formulário — só funciona se o form_token estiver confirmado
-  const goToForm = useCallback(() => {
-    if (formUrlRef.current) {
-      window.location.href = formUrlRef.current;
-    }
-  }, []);
-
-  // Relógio regressivo — dispara redirecionamento automático ao zerar
+  // Redireciona automaticamente quando o countdown zera
   useEffect(() => {
     if (!countdownDone) return;
-    if (formUrlRef.current) {
-      window.location.href = formUrlRef.current;
-    }
+    if (formUrlRef.current) window.location.href = formUrlRef.current;
   }, [countdownDone]);
 
   // Inicia o countdown quando status muda para "pronto"
   useEffect(() => {
     if (status !== "pronto") return;
-
-    // Reinicia o contador sempre que o status mudar para "pronto"
     setCountdown(COUNTDOWN_SECONDS);
     setCountdownDone(false);
 
@@ -86,68 +66,61 @@ export default function AguardandoFormulario() {
     };
   }, [status]);
 
-  // Polling para verificar se o formulário foi criado
+  // Chama a Edge Function onboarding-auto ao montar o componente
   useEffect(() => {
-    if (!email) {
-      navigate("/");
-      return;
-    }
+    if (!email) { navigate("/"); return; }
+    if (calledRef.current) return;
+    calledRef.current = true;
 
-    async function checkFormReady() {
+    async function iniciarOnboarding() {
       try {
-        const { data, error } = await supabase
-          .from("aceites_contrato")
-          .select("form_token, status")
-          .eq("email", email.toLowerCase().trim())
-          .eq("status", "cliente_criado")
-          .limit(1)
-          .maybeSingle();
+        const res = await fetch(ONBOARDING_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+            "apikey": SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({ email, cpf }),
+        });
 
-        if (error) throw error;
-
-        // Reseta contador de erros em caso de sucesso
-        errorCountRef.current = 0;
-
-        if (data?.form_token) {
-          const url = `${FORM_BASE_URL}?token=${data.form_token}`;
-          formUrlRef.current = url;
-          setFormUrl(url);
-          setStatus("pronto");
-          if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+        if (!res.ok) {
+          const errText = await res.text();
+          console.error("[AguardandoFormulario] Erro na Edge Function:", res.status, errText);
+          setStatus("erro");
           return;
         }
 
-        // Se passou do tempo máximo de espera, reinicia o timer em vez de mostrar timeout
-        if (Date.now() - startTimeRef.current > MAX_WAIT_MS) {
-          startTimeRef.current = Date.now(); // reinicia a contagem
-          // Continua aguardando — não muda status para timeout
+        const data = await res.json() as { ok: boolean; form_url?: string; form_token?: string; error?: string };
+
+        if (data.ok && data.form_url) {
+          formUrlRef.current = data.form_url;
+          setFormUrl(data.form_url);
+          setStatus("pronto");
+        } else {
+          console.error("[AguardandoFormulario] Resposta inválida:", data);
+          setStatus("erro");
         }
       } catch (err) {
-        errorCountRef.current += 1;
-
-        // Após 5 erros consecutivos de conexão, exibe tela de erro com WhatsApp
-        if (errorCountRef.current >= 5) {
-          setStatus("erro");
-          if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
-        }
+        console.error("[AguardandoFormulario] Exceção:", err);
+        setStatus("erro");
       }
     }
 
-    checkFormReady();
-    pollingIntervalRef.current = setInterval(checkFormReady, POLLING_INTERVAL_MS);
+    iniciarOnboarding();
+  }, [email, cpf, navigate]);
 
-    return () => {
-      if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
-    };
-  }, [email, navigate]);
+  // Avança para o formulário — só funciona se form_token confirmado
+  const goToForm = useCallback(() => {
+    if (formUrlRef.current) window.location.href = formUrlRef.current;
+  }, []);
 
-  // Calcula a porcentagem para o anel SVG
-  const progress = countdown / COUNTDOWN_SECONDS;
-  const radius = 36;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference * (1 - progress);
+  // Cálculo do anel SVG
+  const progress          = countdown / COUNTDOWN_SECONDS;
+  const radius            = 36;
+  const circumference     = 2 * Math.PI * radius;
+  const strokeDashoffset  = circumference * (1 - progress);
 
-  // Bloco de botão WhatsApp reutilizável
   const WhatsAppButton = () => (
     <a
       href={WHATSAPP_URL}
@@ -215,7 +188,6 @@ export default function AguardandoFormulario() {
         {/* Status: pronto — mostra mensagem + relógio regressivo */}
         {status === "pronto" && (
           <>
-            {/* Mensagem principal */}
             <div className="space-y-4">
               <h1 className="text-3xl font-bold text-white">
                 Que bom ter você aqui!
@@ -244,30 +216,22 @@ export default function AguardandoFormulario() {
 
             {/* Relógio regressivo + controles */}
             <div className="flex flex-col items-center gap-4">
-              {/* Anel SVG com contagem */}
               <div className="relative w-24 h-24 flex items-center justify-center">
                 <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 88 88">
-                  {/* Trilha de fundo */}
                   <circle
                     cx="44" cy="44" r={radius}
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="6"
+                    fill="none" stroke="currentColor" strokeWidth="6"
                     className="text-white/10"
                   />
-                  {/* Arco de progresso */}
                   <circle
                     cx="44" cy="44" r={radius}
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="6"
+                    fill="none" stroke="currentColor" strokeWidth="6"
                     strokeLinecap="round"
                     strokeDasharray={circumference}
                     strokeDashoffset={strokeDashoffset}
                     className={`transition-all duration-1000 ${paused ? "text-yellow-400" : "text-primary"}`}
                   />
                 </svg>
-                {/* Número no centro */}
                 <span className={`text-2xl font-bold tabular-nums ${paused ? "text-yellow-400" : "text-white"}`}>
                   {countdown}
                 </span>
@@ -276,12 +240,10 @@ export default function AguardandoFormulario() {
               <p className="text-sm text-muted-foreground">
                 {paused
                   ? "Relógio pausado — leia com calma"
-                  : `Seu formulário abre em ${countdown} segundo${countdown !== 1 ? "s" : ""}...`}
+                  : `Seu formulário abre em ${countdown}s`}
               </p>
 
-              {/* Botões */}
               <div className="flex items-center gap-3">
-                {/* Pausar / Retomar */}
                 <button
                   onClick={() => setPaused((p) => !p)}
                   className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
@@ -293,7 +255,7 @@ export default function AguardandoFormulario() {
                   )}
                 </button>
 
-                {/* Avançar — só habilitado quando form_token confirmado (status === "pronto") */}
+                {/* Botão só habilitado quando form_url confirmado */}
                 <button
                   onClick={goToForm}
                   disabled={!formUrl}
@@ -313,7 +275,7 @@ export default function AguardandoFormulario() {
           </>
         )}
 
-        {/* Status: erro — falha de conexão ou erro inesperado */}
+        {/* Status: erro */}
         {status === "erro" && (
           <>
             <div className="flex justify-center">

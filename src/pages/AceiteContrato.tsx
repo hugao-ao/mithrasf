@@ -374,7 +374,7 @@ export default function AceiteContrato() {
       }
 
       // 2. Gerar link de checkout personalizado
-      const successUrl = `https://hvsaudefinanceira.com.br/aguardando-formulario?email=${encodeURIComponent(email.trim().toLowerCase())}&plano=${encodeURIComponent(planoNome)}`;
+      const successUrl = `https://hvsaudefinanceira.com.br/aguardando-formulario?email=${encodeURIComponent(email.trim().toLowerCase())}&cpf=${encodeURIComponent(cpfLimpo || '')}&plano=${encodeURIComponent(planoNome)}`;
       if (customerId) {
         const linkRes = await fetch(
           `https://api.cyclopay.com/v1/customers/${customerId}/checkout/${plano.checkoutId}`,
@@ -414,8 +414,9 @@ export default function AceiteContrato() {
         status: checkoutUrl ? "checkout_gerado" : "pendente",
       });
 
-      // 4. Salvar email no sessionStorage para o polling na página de aguardo
+      // 4. Salvar email, CPF e plano no sessionStorage para a página de aguardo
       sessionStorage.setItem('hvsf_pending_email', email.trim().toLowerCase());
+      sessionStorage.setItem('hvsf_pending_cpf', cpfLimpo || '');
       sessionStorage.setItem('hvsf_pending_plano', planoNome);
 
       // 5. Redirecionar para o checkout do Cyclopay
