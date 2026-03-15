@@ -157,26 +157,6 @@ export default function Planos() {
         </p>
       </div>
 
-      {/* Banner Planejamento de Referência */}
-      <div className="bg-primary/5 border border-primary/20 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex items-start gap-4">
-          <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-            <BookOpen className="h-6 w-6 text-primary" />
-          </div>
-          <div>
-            <h3 className="text-white font-bold text-lg">Tem um Planejamento Financeiro de Referência?</h3>
-            <p className="text-muted-foreground text-sm mt-1 max-w-xl">
-              Antes de assinar um plano, considere ter um Planejamento de Referência — um documento completo que define estratégias para cada área da sua vida financeira e serve de base para toda a assistência que você receberá.
-            </p>
-          </div>
-        </div>
-        <Link href="/planejamento-de-referencia">
-          <Button className="bg-primary text-black hover:bg-primary/90 font-bold shrink-0 whitespace-nowrap">
-            Conhecer o Planejamento &rarr;
-          </Button>
-        </Link>
-      </div>
-
       {/* Plans Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         {plans.map((plan, index) => (
@@ -194,13 +174,13 @@ export default function Planos() {
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full shadow-lg">
                 MAIS POPULAR
               </div>
-            )}
+           )}
             
             {plan.isPremium && (
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary via-yellow-400 to-primary text-black text-xs font-bold px-4 py-1 rounded-full shadow-lg animate-pulse">
                 VIP EXCLUSIVE
               </div>
-            )}
+           )}
 
             <div className="mb-6 space-y-2">
               <div className={`h-12 w-12 rounded-xl flex items-center justify-center mb-4 ${
@@ -273,7 +253,7 @@ export default function Planos() {
                         <p>{plan.details.reunioes}</p>
                         {plan.details.adesao_info && (
                           <p className="text-xs text-yellow-500 mt-1">{plan.details.adesao_info}</p>
-                        )}
+                       )}
                       </div>
                     </div>
 
@@ -403,7 +383,27 @@ export default function Planos() {
               </Dialog>
             </div>
           </div>
-        ))}
+        )}
+      </div>
+
+      {/* Banner Planejamento de Referência */}
+      <div className="bg-primary/5 border border-primary/20 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex items-start gap-4">
+          <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <BookOpen className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-white font-bold text-lg">Tem um Planejamento Financeiro de Referência?</h3>
+            <p className="text-muted-foreground text-sm mt-1 max-w-xl">
+              Antes de assinar um plano, considere ter um Planejamento de Referência — um documento completo que define estratégias para cada área da sua vida financeira e serve de base para toda a assistência que você receberá.
+            </p>
+          </div>
+        </div>
+        <Link href="/planejamento-de-referencia">
+          <Button className="bg-primary text-black hover:bg-primary/90 font-bold shrink-0 whitespace-nowrap">
+            Conhecer o Planejamento &rarr;
+          </Button>
+        </Link>
       </div>
     </div>
   );
