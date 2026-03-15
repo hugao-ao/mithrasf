@@ -143,6 +143,6 @@
 /* ── Escala 60% em dispositivos mobile ──────────────────────────────────── */
 @media (max-width: 767px) {
   html {
-    zoom: 0.6;
+    zoom: 0.4;
   }
 }
