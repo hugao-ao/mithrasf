@@ -17,7 +17,7 @@ import { Link, useLocation } from "wouter";
 export const SIDEBAR_EVENT = 'sidebar-toggle';
 
 export function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [location] = useLocation();
 
   const toggleSidebar = () => {
