@@ -45,18 +45,8 @@ const INDEXADORES_INICIAIS: Record<string, IndexadorData> = {
   CDI: { nome: "CDI", sigla: "CDI", valorAnual: null, valorMensal: null, fonte: "BrasilAPI", atualizadoEm: "—", editavel: false, valorCustom: "" },
   SELIC: { nome: "SELIC", sigla: "SELIC", valorAnual: null, valorMensal: null, fonte: "BrasilAPI", atualizadoEm: "—", editavel: false, valorCustom: "" },
   IPCA: { nome: "IPCA", sigla: "IPCA", valorAnual: null, valorMensal: null, fonte: "BrasilAPI", atualizadoEm: "—", editavel: false, valorCustom: "" },
-  "IGP-M": { nome: "IGP-M", sigla: "IGP-M", valorAnual: null, valorMensal: null, fonte: "Manual (FGV)", atualizadoEm: "—", editavel: true, valorCustom: "" },
   "USD/BRL": { nome: "Dólar (USD/BRL)", sigla: "USD/BRL", valorAnual: null, valorMensal: null, fonte: "AwesomeAPI", atualizadoEm: "—", editavel: false, valorCustom: "" },
   "EUR/BRL": { nome: "Euro (EUR/BRL)", sigla: "EUR/BRL", valorAnual: null, valorMensal: null, fonte: "AwesomeAPI", atualizadoEm: "—", editavel: false, valorCustom: "" },
-  IBOV: { nome: "Ibovespa (IBOV)", sigla: "IBOV", valorAnual: null, valorMensal: null, fonte: "Manual (B3)", atualizadoEm: "—", editavel: true, valorCustom: "" },
-  IBrX: { nome: "IBrX 100", sigla: "IBrX", valorAnual: null, valorMensal: null, fonte: "Manual (B3)", atualizadoEm: "—", editavel: true, valorCustom: "" },
-  IFIX: { nome: "IFIX", sigla: "IFIX", valorAnual: null, valorMensal: null, fonte: "Manual (B3)", atualizadoEm: "—", editavel: true, valorCustom: "" },
-  "IMA-B": { nome: "IMA-B", sigla: "IMA-B", valorAnual: null, valorMensal: null, fonte: "Manual (ANBIMA)", atualizadoEm: "—", editavel: true, valorCustom: "" },
-  "IMA-S": { nome: "IMA-S", sigla: "IMA-S", valorAnual: null, valorMensal: null, fonte: "Manual (ANBIMA)", atualizadoEm: "—", editavel: true, valorCustom: "" },
-  "IRF-M": { nome: "IRF-M", sigla: "IRF-M", valorAnual: null, valorMensal: null, fonte: "Manual (ANBIMA)", atualizadoEm: "—", editavel: true, valorCustom: "" },
-  IDA: { nome: "IDA (ANBIMA)", sigla: "IDA", valorAnual: null, valorMensal: null, fonte: "Manual (ANBIMA)", atualizadoEm: "—", editavel: true, valorCustom: "" },
-  "S&P 500": { nome: "S&P 500", sigla: "S&P 500", valorAnual: null, valorMensal: null, fonte: "Manual (NYSE)", atualizadoEm: "—", editavel: true, valorCustom: "" },
-  "MSCI World": { nome: "MSCI World", sigla: "MSCI World", valorAnual: null, valorMensal: null, fonte: "Manual (MSCI)", atualizadoEm: "—", editavel: true, valorCustom: "" },
 };
 
 // ─── Helpers de cálculo ───────────────────────────────────────────────────────
