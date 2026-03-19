@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Calculator, CreditCard, Home, LineChart, ShoppingBag, Wallet } from "lucide-react";
+import { BarChart3, Calculator, CreditCard, Home, LineChart, ShoppingBag, Wallet } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Ferramentas() {
@@ -45,6 +45,13 @@ export default function Ferramentas() {
       icon: LineChart,
       link: "/ferramentas/oraculo",
       color: "text-gold-400" // Custom gold color class needed or use text-yellow-500
+    },
+    {
+      name: "Comparador de Ativos",
+      description: "Compare dois investimentos lado a lado: pré, pós ou híbrido, com indexadores em tempo real e gráficos de evolução.",
+      icon: BarChart3,
+      link: "/ferramentas/comparador-ativos",
+      color: "text-yellow-400"
     }
   ];
 
