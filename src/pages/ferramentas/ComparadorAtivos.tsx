@@ -10,9 +10,6 @@ import {
   TrendingUp,
   ChevronDown,
   ChevronUp,
-  Trophy,
-  AlertTriangle,
-  Info,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "wouter";
@@ -103,77 +100,79 @@ function gerarAnalise(
   meses: number,
   impA: number,
   impB: number
-): { tipo: "vencedor" | "empate" | "atencao"; titulo: string; pontos: string[] } {
-  const melhorLiq = resA.liquido >= resB.liquido ? nomeA : nomeB;
-  const piorLiq = resA.liquido >= resB.liquido ? nomeB : nomeA;
-  const difLiq = Math.abs(resA.liquido - resB.liquido);
+): { tipo: "vencedor" | "empate" | "atencao"; vencedor: string; perdedor: string; difLiq: number; difPct: number; insights: string[] } {
+  const aVence = resA.liquido >= resB.liquido;
+  const vencedor = aVence ? nomeA : nomeB;
+  const perdedor = aVence ? nomeB : nomeA;
+  const resVenc = aVence ? resA : resB;
+  const resPerd = aVence ? resB : resA;
+  const taxaVenc = aVence ? taxaA : taxaB;
+  const taxaPerd = aVence ? taxaB : taxaA;
+  const impVenc = aVence ? impA : impB;
+  const impPerd = aVence ? impB : impA;
+  const difLiq = resVenc.liquido - resPerd.liquido;
   const difPct = (difLiq / principal) * 100;
   const difTaxa = Math.abs(taxaA - taxaB);
   const anos = meses / 12;
 
-  const pontos: string[] = [];
-
-  // Diferença de rendimento líquido
-  if (difLiq < 1) {
-    pontos.push("Os dois ativos têm desempenho praticamente idêntico no prazo informado.");
-  } else {
-    pontos.push(
-      `${melhorLiq} entrega ${formatCurrency(difLiq)} a mais no líquido ao final do prazo — uma diferença de ${difPct.toFixed(2)}% sobre o capital investido.`
-    );
-  }
+  const insights: string[] = [];
 
   // Diferença de taxa
   if (difTaxa > 0.01) {
-    pontos.push(
-      `A diferença de taxa efetiva entre os ativos é de ${difTaxa.toFixed(2)}% a.a. — ${difTaxa < 1 ? "pequena, mas que se acumula ao longo do tempo" : "relevante e impacta diretamente o resultado final"}.`
+    insights.push(
+      `Diferença de taxa efetiva: ${difTaxa.toFixed(2)}% a.a. — ${difTaxa < 1 ? "pequena, mas que se acumula com o tempo" : "relevante e impacta diretamente o resultado final"}.`
     );
   }
 
   // Impacto do imposto
-  const impostoA = resA.rendimentoBruto * (impA / 100);
-  const impostoB = resB.rendimentoBruto * (impB / 100);
-  if (Math.abs(impostoA - impostoB) > 1) {
-    const maisTribut = impostoA > impostoB ? nomeA : nomeB;
-    pontos.push(
-      `${maisTribut} paga mais imposto no resgate (${formatCurrency(Math.max(impostoA, impostoB))} vs ${formatCurrency(Math.min(impostoA, impostoB))}). Isso pode inverter o resultado dependendo da alíquota real aplicada.`
+  const impostoVenc = resVenc.rendimentoBruto * (impVenc / 100);
+  const impostoPerd = resPerd.rendimentoBruto * (impPerd / 100);
+  if (Math.abs(impostoVenc - impostoPerd) > 1) {
+    const maisTribut = impostoVenc > impostoPerd ? vencedor : perdedor;
+    insights.push(
+      `${maisTribut} paga mais imposto no resgate (${formatCurrency(Math.max(impostoVenc, impostoPerd))} vs ${formatCurrency(Math.min(impostoVenc, impostoPerd))}).`
     );
   }
 
   // Prazo longo
   if (anos >= 5) {
-    pontos.push(
-      `Com ${anos.toFixed(0)} anos de prazo, pequenas diferenças de taxa têm efeito exponencial — o ativo com maior taxa tende a se distanciar cada vez mais ao longo do tempo.`
+    insights.push(
+      `Com ${anos.toFixed(0)} anos de prazo, a diferença tende a se ampliar exponencialmente a favor de ${vencedor}.`
     );
   }
 
-  // Aviso de empate técnico
+  // Empate técnico
   if (difPct < 0.5) {
     return {
       tipo: "empate",
-      titulo: "Empate técnico",
-      pontos: [
-        "A diferença entre os dois ativos é inferior a 0,5% do capital investido — dentro da margem de variação de qualquer indexador.",
-        ...pontos.slice(1),
-        `Nesse cenário, outros fatores como liquidez, risco de crédito e adequação ao seu perfil pesam mais do que a rentabilidade bruta.`,
+      vencedor,
+      perdedor,
+      difLiq,
+      difPct,
+      insights: [
+        "A diferença entre os dois ativos é inferior a 0,5% do capital — dentro da margem de variação de qualquer indexador.",
+        "Nesse cenário, liquidez, risco de crédito e adequação ao perfil pesam mais do que a rentabilidade bruta.",
+        ...insights,
       ],
     };
   }
 
-  // Aviso de atenção se o melhor em taxa perde no líquido
-  if ((taxaA > taxaB && resA.liquido < resB.liquido) || (taxaB > taxaA && resB.liquido < resA.liquido)) {
-    const maisRentavel = taxaA > taxaB ? nomeA : nomeB;
-    const menosImposto = impA < impB ? nomeA : nomeB;
-    pontos.push(
-      `Atenção: ${maisRentavel} tem taxa maior, mas ${menosImposto} vence no líquido por pagar menos imposto. A alíquota de IR pode ser o fator decisivo aqui.`
-    );
-    return { tipo: "atencao", titulo: `${piorLiq} vence no líquido apesar da taxa menor`, pontos };
+  // Atenção: taxa maior perde no líquido por causa do imposto
+  if ((taxaVenc < taxaPerd)) {
+    return {
+      tipo: "atencao",
+      vencedor,
+      perdedor,
+      difLiq,
+      difPct,
+      insights: [
+        `${vencedor} tem taxa menor (${taxaVenc.toFixed(2)}% a.a.) mas vence no líquido porque paga menos imposto — a alíquota de IR foi o fator decisivo.`,
+        ...insights,
+      ],
+    };
   }
 
-  return {
-    tipo: "vencedor",
-    titulo: `${melhorLiq} é a melhor opção no prazo informado`,
-    pontos,
-  };
+  return { tipo: "vencedor", vencedor, perdedor, difLiq, difPct, insights };
 }
 
 // ─── Componente principal ─────────────────────────────────────────────────────
@@ -287,7 +286,7 @@ export default function ComparadorAtivos() {
       ativoB.nome || "Ativo B",
       taxaA, taxaB, resA, resB, principal, meses, impA, impB
     );
-    setResultado({ taxaA, taxaB, resA, resB, principal, meses, impA, impB, analise });
+    setResultado({ taxaA, taxaB, resA, resB, principal, meses, impA, impB, analise, nomeA: ativoA.nome || "Ativo A", nomeB: ativoB.nome || "Ativo B" });
   };
 
   const fmtPct = (v: number | null, d = 2) => v === null ? "—" : `${v.toFixed(d)}%`;
@@ -392,7 +391,7 @@ export default function ComparadorAtivos() {
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
 
           {/* 4. Análise simplificada */}
-          <AnaliseCard analise={resultado.analise} />
+          <AnaliseCard analise={resultado.analise} corVencedor={resultado.resA.liquido >= resultado.resB.liquido ? "blue" : "purple"} />
 
           {/* 5. Cards dos ativos */}
           <div className="grid md:grid-cols-2 gap-6">
@@ -551,48 +550,60 @@ export default function ComparadorAtivos() {
 
 // ─── Sub-componente: Análise ──────────────────────────────────────────────────
 
-function AnaliseCard({ analise }: { analise: { tipo: string; titulo: string; pontos: string[] } }) {
-  const config = {
-    vencedor: {
-      icon: <Trophy className="h-5 w-5 text-yellow-400" />,
-      bg: "bg-yellow-500/10",
-      borda: "border-yellow-500/30",
-      tituloCor: "text-yellow-400",
-    },
-    empate: {
-      icon: <Info className="h-5 w-5 text-blue-400" />,
-      bg: "bg-blue-500/10",
-      borda: "border-blue-500/30",
-      tituloCor: "text-blue-400",
-    },
-    atencao: {
-      icon: <AlertTriangle className="h-5 w-5 text-orange-400" />,
-      bg: "bg-orange-500/10",
-      borda: "border-orange-500/30",
-      tituloCor: "text-orange-400",
-    },
-  }[analise.tipo] ?? {
-    icon: <Info className="h-5 w-5 text-muted-foreground" />,
-    bg: "bg-card/50",
-    borda: "border-white/10",
-    tituloCor: "text-white",
-  };
+function AnaliseCard({
+  analise,
+  corVencedor,
+}: {
+  analise: { tipo: string; vencedor: string; perdedor: string; difLiq: number; difPct: number; insights: string[] };
+  corVencedor: "blue" | "purple";
+}) {
+  const isEmpate = analise.tipo === "empate";
+  const isAtencao = analise.tipo === "atencao";
+  const corClasse = corVencedor === "blue" ? "text-blue-400" : "text-purple-400";
+  const bgClasse = corVencedor === "blue" ? "bg-blue-500/5" : "bg-purple-500/5";
+  const bordaClasse = corVencedor === "blue" ? "border-blue-500/20" : "border-purple-500/20";
 
   return (
-    <Card className={`${config.bg} ${config.borda} border`}>
-      <CardContent className="p-6 space-y-4">
-        <div className="flex items-center gap-2">
-          {config.icon}
-          <h3 className={`font-bold text-base ${config.tituloCor}`}>{analise.titulo}</h3>
+    <Card className="bg-card/60 border-white/10">
+      <CardContent className="p-6">
+        {/* Cabeçalho do resultado */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-5 border-b border-white/10">
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+              {isEmpate ? "Resultado" : "Melhor opção"}
+            </p>
+            <p className={`text-2xl font-bold ${isEmpate ? "text-white" : corClasse}`}>
+              {isEmpate ? "Empate técnico" : analise.vencedor}
+            </p>
+            {isAtencao && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Vence no líquido mesmo com taxa menor
+              </p>
+            )}
+          </div>
+          {!isEmpate && (
+            <div className={`rounded-xl p-4 text-center min-w-[140px] ${bgClasse} border ${bordaClasse}`}>
+              <p className="text-xs text-muted-foreground mb-1">Vantagem líquida</p>
+              <p className={`text-xl font-bold ${corClasse}`}>{formatCurrency(analise.difLiq)}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">+{analise.difPct.toFixed(2)}% do capital</p>
+            </div>
+          )}
         </div>
-        <ul className="space-y-2">
-          {analise.pontos.map((ponto, i) => (
-            <li key={i} className="flex gap-2 text-sm text-muted-foreground">
-              <span className="text-white/30 mt-0.5 shrink-0">›</span>
-              <span>{ponto}</span>
-            </li>
-          ))}
-        </ul>
+
+        {/* Insights */}
+        {analise.insights.length > 0 && (
+          <div className="pt-4 space-y-2">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">Observações</p>
+            <ul className="space-y-1.5">
+              {analise.insights.map((insight, i) => (
+                <li key={i} className="flex gap-2 text-sm text-muted-foreground">
+                  <span className="text-white/20 shrink-0 mt-0.5">›</span>
+                  <span>{insight}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
