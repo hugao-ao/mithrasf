@@ -10,21 +10,12 @@ import {
   TrendingUp,
   ChevronDown,
   ChevronUp,
+  Trophy,
+  AlertTriangle,
+  Info,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "wouter";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-  BarChart,
-  Bar,
-} from "recharts";
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
@@ -99,29 +90,90 @@ function calcularMontante(
   };
 }
 
-function gerarDadosGrafico(
+// ─── Análise simplificada ─────────────────────────────────────────────────────
+
+function gerarAnalise(
+  nomeA: string,
+  nomeB: string,
+  taxaA: number,
+  taxaB: number,
+  resA: ReturnType<typeof calcularMontante>,
+  resB: ReturnType<typeof calcularMontante>,
   principal: number,
-  taxaAnualA: number,
-  taxaAnualB: number,
   meses: number,
-  impostoA: number,
-  impostoB: number
-) {
-  const taxaMensalA = taxaAnualParaMensal(taxaAnualA) / 100;
-  const taxaMensalB = taxaAnualParaMensal(taxaAnualB) / 100;
-  const data = [];
-  for (let m = 0; m <= meses; m++) {
-    const brutoA = principal * Math.pow(1 + taxaMensalA, m);
-    const brutoB = principal * Math.pow(1 + taxaMensalB, m);
-    const liqA = principal + (brutoA - principal) * (1 - impostoA / 100);
-    const liqB = principal + (brutoB - principal) * (1 - impostoB / 100);
-    const label =
-      m === 0 ? "Início" : m % 12 === 0 ? `${m / 12}a` : meses <= 24 ? `${m}m` : null;
-    if (label !== null) {
-      data.push({ label, "Ativo A (líq.)": Math.round(liqA), "Ativo B (líq.)": Math.round(liqB) });
-    }
+  impA: number,
+  impB: number
+): { tipo: "vencedor" | "empate" | "atencao"; titulo: string; pontos: string[] } {
+  const melhorLiq = resA.liquido >= resB.liquido ? nomeA : nomeB;
+  const piorLiq = resA.liquido >= resB.liquido ? nomeB : nomeA;
+  const difLiq = Math.abs(resA.liquido - resB.liquido);
+  const difPct = (difLiq / principal) * 100;
+  const difTaxa = Math.abs(taxaA - taxaB);
+  const anos = meses / 12;
+
+  const pontos: string[] = [];
+
+  // Diferença de rendimento líquido
+  if (difLiq < 1) {
+    pontos.push("Os dois ativos têm desempenho praticamente idêntico no prazo informado.");
+  } else {
+    pontos.push(
+      `${melhorLiq} entrega ${formatCurrency(difLiq)} a mais no líquido ao final do prazo — uma diferença de ${difPct.toFixed(2)}% sobre o capital investido.`
+    );
   }
-  return data;
+
+  // Diferença de taxa
+  if (difTaxa > 0.01) {
+    pontos.push(
+      `A diferença de taxa efetiva entre os ativos é de ${difTaxa.toFixed(2)}% a.a. — ${difTaxa < 1 ? "pequena, mas que se acumula ao longo do tempo" : "relevante e impacta diretamente o resultado final"}.`
+    );
+  }
+
+  // Impacto do imposto
+  const impostoA = resA.rendimentoBruto * (impA / 100);
+  const impostoB = resB.rendimentoBruto * (impB / 100);
+  if (Math.abs(impostoA - impostoB) > 1) {
+    const maisTribut = impostoA > impostoB ? nomeA : nomeB;
+    pontos.push(
+      `${maisTribut} paga mais imposto no resgate (${formatCurrency(Math.max(impostoA, impostoB))} vs ${formatCurrency(Math.min(impostoA, impostoB))}). Isso pode inverter o resultado dependendo da alíquota real aplicada.`
+    );
+  }
+
+  // Prazo longo
+  if (anos >= 5) {
+    pontos.push(
+      `Com ${anos.toFixed(0)} anos de prazo, pequenas diferenças de taxa têm efeito exponencial — o ativo com maior taxa tende a se distanciar cada vez mais ao longo do tempo.`
+    );
+  }
+
+  // Aviso de empate técnico
+  if (difPct < 0.5) {
+    return {
+      tipo: "empate",
+      titulo: "Empate técnico",
+      pontos: [
+        "A diferença entre os dois ativos é inferior a 0,5% do capital investido — dentro da margem de variação de qualquer indexador.",
+        ...pontos.slice(1),
+        `Nesse cenário, outros fatores como liquidez, risco de crédito e adequação ao seu perfil pesam mais do que a rentabilidade bruta.`,
+      ],
+    };
+  }
+
+  // Aviso de atenção se o melhor em taxa perde no líquido
+  if ((taxaA > taxaB && resA.liquido < resB.liquido) || (taxaB > taxaA && resB.liquido < resA.liquido)) {
+    const maisRentavel = taxaA > taxaB ? nomeA : nomeB;
+    const menosImposto = impA < impB ? nomeA : nomeB;
+    pontos.push(
+      `Atenção: ${maisRentavel} tem taxa maior, mas ${menosImposto} vence no líquido por pagar menos imposto. A alíquota de IR pode ser o fator decisivo aqui.`
+    );
+    return { tipo: "atencao", titulo: `${piorLiq} vence no líquido apesar da taxa menor`, pontos };
+  }
+
+  return {
+    tipo: "vencedor",
+    titulo: `${melhorLiq} é a melhor opção no prazo informado`,
+    pontos,
+  };
 }
 
 // ─── Componente principal ─────────────────────────────────────────────────────
@@ -134,7 +186,6 @@ export default function ComparadorAtivos() {
 
   const [valorInvestido, setValorInvestido] = useState("");
   const [prazoMeses, setPrazoMeses] = useState("12");
-  const [viewGrafico, setViewGrafico] = useState<"area" | "bar">("area");
 
   const [ativoA, setAtivoA] = useState<AtivoConfig>({
     nome: "Ativo A", tipo: "pre", taxa: "", tipoTaxa: "anual", indexador: "CDI", percentualIndexador: "100",
@@ -147,7 +198,6 @@ export default function ComparadorAtivos() {
   const [impostoB, setImpostoB] = useState("15");
 
   const [resultado, setResultado] = useState<any>(null);
-  const [chartData, setChartData] = useState<any[]>([]);
 
   // ── Buscar indexadores ────────────────────────────────────────────────────
 
@@ -155,22 +205,20 @@ export default function ComparadorAtivos() {
     setCarregando(true);
     const now = new Date().toLocaleString("pt-BR");
 
-    // BrasilAPI — CDI, SELIC, IPCA (CORS liberado)
-    let cdiAnual: number | null = null;
+    // BrasilAPI — SELIC, IPCA (CORS liberado)
     let selicAnual: number | null = null;
     let ipcaAnual: number | null = null;
     try {
       const res = await fetch("https://brasilapi.com.br/api/taxas/v1");
       const data: { nome: string; valor: number }[] = await res.json();
-      const cdi = data.find((d) => d.nome === "CDI");
       const selic = data.find((d) => d.nome === "Selic");
       const ipca = data.find((d) => d.nome === "IPCA");
       if (selic) selicAnual = selic.valor;
       if (ipca) ipcaAnual = ipca.valor;
-      // CDI é sempre SELIC − 0,10% a.a. por definição
-      if (selicAnual !== null) cdiAnual = selicAnual - 0.10;
-      else if (cdi) cdiAnual = cdi.valor;
     } catch {}
+
+    // CDI = SELIC − 0,10% a.a. por definição
+    const cdiAnual = selicAnual !== null ? selicAnual - 0.10 : null;
 
     // AwesomeAPI — USD/BRL e EUR/BRL (CORS liberado)
     let usdPct: number | null = null;
@@ -234,8 +282,12 @@ export default function ComparadorAtivos() {
     if (!principal || taxaA === null || taxaB === null) return;
     const resA = calcularMontante(principal, taxaA, meses, impA);
     const resB = calcularMontante(principal, taxaB, meses, impB);
-    setResultado({ taxaA, taxaB, resA, resB, principal, meses, impA, impB });
-    setChartData(gerarDadosGrafico(principal, taxaA, taxaB, meses, impA, impB));
+    const analise = gerarAnalise(
+      ativoA.nome || "Ativo A",
+      ativoB.nome || "Ativo B",
+      taxaA, taxaB, resA, resB, principal, meses, impA, impB
+    );
+    setResultado({ taxaA, taxaB, resA, resB, principal, meses, impA, impB, analise });
   };
 
   const fmtPct = (v: number | null, d = 2) => v === null ? "—" : `${v.toFixed(d)}%`;
@@ -270,10 +322,10 @@ export default function ComparadorAtivos() {
         </div>
       </div>
 
-      {/* Parâmetros gerais */}
+      {/* 1. Parâmetros gerais */}
       <Card className="bg-card/50 border-white/10">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm text-muted-foreground">Parâmetros Gerais</CardTitle>
+          <CardTitle className="text-sm text-muted-foreground uppercase tracking-wide">Parâmetros Gerais</CardTitle>
         </CardHeader>
         <CardContent className="grid md:grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -301,7 +353,7 @@ export default function ComparadorAtivos() {
         </CardContent>
       </Card>
 
-      {/* Ativos A e B */}
+      {/* 2. Ativos A e B */}
       <div className="grid md:grid-cols-2 gap-6">
         <AtivoForm
           titulo="Ativo A"
@@ -327,7 +379,7 @@ export default function ComparadorAtivos() {
         />
       </div>
 
-      {/* Botão comparar */}
+      {/* 3. Botão comparar */}
       <Button
         onClick={comparar}
         className="w-full h-14 text-lg font-bold bg-yellow-500 hover:bg-yellow-400 text-black"
@@ -335,7 +387,69 @@ export default function ComparadorAtivos() {
         <BarChart3 className="h-5 w-5 mr-2" /> Comparar Ativos
       </Button>
 
-      {/* Seção de Indexadores — expansível, recolhida por padrão */}
+      {/* 4 + 5. Resultado (análise + cards dos ativos) */}
+      {resultado && (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+
+          {/* 4. Análise simplificada */}
+          <AnaliseCard analise={resultado.analise} />
+
+          {/* 5. Cards dos ativos */}
+          <div className="grid md:grid-cols-2 gap-6">
+            <ResultadoCard
+              titulo={ativoA.nome || "Ativo A"}
+              cor="blue"
+              taxaEfetiva={resultado.taxaA}
+              montanteBruto={resultado.resA.bruto}
+              montanteLiquido={resultado.resA.liquido}
+              rendimentoBruto={resultado.resA.rendimentoBruto}
+              rendimentoLiquido={resultado.resA.rendimentoLiquido}
+              principal={resultado.principal}
+              imposto={resultado.impA}
+              melhor={resultado.resA.liquido >= resultado.resB.liquido}
+            />
+            <ResultadoCard
+              titulo={ativoB.nome || "Ativo B"}
+              cor="purple"
+              taxaEfetiva={resultado.taxaB}
+              montanteBruto={resultado.resB.bruto}
+              montanteLiquido={resultado.resB.liquido}
+              rendimentoBruto={resultado.resB.rendimentoBruto}
+              rendimentoLiquido={resultado.resB.rendimentoLiquido}
+              principal={resultado.principal}
+              imposto={resultado.impB}
+              melhor={resultado.resB.liquido > resultado.resA.liquido}
+            />
+          </div>
+
+          {/* 6. CTA */}
+          <div className="bg-card border border-white/10 rounded-xl p-6 space-y-4">
+            <p className="text-sm font-semibold text-white">O que essa ferramenta não faz:</p>
+            <p className="text-sm text-muted-foreground">
+              Ela compara dois ativos com base nos números que você informa, mas não avalia{" "}
+              <span className="text-white font-medium">
+                se esses ativos fazem sentido para o seu perfil, prazo de vida, objetivos e tolerância a risco
+              </span>
+              . Um ativo que rende mais no papel pode ser o errado para o seu momento.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Para saber qual investimento é o certo para{" "}
+              <span className="text-white font-medium">
+                a sua realidade, o seu objetivo e o seu momento de vida
+              </span>
+              , isso exige uma análise completa — não uma calculadora.
+            </p>
+            <Link href="/planos">
+              <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary/10">
+                Quero saber qual investimento é certo para mim
+              </Button>
+            </Link>
+          </div>
+
+        </div>
+      )}
+
+      {/* 7. Indexadores — expansível, recolhido por padrão */}
       <Card className="bg-card/50 border-white/10">
         <button
           onClick={() => setIndexadoresAberto((v) => !v)}
@@ -431,215 +545,56 @@ export default function ComparadorAtivos() {
         )}
       </Card>
 
-      {/* Resultado */}
-      {resultado && (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-
-          {/* Cards de resultado */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <ResultadoCard
-              titulo={ativoA.nome || "Ativo A"}
-              cor="blue"
-              taxaEfetiva={resultado.taxaA}
-              montanteBruto={resultado.resA.bruto}
-              montanteLiquido={resultado.resA.liquido}
-              rendimentoBruto={resultado.resA.rendimentoBruto}
-              rendimentoLiquido={resultado.resA.rendimentoLiquido}
-              principal={resultado.principal}
-              imposto={resultado.impA}
-              melhor={resultado.resA.liquido >= resultado.resB.liquido}
-            />
-            <ResultadoCard
-              titulo={ativoB.nome || "Ativo B"}
-              cor="purple"
-              taxaEfetiva={resultado.taxaB}
-              montanteBruto={resultado.resB.bruto}
-              montanteLiquido={resultado.resB.liquido}
-              rendimentoBruto={resultado.resB.rendimentoBruto}
-              rendimentoLiquido={resultado.resB.rendimentoLiquido}
-              principal={resultado.principal}
-              imposto={resultado.impB}
-              melhor={resultado.resB.liquido > resultado.resA.liquido}
-            />
-          </div>
-
-          {/* Tabela comparativa */}
-          <Card className="bg-card/50 border-white/10">
-            <CardHeader>
-              <CardTitle className="text-white text-base">Comparativo Detalhado</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-white/10">
-                      <th className="text-left py-2 px-3 text-muted-foreground">Métrica</th>
-                      <th className="text-right py-2 px-3 text-blue-400">{ativoA.nome || "Ativo A"}</th>
-                      <th className="text-right py-2 px-3 text-purple-400">{ativoB.nome || "Ativo B"}</th>
-                      <th className="text-right py-2 px-3 text-muted-foreground">Diferença</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      {
-                        label: "Taxa efetiva a.a.",
-                        a: `${resultado.taxaA.toFixed(4)}%`,
-                        b: `${resultado.taxaB.toFixed(4)}%`,
-                        diff: resultado.taxaA > resultado.taxaB
-                          ? `+${(resultado.taxaA - resultado.taxaB).toFixed(4)}% (A)`
-                          : `+${(resultado.taxaB - resultado.taxaA).toFixed(4)}% (B)`,
-                      },
-                      {
-                        label: "Taxa efetiva a.m.",
-                        a: `${taxaAnualParaMensal(resultado.taxaA).toFixed(4)}%`,
-                        b: `${taxaAnualParaMensal(resultado.taxaB).toFixed(4)}%`,
-                        diff: "—",
-                      },
-                      {
-                        label: "Montante bruto",
-                        a: formatCurrency(resultado.resA.bruto),
-                        b: formatCurrency(resultado.resB.bruto),
-                        diff: resultado.resA.bruto > resultado.resB.bruto
-                          ? `+${formatCurrency(resultado.resA.bruto - resultado.resB.bruto)} (A)`
-                          : `+${formatCurrency(resultado.resB.bruto - resultado.resA.bruto)} (B)`,
-                      },
-                      {
-                        label: "Imposto estimado",
-                        a: formatCurrency(resultado.resA.rendimentoBruto * (resultado.impA / 100)),
-                        b: formatCurrency(resultado.resB.rendimentoBruto * (resultado.impB / 100)),
-                        diff: "—",
-                      },
-                      {
-                        label: "Montante líquido",
-                        a: formatCurrency(resultado.resA.liquido),
-                        b: formatCurrency(resultado.resB.liquido),
-                        diff: resultado.resA.liquido > resultado.resB.liquido
-                          ? `+${formatCurrency(resultado.resA.liquido - resultado.resB.liquido)} (A)`
-                          : `+${formatCurrency(resultado.resB.liquido - resultado.resA.liquido)} (B)`,
-                      },
-                      {
-                        label: "Rendimento líquido",
-                        a: formatCurrency(resultado.resA.rendimentoLiquido),
-                        b: formatCurrency(resultado.resB.rendimentoLiquido),
-                        diff: "—",
-                      },
-                      {
-                        label: "Rentabilidade total líquida",
-                        a: `${((resultado.resA.rendimentoLiquido / resultado.principal) * 100).toFixed(2)}%`,
-                        b: `${((resultado.resB.rendimentoLiquido / resultado.principal) * 100).toFixed(2)}%`,
-                        diff: "—",
-                      },
-                    ].map((row, i) => (
-                      <tr key={i} className="border-b border-white/5 hover:bg-white/2">
-                        <td className="py-2 px-3 text-muted-foreground">{row.label}</td>
-                        <td className="py-2 px-3 text-right text-blue-300">{row.a}</td>
-                        <td className="py-2 px-3 text-right text-purple-300">{row.b}</td>
-                        <td className="py-2 px-3 text-right text-yellow-400 text-xs">{row.diff}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Gráfico */}
-          <Card className="bg-card/50 border-white/10">
-            <CardHeader>
-              <div className="flex items-center justify-between flex-wrap gap-3">
-                <CardTitle className="text-white text-base">Evolução Patrimonial (Líquido)</CardTitle>
-                <div className="flex p-1 bg-card/50 border border-white/10 rounded-lg">
-                  <button
-                    onClick={() => setViewGrafico("area")}
-                    className={`px-4 py-1 rounded-md text-xs font-medium transition-all ${viewGrafico === "area" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-white"}`}
-                  >
-                    Área
-                  </button>
-                  <button
-                    onClick={() => setViewGrafico("bar")}
-                    className={`px-4 py-1 rounded-md text-xs font-medium transition-all ${viewGrafico === "bar" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-white"}`}
-                  >
-                    Barras
-                  </button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={320}>
-                {viewGrafico === "area" ? (
-                  <AreaChart data={chartData}>
-                    <defs>
-                      <linearGradient id="colorA" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#60a5fa" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#60a5fa" stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="colorB" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#c084fc" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#c084fc" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                    <XAxis dataKey="label" tick={{ fill: "#6b7280", fontSize: 11 }} />
-                    <YAxis
-                      tick={{ fill: "#6b7280", fontSize: 11 }}
-                      tickFormatter={(v) => v >= 1000000 ? `R$ ${(v / 1000000).toFixed(1)}M` : `R$ ${(v / 1000).toFixed(0)}k`}
-                    />
-                    <Tooltip
-                      contentStyle={{ background: "#0f1f14", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }}
-                      formatter={(value: any) => formatCurrency(value)}
-                    />
-                    <Legend />
-                    <Area type="monotone" dataKey="Ativo A (líq.)" stroke="#60a5fa" fill="url(#colorA)" strokeWidth={2} />
-                    <Area type="monotone" dataKey="Ativo B (líq.)" stroke="#c084fc" fill="url(#colorB)" strokeWidth={2} />
-                  </AreaChart>
-                ) : (
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                    <XAxis dataKey="label" tick={{ fill: "#6b7280", fontSize: 11 }} />
-                    <YAxis
-                      tick={{ fill: "#6b7280", fontSize: 11 }}
-                      tickFormatter={(v) => v >= 1000000 ? `R$ ${(v / 1000000).toFixed(1)}M` : `R$ ${(v / 1000).toFixed(0)}k`}
-                    />
-                    <Tooltip
-                      contentStyle={{ background: "#0f1f14", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }}
-                      formatter={(value: any) => formatCurrency(value)}
-                    />
-                    <Legend />
-                    <Bar dataKey="Ativo A (líq.)" fill="#60a5fa" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="Ativo B (líq.)" fill="#c084fc" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                )}
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* CTA */}
-          <div className="bg-card border border-white/10 rounded-xl p-6 space-y-4">
-            <p className="text-sm font-semibold text-white">O que essa ferramenta não faz:</p>
-            <p className="text-sm text-muted-foreground">
-              Ela compara dois ativos com base nos números que você informa, mas não avalia{" "}
-              <span className="text-white font-medium">
-                se esses ativos fazem sentido para o seu perfil, prazo de vida, objetivos e tolerância a risco
-              </span>
-              . Um ativo que rende mais no papel pode ser o errado para o seu momento.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Para saber qual investimento é o certo para{" "}
-              <span className="text-white font-medium">
-                a sua realidade, o seu objetivo e o seu momento de vida
-              </span>
-              , isso exige uma análise completa — não uma calculadora.
-            </p>
-            <Link href="/planos">
-              <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary/10">
-                Quero saber qual investimento é certo para mim
-              </Button>
-            </Link>
-          </div>
-
-        </div>
-      )}
     </div>
+  );
+}
+
+// ─── Sub-componente: Análise ──────────────────────────────────────────────────
+
+function AnaliseCard({ analise }: { analise: { tipo: string; titulo: string; pontos: string[] } }) {
+  const config = {
+    vencedor: {
+      icon: <Trophy className="h-5 w-5 text-yellow-400" />,
+      bg: "bg-yellow-500/10",
+      borda: "border-yellow-500/30",
+      tituloCor: "text-yellow-400",
+    },
+    empate: {
+      icon: <Info className="h-5 w-5 text-blue-400" />,
+      bg: "bg-blue-500/10",
+      borda: "border-blue-500/30",
+      tituloCor: "text-blue-400",
+    },
+    atencao: {
+      icon: <AlertTriangle className="h-5 w-5 text-orange-400" />,
+      bg: "bg-orange-500/10",
+      borda: "border-orange-500/30",
+      tituloCor: "text-orange-400",
+    },
+  }[analise.tipo] ?? {
+    icon: <Info className="h-5 w-5 text-muted-foreground" />,
+    bg: "bg-card/50",
+    borda: "border-white/10",
+    tituloCor: "text-white",
+  };
+
+  return (
+    <Card className={`${config.bg} ${config.borda} border`}>
+      <CardContent className="p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          {config.icon}
+          <h3 className={`font-bold text-base ${config.tituloCor}`}>{analise.titulo}</h3>
+        </div>
+        <ul className="space-y-2">
+          {analise.pontos.map((ponto, i) => (
+            <li key={i} className="flex gap-2 text-sm text-muted-foreground">
+              <span className="text-white/30 mt-0.5 shrink-0">›</span>
+              <span>{ponto}</span>
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
   );
 }
 
