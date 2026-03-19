@@ -272,15 +272,27 @@ export default function FluxoCaixa() {
           ? (isPositive ? 'Sobra significativa sem destino.' : 'Descontrole financeiro sério.')
           : (isPositive ? 'Dinheiro sobrando sem trabalhar por você.' : 'Situação crítica. Isso não é sustentável.');
 
-        const yearlyLabel = isPositive ? 'Potencial Anual Acumulado' : 'Rombo Anual Projetado';
-        const yearlyColor = isEquilibrio || isLeve
-          ? (isPositive ? 'text-green-500' : 'text-yellow-400')
+        // Diagnóstico: Capital Ocioso (positivo) ou Déficit nas Contas (negativo)
+        // Tipo de ineficiência
+        const diagLabel = isPositive ? 'Ineficiência de Alocação' : 'Risco de Insolvência';
+        const diagSubLabel = isPositive ? 'Capital Ocioso' : 'Déficit nas Contas';
+
+        // Cor proporcional ao nível de alerta
+        // Positivo: verde (leve) → amarelo (moderado) → laranja (sério) → vermelho (crise)
+        // Negativo: amarelo (leve) → laranja (moderado) → vermelho (sério/crise)
+        const yearlyColor = isEquilibrio
+          ? 'text-green-400'
+          : isLeve
+          ? (isPositive ? 'text-green-400' : 'text-yellow-400')
           : isModerado
-          ? 'text-orange-400'
-          : 'text-red-500';
+          ? (isPositive ? 'text-yellow-400' : 'text-orange-400')
+          : isSério
+          ? (isPositive ? 'text-orange-400' : 'text-red-500')
+          : (isPositive ? 'text-red-500' : 'text-red-600');
+
         const yearlySubtext = isPositive
-          ? 'Isso é o que você acumula em 1 ano mantendo esse ritmo.'
-          : 'Se nada mudar, esse é o tamanho da sua dívida em 1 ano.';
+          ? 'Valor não alocado que perde poder de compra a cada mês sem destino.'
+          : 'Projeção de endividamento em 12 meses mantendo esse ritmo.';
 
         // Mensagem de alerta progressiva
         const alertMsg = isEquilibrio
@@ -357,12 +369,13 @@ export default function FluxoCaixa() {
                   </div>
                 </div>
 
-                <div className="flex flex-col justify-center items-center bg-black/20 p-4 rounded-xl">
-                  <p className="text-lg text-white mb-2">{yearlyLabel}</p>
-                  <p className={`text-4xl font-bold ${yearlyColor}`}>
+                <div className="flex flex-col justify-center items-center bg-black/20 p-4 rounded-xl gap-1">
+                  <p className={`text-xs font-semibold uppercase tracking-widest ${yearlyColor} opacity-70`}>{diagLabel}</p>
+                  <p className={`text-sm font-bold ${yearlyColor}`}>{diagSubLabel}</p>
+                  <p className={`text-4xl font-bold mt-1 ${yearlyColor}`}>
                     {formatCurrency(Math.abs(result.yearlyLoss))}
                   </p>
-                  <p className="text-sm text-muted-foreground mt-2">{yearlySubtext}</p>
+                  <p className="text-xs text-muted-foreground mt-1 text-center leading-snug">{yearlySubtext}</p>
                 </div>
               </div>
 
