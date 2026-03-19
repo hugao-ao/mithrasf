@@ -265,17 +265,17 @@ export default function FluxoCaixa() {
         const mainTitle = isEquilibrio
           ? (isPositive ? 'Seu orçamento está equilibrado.' : 'Quase no zero a zero.')
           : isLeve
-          ? (isPositive ? 'Sobra pouca coisa — mas sobra.' : 'Pequeno vazamento no orçamento.')
+          ? (isPositive ? 'Tem dinheiro sumindo sem rastreio.' : 'Pequeno vazamento no orçamento.')
           : isModerado
-          ? (isPositive ? 'Sobra existe, mas some rápido.' : 'Seu orçamento está no vermelho.')
+          ? (isPositive ? 'Uma fatia do seu dinheiro não tem destino declarado.' : 'Seu orçamento está no vermelho.')
           : isSério
-          ? (isPositive ? 'Sobra significativa sem destino.' : 'Descontrole financeiro sério.')
-          : (isPositive ? 'Dinheiro sobrando sem trabalhar por você.' : 'Situação crítica. Isso não é sustentável.');
+          ? (isPositive ? 'Gasto não registrado em volume preocupante.' : 'Descontrole financeiro sério.')
+          : (isPositive ? 'Grande parte da sua renda some sem explicação.' : 'Situação crítica. Isso não é sustentável.');
 
         // Diagnóstico: Capital Ocioso (positivo) ou Déficit nas Contas (negativo)
         // Tipo de ineficiência
         const diagLabel = isPositive ? 'Ineficiência de Alocação' : 'Risco de Insolvência';
-        const diagSubLabel = isPositive ? 'Capital Ocioso' : 'Déficit nas Contas';
+        const diagSubLabel = isPositive ? 'Gasto Não Rastreado' : 'Déficit nas Contas';
 
         // Cor proporcional ao nível de alerta
         // Positivo: verde (leve) → amarelo (moderado) → laranja (sério) → vermelho (crise)
@@ -291,26 +291,26 @@ export default function FluxoCaixa() {
           : (isPositive ? 'text-red-500' : 'text-red-600');
 
         const yearlySubtext = isPositive
-          ? 'Valor não alocado que perde poder de compra a cada mês sem destino.'
+          ? 'Valor que sai da sua renda todo mês sem registro nem destino declarado.'
           : 'Projeção de endividamento em 12 meses mantendo esse ritmo.';
 
         // Mensagem de alerta progressiva
         const alertMsg = isEquilibrio
           ? null // sem alerta
           : isLeve && isPositive
-          ? `Você tem ${formatCurrency(result.balance)}/mês sobrando, mas essa margem é pequena. Qualquer imprevisto pode virar dívida. Saber para onde esse dinheiro vai é o que separa quem acumula de quem fica no mesmo lugar.`
+          ? `Você já declarou seus investimentos — e ainda assim sobram ${formatCurrency(result.balance)}/mês sem destino registrado. Esse valor não está guardado: está sendo gasto em algum lugar que você não mapeou. Em 1 ano, são ${formatCurrency(Math.abs(result.yearlyLoss))} que simplesmente somem.`
           : isLeve && !isPositive
           ? `Você está gastando ${formatCurrency(Math.abs(result.balance))}/mês a mais do que ganha. Parece pouco, mas em 1 ano já são ${formatCurrency(Math.abs(result.yearlyLoss))}. Pequenos vazamentos afundam qualquer plano.`
           : isModerado && isPositive
-          ? `Você tem ${formatCurrency(result.balance)}/mês sobrando — mas onde esse dinheiro está? Se você não sabe responder, ele está desaparecendo. Dinheiro sem destino não constrói patrimônio.`
+          ? `${formatCurrency(result.balance)}/mês saem da sua renda sem registro. Você já informou o que investe — então esse valor está sendo consumido em gastos que você não rastreia. Em 1 ano: ${formatCurrency(Math.abs(result.yearlyLoss))} gastos sem que você saiba exatamente onde.`
           : isModerado && !isPositive
           ? `Você está consumindo ${formatCurrency(Math.abs(result.balance))} a mais por mês. Em 1 ano: ${formatCurrency(Math.abs(result.yearlyLoss))} no buraco. Esse ritmo inviabiliza qualquer objetivo financeiro.`
           : isSério && isPositive
-          ? `Você tem ${formatCurrency(result.balance)}/mês sem destino definido. Em 1 ano, são ${formatCurrency(result.yearlyLoss)} que deveriam estar trabalhando por você. Dinheiro parado ou gasto sem planejamento é patrimônio desperdiçado.`
+          ? `${formatCurrency(result.balance)}/mês somem da sua renda sem nenhum registro. Você já declarou seus investimentos — esse dinheiro está indo para gastos não mapeados. Em 1 ano: ${formatCurrency(Math.abs(result.yearlyLoss))} consumidos sem rastreio. Esse volume de gasto invisivel impede qualquer planejamento real.`
           : isSério && !isPositive
           ? `Você está gastando ${formatCurrency(Math.abs(result.balance))} a mais por mês. Em 1 ano: ${formatCurrency(Math.abs(result.yearlyLoss))} de dívida acumulada. Esse nível de descontrole destrói reservas, crédito e qualquer chance de avançar.`
           : isPositive
-          ? `Você tem ${formatCurrency(result.balance)}/mês sem destino — em 1 ano são ${formatCurrency(result.yearlyLoss)} evaporando. Nesse volume, a ausência de planejamento é o maior inimigo do seu patrimônio.`
+          ? `${formatCurrency(result.balance)}/mês saem da sua renda sem nenhum destino declarado — e não estão nos seus investimentos. Em 1 ano: ${formatCurrency(Math.abs(result.yearlyLoss))} gastos sem que você saiba onde, como ou por quê. Nesse volume, o gasto não rastreado é o maior buraco do seu orçamento.`
           : `Você está gastando ${formatCurrency(Math.abs(result.balance))} a mais por mês. Em 1 ano: ${formatCurrency(Math.abs(result.yearlyLoss))} de rombo. Isso é uma emergência financeira. Cada mês sem ação aprofunda o buraco.`;
 
         // CTA do card de venda
