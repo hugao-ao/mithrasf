@@ -165,9 +165,11 @@ export default function ComparadorAtivos() {
       const cdi = data.find((d) => d.nome === "CDI");
       const selic = data.find((d) => d.nome === "Selic");
       const ipca = data.find((d) => d.nome === "IPCA");
-      if (cdi) cdiAnual = cdi.valor;
       if (selic) selicAnual = selic.valor;
       if (ipca) ipcaAnual = ipca.valor;
+      // CDI é sempre SELIC − 0,10% a.a. por definição
+      if (selicAnual !== null) cdiAnual = selicAnual - 0.10;
+      else if (cdi) cdiAnual = cdi.valor;
     } catch {}
 
     // AwesomeAPI — USD/BRL e EUR/BRL (CORS liberado)
