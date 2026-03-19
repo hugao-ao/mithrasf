@@ -478,6 +478,18 @@ export default function Oraculo() {
                 <p className="text-xs text-muted-foreground">Preencha o valor e a taxa para ver o resultado em tempo real.</p>
               </div>
             )}
+
+            {/* Aviso discreto + CTA */}
+            <div className="flex items-start justify-between gap-2 pt-1">
+              <p className="text-[10px] text-muted-foreground/60 leading-tight">
+                Valores brutos, sem descontar IR e IOF.
+              </p>
+              <Link href="/planos" onClick={() => setRendaOpen(false)}>
+                <span className="text-[10px] text-yellow-500/70 hover:text-yellow-500 whitespace-nowrap cursor-pointer transition-colors">
+                  Ver planos &rarr;
+                </span>
+              </Link>
+            </div>
           </div>
         </div>
       )}
