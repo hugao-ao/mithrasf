@@ -3,12 +3,36 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatCurrency, formatCurrencyInput, parseCurrency } from "@/lib/formatters";
-import { ArrowLeft, CheckCircle2, LineChart, Plus, Trash2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { ArrowLeft, CheckCircle2, LineChart, Plus, Trash2, Calculator, X, TrendingUp } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "wouter";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 export default function Oraculo() {
+  // --- Widget Quanto Rende ---
+  const [rendaOpen, setRendaOpen] = useState(false);
+  const [rendaValor, setRendaValor] = useState("");
+  const [rendaTaxa, setRendaTaxa] = useState("");
+  const [rendaTipoTaxa, setRendaTipoTaxa] = useState<'mensal' | 'anual'>('anual');
+
+  const rendaResultado = useMemo(() => {
+    const valor = parseCurrency(rendaValor);
+    const taxa = parseFloat(rendaTaxa.replace(",", ".") || "0");
+    if (!valor || !taxa) return null;
+    let taxaMensal: number;
+    if (rendaTipoTaxa === 'anual') {
+      taxaMensal = Math.pow(1 + taxa / 100, 1 / 12) - 1;
+    } else {
+      taxaMensal = taxa / 100;
+    }
+    const rendimentoMensal = valor * taxaMensal;
+    const rendimentoAnual = valor * (Math.pow(1 + taxaMensal, 12) - 1);
+    const taxaMensalReal = taxaMensal * 100;
+    const taxaAnualReal = (Math.pow(1 + taxaMensal, 12) - 1) * 100;
+    return { rendimentoMensal, rendimentoAnual, taxaMensalReal, taxaAnualReal };
+  }, [rendaValor, rendaTaxa, rendaTipoTaxa]);
+  // --- Fim Widget ---
+
   const [timeUnit, setTimeUnit] = useState<'years' | 'months'>('years');
   const [currentWealth, setCurrentWealth] = useState("");
   const [monthlyContribution, setMonthlyContribution] = useState("");
@@ -96,6 +120,7 @@ export default function Oraculo() {
   }, [currentWealth, monthlyContribution, interestRate, duration, goals, timeUnit]);
 
   return (
+    <>
     <div className="max-w-5xl mx-auto space-y-8 pb-20">
       <div className="flex items-center gap-4">
         <Link href="/ferramentas">
@@ -348,5 +373,114 @@ export default function Oraculo() {
         )}
       </div>
     </div>
+
+      {/* Widget Flutuante: Quanto Rende? */}
+      {/* Botão de abertura */}
+      <button
+        onClick={() => setRendaOpen(!rendaOpen)}
+        className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full font-bold text-sm shadow-2xl transition-all duration-300 ${
+          rendaOpen
+            ? "bg-yellow-500 text-black pr-3"
+            : "bg-yellow-500 text-black hover:bg-yellow-400 hover:scale-105"
+        }`}
+        title="Calculadora rápida de rendimento"
+      >
+        {rendaOpen ? (
+          <><X className="h-4 w-4" /> Fechar</>
+        ) : (
+          <><Calculator className="h-4 w-4" /> Quanto rende?</>
+        )}
+      </button>
+
+      {/* Painel do widget */}
+      {rendaOpen && (
+        <div className="fixed bottom-20 right-6 z-50 w-80 bg-[#111] border border-yellow-500/30 rounded-2xl shadow-2xl shadow-yellow-500/10 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
+          {/* Header */}
+          <div className="bg-yellow-500/10 border-b border-yellow-500/20 px-4 py-3 flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-yellow-500" />
+            <span className="text-yellow-500 font-bold text-sm">Calculadora de Rendimento</span>
+          </div>
+
+          <div className="p-4 space-y-4">
+            {/* Valor */}
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Valor investido (R$)</Label>
+              <Input
+                placeholder="Ex: 100.000,00"
+                value={rendaValor}
+                onChange={(e) => setRendaValor(formatCurrencyInput(e.target.value))}
+                className="bg-white/5 border-white/10 text-white h-9 text-sm"
+              />
+            </div>
+
+            {/* Taxa + tipo */}
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Taxa de juros (%)</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  placeholder="Ex: 12"
+                  value={rendaTaxa}
+                  onChange={(e) => setRendaTaxa(e.target.value)}
+                  className="bg-white/5 border-white/10 text-white h-9 text-sm flex-1"
+                />
+                <div className="flex rounded-md overflow-hidden border border-white/10">
+                  <button
+                    onClick={() => setRendaTipoTaxa('anual')}
+                    className={`px-2 py-1 text-xs font-medium transition-colors ${
+                      rendaTipoTaxa === 'anual'
+                        ? 'bg-yellow-500 text-black'
+                        : 'bg-white/5 text-muted-foreground hover:bg-white/10'
+                    }`}
+                  >
+                    a.a.
+                  </button>
+                  <button
+                    onClick={() => setRendaTipoTaxa('mensal')}
+                    className={`px-2 py-1 text-xs font-medium transition-colors ${
+                      rendaTipoTaxa === 'mensal'
+                        ? 'bg-yellow-500 text-black'
+                        : 'bg-white/5 text-muted-foreground hover:bg-white/10'
+                    }`}
+                  >
+                    a.m.
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Resultado */}
+            {rendaResultado ? (
+              <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-xl p-3 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Rende por mês</span>
+                  <span className="text-yellow-500 font-bold text-base">{formatCurrency(rendaResultado.rendimentoMensal)}</span>
+                </div>
+                <div className="h-px bg-white/5" />
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Rende por ano</span>
+                  <span className="text-white font-semibold text-sm">{formatCurrency(rendaResultado.rendimentoAnual)}</span>
+                </div>
+                <div className="h-px bg-white/5" />
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <div className="text-center">
+                    <p className="text-xs text-muted-foreground">Taxa mensal</p>
+                    <p className="text-xs font-semibold text-white">{rendaResultado.taxaMensalReal.toFixed(4).replace('.', ',')}% a.m.</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-muted-foreground">Taxa anual</p>
+                    <p className="text-xs font-semibold text-white">{rendaResultado.taxaAnualReal.toFixed(2).replace('.', ',')}% a.a.</p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white/3 border border-white/5 rounded-xl p-3 text-center">
+                <p className="text-xs text-muted-foreground">Preencha o valor e a taxa para ver o resultado em tempo real.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
