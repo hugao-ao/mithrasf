@@ -15,6 +15,7 @@ import ComparadorCartoes from "./pages/ferramentas/ComparadorCartoes";
 import FluxoCaixa from "./pages/ferramentas/FluxoCaixa";
 import Oraculo from "./pages/ferramentas/Oraculo";
 import ComparadorAtivos from "./pages/ferramentas/ComparadorAtivos";
+import AVistaVsParcelado from "./pages/ferramentas/AVistaVsParcelado";
 import UnderConstruction from "./pages/UnderConstruction";
 import Login from "./pages/Login";
 import AceiteContrato from "./pages/AceiteContrato";
@@ -45,6 +46,7 @@ function Router() {
         <Route path={"/ferramentas/fluxo-caixa"} component={FluxoCaixa} />
         <Route path={"/ferramentas/oraculo"} component={Oraculo} />
         <Route path={"/ferramentas/comparador-ativos"} component={ComparadorAtivos} />
+        <Route path={"/ferramentas/a-vista-vs-parcelado"} component={AVistaVsParcelado} />
         <Route path={"/conheca-me"} component={UnderConstruction} />
         <Route path={"/404"} component={NotFound} />
         {/* Final fallback route */}

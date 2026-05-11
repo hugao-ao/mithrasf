@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { BarChart3, Calculator, CreditCard, Home, LineChart, ShoppingBag, Wallet } from "lucide-react";
+import { BarChart3, Calculator, CreditCard, Home, LineChart, ShoppingBag, ShoppingCart, Wallet } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Ferramentas() {
@@ -52,6 +52,13 @@ export default function Ferramentas() {
       icon: BarChart3,
       link: "/ferramentas/comparador-ativos",
       color: "text-yellow-400"
+    },
+    {
+      name: "À Vista ou Parcelado?",
+      description: "Descubra se compensa pagar à vista ou parcelar e deixar o dinheiro investido rendendo.",
+      icon: ShoppingCart,
+      link: "/ferramentas/a-vista-vs-parcelado",
+      color: "text-emerald-400"
     }
   ];
 
