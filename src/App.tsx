@@ -17,6 +17,7 @@ import Oraculo from "./pages/ferramentas/Oraculo";
 import ComparadorAtivos from "./pages/ferramentas/ComparadorAtivos";
 import AVistaVsParcelado from "./pages/ferramentas/AVistaVsParcelado";
 import UnderConstruction from "./pages/UnderConstruction";
+import ConhecaMe from "./pages/ConhecaMe";
 import Login from "./pages/Login";
 import AceiteContrato from "./pages/AceiteContrato";
 import AguardandoFormulario from "./pages/AguardandoFormulario";
@@ -47,7 +48,7 @@ function Router() {
         <Route path={"/ferramentas/oraculo"} component={Oraculo} />
         <Route path={"/ferramentas/comparador-ativos"} component={ComparadorAtivos} />
         <Route path={"/ferramentas/a-vista-vs-parcelado"} component={AVistaVsParcelado} />
-        <Route path={"/conheca-me"} component={UnderConstruction} />
+        <Route path={"/conheca-me"} component={ConhecaMe} />
         <Route path={"/404"} component={NotFound} />
         {/* Final fallback route */}
         <Route component={NotFound} />
