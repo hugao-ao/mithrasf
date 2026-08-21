@@ -1,99 +1,76 @@
-import { Button } from "@/components/ui/button";
-import { BarChart3, Calculator, CreditCard, Home, LineChart, ShoppingBag, ShoppingCart, Wallet } from "lucide-react";
+import { AREAS, FERRAMENTAS } from "@/lib/ferramentas/catalogo";
+import type { Ferramenta } from "@/lib/ferramentas/tipos";
 import { Link } from "wouter";
 
+/**
+ * Vitrine agrupada pelas áreas que o plano cobre. O card cresce por escala — não
+ * por altura — para a grade não pular quando o mouse passa. Em telas de toque,
+ * onde não existe hover, a descrição já aparece.
+ */
+function Card({ f }: { f: Ferramenta }) {
+  const Icone = f.icone;
+  return (
+    <Link href={`/ferramentas/${f.slug}`}>
+      <div
+        className="group relative flex h-auto min-h-[176px] cursor-pointer flex-col gap-2.5 rounded-2xl border border-white/5 bg-card/50 p-5 transition-[transform,border-color,background-color,box-shadow] duration-300 ease-out hover:z-10 hover:border-primary/40 hover:bg-card hover:shadow-[0_18px_40px_-18px_rgba(0,0,0,0.75)] focus-visible:border-primary/40 focus-visible:outline-none can-hover:h-44 can-hover:hover:scale-[1.055]"
+        tabIndex={0}
+      >
+        {f.nova && (
+          <span className="absolute right-3.5 top-3.5 rounded-full border border-primary/35 px-1.5 py-0.5 text-[0.6rem] font-bold uppercase tracking-[0.1em] text-primary">
+            nova
+          </span>
+        )}
+
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/5 transition-colors duration-300 group-hover:bg-primary/10">
+          <Icone className="h-5 w-5 text-primary" />
+        </span>
+
+        <h3 className="text-[0.98rem] font-bold leading-tight tracking-tight text-white">
+          {f.nome}
+        </h3>
+
+        <p className="text-[0.8rem] leading-snug text-muted-foreground transition-[opacity,transform] duration-300 can-hover:translate-y-1 can-hover:opacity-0 can-hover:group-hover:translate-y-0 can-hover:group-hover:opacity-100 can-hover:group-focus-visible:translate-y-0 can-hover:group-focus-visible:opacity-100">
+          {f.desc}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
 export default function Ferramentas() {
-  const tools = [
-    {
-      name: "Comparador de Preços",
-      description: "Descubra qual produto vale mais a pena levar (ex: embalagem econômica vs normal).",
-      icon: ShoppingBag,
-      link: "/ferramentas/comparador-precos",
-      color: "text-blue-400"
-    },
-    {
-      name: "Calculadora de Juros Reais",
-      description: "Descubra os juros embutidos em parcelas 'sem juros' e veja se compensa pagar à vista.",
-      icon: Calculator,
-      link: "/ferramentas/calculadora-juros",
-      color: "text-green-400"
-    },
-    {
-      name: "Simulador Imobiliário",
-      description: "Compare SAC vs Price e veja quanto você vai pagar de juros no final do financiamento.",
-      icon: Home,
-      link: "/ferramentas/simulador-imobiliario",
-      color: "text-yellow-400"
-    },
-    {
-      name: "Comparador de Cartões",
-      description: "Coloque dois cartões lado a lado e decida qual oferece os melhores benefícios para você.",
-      icon: CreditCard,
-      link: "/ferramentas/comparador-cartoes",
-      color: "text-purple-400"
-    },
-    {
-      name: "Teste de Fluxo de Caixa",
-      description: "Descubra para onde seu dinheiro está indo com este teste rápido e revelador.",
-      icon: Wallet,
-      link: "/ferramentas/fluxo-caixa",
-      color: "text-red-400"
-    },
-    {
-      name: "O Oráculo Financeiro",
-      description: "Projete seu patrimônio futuro e veja como seus objetivos impactam sua liberdade financeira.",
-      icon: LineChart,
-      link: "/ferramentas/oraculo",
-      color: "text-gold-400" // Custom gold color class needed or use text-yellow-500
-    },
-    {
-      name: "Comparador de Ativos",
-      description: "Compare dois investimentos lado a lado: pré, pós ou híbrido, com indexadores em tempo real e gráficos de evolução.",
-      icon: BarChart3,
-      link: "/ferramentas/comparador-ativos",
-      color: "text-yellow-400"
-    },
-    {
-      name: "À Vista ou Parcelado?",
-      description: "Descubra se compensa pagar à vista ou parcelar e deixar o dinheiro investido rendendo.",
-      icon: ShoppingCart,
-      link: "/ferramentas/a-vista-vs-parcelado",
-      color: "text-emerald-400"
-    }
-  ];
+  const porArea = AREAS.map((area) => ({
+    area,
+    itens: FERRAMENTAS.filter((f) => f.area === area),
+  })).filter((g) => g.itens.length > 0);
 
   return (
     <div className="space-y-12 pb-20">
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl md:text-5xl font-bold text-white">
+      <div className="space-y-4 text-center">
+        <h1 className="text-4xl font-bold text-white md:text-5xl">
           Ferramentas <span className="gold-gradient-text">Gratuitas</span>
         </h1>
-        <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-          Calculadoras e simuladores para te ajudar a tomar decisões melhores agora mesmo.
+        <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+          Vinte e duas calculadoras, todas em até seis perguntas. Passe o mouse para ver o que cada
+          uma faz.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {tools.map((tool, index) => (
-          <Link key={index} href={tool.link}>
-            <div className="group relative bg-card/40 border border-white/5 hover:border-primary/30 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:bg-card/60 cursor-pointer h-full flex flex-col">
-              <div className={`h-12 w-12 rounded-xl bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 ${tool.color}`}>
-                <tool.icon className="h-6 w-6" />
-              </div>
-              
-              <h3 className="text-xl font-bold text-white mb-2 group-hover:text-primary transition-colors">
-                {tool.name}
-              </h3>
-              
-              <p className="text-sm text-muted-foreground mb-6 flex-1">
-                {tool.description}
-              </p>
-
-              <div className="flex items-center text-primary text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-x-2 group-hover:translate-x-0">
-                Acessar Ferramenta →
-              </div>
+      <div className="space-y-10">
+        {porArea.map(({ area, itens }) => (
+          <section key={area} className="space-y-4">
+            <div className="flex items-center gap-3.5">
+              <span className="whitespace-nowrap text-xs font-bold uppercase tracking-[0.15em] text-primary">
+                {area}
+              </span>
+              <span className="h-px flex-1 bg-white/5" />
+              <span className="text-xs tabular-nums text-muted-foreground">{itens.length}</span>
             </div>
-          </Link>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {itens.map((f) => (
+                <Card key={f.slug} f={f} />
+              ))}
+            </div>
+          </section>
         ))}
       </div>
     </div>

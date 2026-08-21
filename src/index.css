@@ -3,6 +3,10 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Só aplica onde existe mouse. Em telas de toque o card não escala e a
+   descrição fica sempre visível, já que não há hover para revelá-la. */
+@custom-variant can-hover (@media (hover: hover));
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

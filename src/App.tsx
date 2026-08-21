@@ -8,15 +8,7 @@ import Home from "./pages/Home";
 import Planos from "./pages/Planos";
 import Sucesso from "./pages/Sucesso";
 import Ferramentas from "./pages/Ferramentas";
-import ComparadorPrecos from "./pages/ferramentas/ComparadorPrecos";
-import CalculadoraJuros from "./pages/ferramentas/CalculadoraJuros";
-import SimuladorImobiliario from "./pages/ferramentas/SimuladorImobiliario";
-import ComparadorCartoes from "./pages/ferramentas/ComparadorCartoes";
-import FluxoCaixa from "./pages/ferramentas/FluxoCaixa";
-import Oraculo from "./pages/ferramentas/Oraculo";
-import ComparadorAtivos from "./pages/ferramentas/ComparadorAtivos";
-import AVistaVsParcelado from "./pages/ferramentas/AVistaVsParcelado";
-import UnderConstruction from "./pages/UnderConstruction";
+import RotaFerramenta from "./pages/ferramentas/RotaFerramenta";
 import ConhecaMe from "./pages/ConhecaMe";
 import Login from "./pages/Login";
 import AceiteContrato from "./pages/AceiteContrato";
@@ -38,16 +30,10 @@ function Router() {
         <Route path={"/bem-vindo"} component={BemVindo} />
         <Route path={"/planejamento-de-referencia"} component={PlanejamentoReferencia} />
 
-        {/* Ferramentas Routes */}
+        {/* Ferramentas: índice + uma rota única resolvida pelo catálogo */}
         <Route path={"/ferramentas"} component={Ferramentas} />
-        <Route path={"/ferramentas/comparador-precos"} component={ComparadorPrecos} />
-        <Route path={"/ferramentas/calculadora-juros"} component={CalculadoraJuros} />
-        <Route path={"/ferramentas/simulador-imobiliario"} component={SimuladorImobiliario} />
-        <Route path={"/ferramentas/comparador-cartoes"} component={ComparadorCartoes} />
-        <Route path={"/ferramentas/fluxo-caixa"} component={FluxoCaixa} />
-        <Route path={"/ferramentas/oraculo"} component={Oraculo} />
-        <Route path={"/ferramentas/comparador-ativos"} component={ComparadorAtivos} />
-        <Route path={"/ferramentas/a-vista-vs-parcelado"} component={AVistaVsParcelado} />
+        <Route path={"/ferramentas/:slug"} component={RotaFerramenta} />
+
         <Route path={"/conheca-me"} component={ConhecaMe} />
         <Route path={"/404"} component={NotFound} />
         {/* Final fallback route */}

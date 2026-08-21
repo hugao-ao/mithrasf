@@ -1,423 +1,270 @@
+import { CampoMoeda, Seg, classeCaixa, classeEntrada } from "@/components/ferramentas/Campos";
+import { CascaFerramenta } from "@/components/ferramentas/CascaFerramenta";
+import { Destaque, GatilhoPlano, Nota, Tabela } from "@/components/ferramentas/Resultado";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { formatCurrency, formatCurrencyInput } from "@/lib/formatters";
-import { ArrowLeft, CheckCircle2, Plus, Trash2, Wallet } from "lucide-react";
+import { BRL, NUM } from "@/lib/ferramentas/financas";
+import type { Ferramenta, Tom } from "@/lib/ferramentas/tipos";
+import { cn } from "@/lib/utils";
+import { X } from "lucide-react";
 import { useState } from "react";
-import { Link } from "wouter";
 
-type Item = {
-  id: number;
-  name: string;
-  value: string;
+type Freq = "mes" | "ano";
+type Item = { d: string; v: number; f: Freq };
+
+const ETAPAS = [
+  {
+    n: "Etapa 1 de 4",
+    h: "Tudo que entra",
+    p: "Salário, bicos, aluguel recebido, 13º, bônus. Marque se é por mês ou por ano.",
+    key: "rendas" as const,
+  },
+  {
+    n: "Etapa 2 de 4",
+    h: "Tudo que você guarda",
+    p: "Investimento, poupança, previdência. Também pode ser por mês ou por ano.",
+    key: "guarda" as const,
+  },
+  {
+    n: "Etapa 3 de 4",
+    h: "Tudo que sai",
+    p: "Adicione à vontade: contas, mercado, transporte, lazer, assinaturas, IPTU, IPVA.",
+    key: "gastos" as const,
+  },
+];
+
+const INICIAL = {
+  rendas: [
+    { d: "Salário", v: 4500, f: "mes" as Freq },
+    { d: "13º salário", v: 4500, f: "ano" as Freq },
+  ],
+  guarda: [{ d: "Investimento mensal", v: 300, f: "mes" as Freq }],
+  gastos: [
+    { d: "Aluguel", v: 1500, f: "mes" as Freq },
+    { d: "Mercado", v: 900, f: "mes" as Freq },
+    { d: "Luz, água e internet", v: 420, f: "mes" as Freq },
+    { d: "Transporte", v: 380, f: "mes" as Freq },
+    { d: "Assinaturas e lazer", v: 340, f: "mes" as Freq },
+    { d: "IPTU", v: 1200, f: "ano" as Freq },
+  ],
 };
 
-export default function FluxoCaixa() {
-  const [step, setStep] = useState(1);
-  const [incomes, setIncomes] = useState<Item[]>([]);
-  const [investments, setInvestments] = useState<Item[]>([]);
-  const [fixedExpenses, setFixedExpenses] = useState<Item[]>([]);
-  const [variableExpenses, setVariableExpenses] = useState<Item[]>([]);
-  
-  const [newItem, setNewItem] = useState({ name: "", value: "" });
-  const [result, setResult] = useState<any>(null);
+const porMes = (a: Item[]) => a.reduce((t, x) => t + (x.f === "ano" ? x.v / 12 : x.v), 0);
 
-  const handleCurrencyChange = (value: string) => {
-    const formatted = formatCurrencyInput(value);
-    setNewItem({ ...newItem, value: formatted });
-  };
+export default function FluxoCaixa({ f }: { f: Ferramenta }) {
+  const [etapa, setEtapa] = useState(0);
+  const [listas, setListas] = useState<Record<string, Item[]>>(() => ({
+    rendas: [...INICIAL.rendas],
+    guarda: [...INICIAL.guarda],
+    gastos: [...INICIAL.gastos],
+  }));
 
-  const addItem = (list: Item[], setList: any) => {
-    if (newItem.name && newItem.value) {
-      setList([...list, { id: Date.now(), ...newItem }]);
-      setNewItem({ name: "", value: "" });
-    }
-  };
+  const mudar = (key: string, i: number, patch: Partial<Item>) =>
+    setListas((L) => ({
+      ...L,
+      [key]: L[key].map((x, k) => (k === i ? { ...x, ...patch } : x)),
+    }));
+  const remover = (key: string, i: number) =>
+    setListas((L) => ({ ...L, [key]: L[key].filter((_, k) => k !== i) }));
+  const adicionar = (key: string) =>
+    setListas((L) => ({ ...L, [key]: [...L[key], { d: "", v: 0, f: "mes" }] }));
 
-  const removeItem = (id: number, list: Item[], setList: any) => {
-    setList(list.filter(item => item.id !== id));
-  };
+  const barra = (
+    <div className="flex gap-1.5">
+      {[0, 1, 2, 3].map((i) => (
+        <span
+          key={i}
+          className={cn("h-[3px] flex-1 rounded-sm", i <= etapa ? "bg-primary" : "bg-white/10")}
+        />
+      ))}
+    </div>
+  );
 
-  const getTotal = (list: Item[]) => {
-    return list.reduce((acc, item) => {
-      const val = parseFloat(item.value.replace(/\./g, "").replace(",", ".") || "0");
-      return acc + val;
-    }, 0);
-  };
-
-  const nextStep = () => {
-    if (step < 4) {
-      setStep(step + 1);
-      setNewItem({ name: "", value: "" });
-    } else {
-      calculate();
-    }
-  };
-
-  const prevStep = () => {
-    if (step > 1) {
-      setStep(step - 1);
-      setNewItem({ name: "", value: "" });
-    }
-  };
-
-  const calculate = () => {
-    const totalIncome = getTotal(incomes);
-    const totalInvest = getTotal(investments);
-    const totalFixed = getTotal(fixedExpenses);
-    const totalVariable = getTotal(variableExpenses);
-
-    const totalExpenses = totalFixed + totalVariable + totalInvest;
-    const balance = totalIncome - totalExpenses;
-    const yearlyBalance = balance * 12;
-    const yearlyIncome = totalIncome * 12;
-
-    // Calcula a intensidade do alerta: |diferença anual| / entradas anuais
-    const alertRatio = yearlyIncome > 0 ? Math.abs(yearlyBalance) / yearlyIncome : 0;
-
-    setResult({
-      totalIncome,
-      totalInvest,
-      totalFixed,
-      totalVariable,
-      totalExpenses,
-      balance,
-      yearlyLoss: yearlyBalance,
-      yearlyIncome,
-      alertRatio
-    });
-    setStep(5);
-  };
-
-  const renderStep = (
-    title: string, 
-    description: string, 
-    list: Item[], 
-    setList: any, 
-    placeholderName: string,
-    colorClass: string
-  ) => (
-    <Card className="bg-card/50 border-white/10">
-      <CardHeader>
-        <div className="flex justify-between items-center mb-4">
-          <span className="text-sm text-muted-foreground">Passo {step} de 4</span>
-          <div className="h-2 w-32 bg-white/10 rounded-full overflow-hidden">
-            <div 
-              className={`h-full transition-all duration-500 ${colorClass}`} 
-              style={{ width: `${(step / 4) * 100}%` }}
-            />
-          </div>
-        </div>
-        <div className="flex justify-between items-end">
-          <div>
-            <CardTitle className="text-2xl text-white">{title}</CardTitle>
-            <p className="text-muted-foreground">{description}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">Total</p>
-            <p className={`text-2xl font-bold ${colorClass.replace('bg-', 'text-')}`}>
-              {formatCurrency(getTotal(list))}
-            </p>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Add Item Form */}
-        <div className="grid grid-cols-[1fr,1fr,auto] gap-4 items-end">
-          <div className="space-y-2">
-            <Label>Nome</Label>
-            <Input 
-              placeholder={placeholderName}
-              value={newItem.name}
-              onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-              className="bg-background/50 border-white/10"
-              onKeyDown={(e) => e.key === 'Enter' && addItem(list, setList)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Valor (R$)</Label>
-            <Input 
-              placeholder="0,00"
-              value={newItem.value}
-              onChange={(e) => handleCurrencyChange(e.target.value)}
-              className="bg-background/50 border-white/10"
-              onKeyDown={(e) => e.key === 'Enter' && addItem(list, setList)}
-            />
-          </div>
-          <Button onClick={() => addItem(list, setList)} size="icon" className={colorClass}>
-            <Plus className="h-4 w-4" />
-          </Button>
+  /* ── Etapas de lançamento: nenhum total aparece aqui, de propósito ── */
+  if (etapa < 3) {
+    const e = ETAPAS[etapa];
+    const itens = listas[e.key];
+    return (
+      <CascaFerramenta f={f}>
+        {barra}
+        <div className="flex flex-col gap-1">
+          <span className="text-xs font-bold uppercase tracking-[0.14em] text-primary">{e.n}</span>
+          <h2 className="text-lg font-bold text-white">{e.h}</h2>
+          <p className="text-sm text-muted-foreground">{e.p}</p>
         </div>
 
-        {/* List */}
-        <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
-          {list.length === 0 && (
-            <p className="text-center text-muted-foreground py-8 italic">Nenhum item adicionado ainda.</p>
+        <div className="flex flex-col gap-2">
+          {itens.length === 0 && (
+            <p className="py-2 text-sm italic text-muted-foreground">Nada lançado ainda.</p>
           )}
-          {list.map((item) => (
-            <div key={item.id} className="flex justify-between items-center bg-white/5 p-3 rounded-lg animate-in fade-in slide-in-from-bottom-2">
-              <span className="font-medium">{item.name}</span>
-              <div className="flex items-center gap-4">
-                <span>{item.value}</span>
-                <button 
-                  onClick={() => removeItem(item.id, list, setList)}
-                  className="text-muted-foreground hover:text-red-400 transition-colors"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+          {itens.map((it, i) => (
+            <div key={i} className="flex flex-wrap items-center gap-2">
+              <div className={cn(classeCaixa, "min-w-0 flex-1 basis-32")}>
+                <input
+                  type="text"
+                  className={cn(classeEntrada, "pr-2")}
+                  placeholder="Do que se trata"
+                  value={it.d}
+                  onChange={(ev) => mudar(e.key, i, { d: ev.target.value })}
+                />
               </div>
+              <div className="min-w-0 flex-1 basis-28">
+                <CampoMoeda valor={it.v} onChange={(n) => mudar(e.key, i, { v: n })} />
+              </div>
+              <Seg
+                valor={it.f}
+                opcoes={[
+                  ["mes", "mês"],
+                  ["ano", "ano"],
+                ]}
+                onChange={(u) => mudar(e.key, i, { f: u as Freq })}
+              />
+              <button
+                type="button"
+                onClick={() => remover(e.key, i)}
+                aria-label="Remover lançamento"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-white/10 text-muted-foreground transition-colors hover:border-red-500/40 hover:text-red-400"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
           ))}
+          <button
+            type="button"
+            onClick={() => adicionar(e.key)}
+            className="w-full rounded-lg border border-dashed border-primary/35 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
+          >
+            + Adicionar
+          </button>
         </div>
 
-        <div className="flex gap-4">
-          {step > 1 && (
-            <Button onClick={prevStep} variant="outline" className="w-1/3 h-12 text-lg font-bold border-white/10 hover:bg-white/5">
+        <div className="flex gap-3">
+          {etapa > 0 && (
+            <Button variant="outline" onClick={() => setEtapa(etapa - 1)}>
               Voltar
             </Button>
           )}
-          <Button onClick={nextStep} className={`flex-1 h-12 text-lg font-bold ${colorClass} hover:opacity-90`}>
-            {step === 4 ? "Ver Resultado Completo" : "Próximo Passo"}
+          <Button
+            className="flex-1 bg-primary font-bold text-primary-foreground hover:bg-primary/90"
+            onClick={() => setEtapa(etapa + 1)}
+          >
+            {etapa === 2 ? "Ver meu resultado" : "Continuar"}
           </Button>
         </div>
-      </CardContent>
-    </Card>
-  );
+      </CascaFerramenta>
+    );
+  }
+
+  /* ── Resultado ─────────────────────────────────────────────────────
+     Sobra e falta são os dois lados do mesmo descontrole. O que o cliente
+     guarda já foi lançado na etapa 2 — então sobra aqui nunca é poupança,
+     é gasto que passou sem registro. */
+  const R = porMes(listas.rendas);
+  const G = porMes(listas.guarda);
+  const D = porMes(listas.gastos);
+  const saldo = R - G - D;
+  const pct = R > 0 ? (Math.abs(saldo) / R) * 100 : 0;
+
+  let tom: Tom;
+  let rotulo: string;
+  let frase: string;
+
+  if (saldo < 0 && pct > 20) {
+    tom = "is-bad";
+    rotulo = "Falta todo mês";
+    frase = `Você gasta ${NUM(pct)}% a mais do que ganha. Em um ano isso vira ${BRL(Math.abs(saldo) * 12, 0)} de buraco. Não é descuido de fim de mês — é a estrutura do orçamento que não fecha.`;
+  } else if (saldo < 0 && pct > 5) {
+    tom = "is-bad";
+    rotulo = "Falta todo mês";
+    frase = `São ${NUM(pct)}% da sua renda faltando por mês. Dá para fechar cortando gastos, mas só se você souber quais — e é aí que quase todo mundo trava.`;
+  } else if (saldo < 0) {
+    tom = "is-warn";
+    rotulo = "Falta todo mês";
+    frase = `Faltam ${NUM(pct)}% da renda. É pouco, e por isso perigoso: qualquer imprevisto vira dívida no cartão.`;
+  } else if (pct <= 3) {
+    tom = "is-good";
+    rotulo = "Seu retrato bate";
+    frase = `A diferença é de só ${NUM(pct)}% da renda, dentro do erro esperado. Você sabe para onde vai o seu dinheiro — e isso é mais raro do que parece.`;
+  } else if (pct <= 10) {
+    tom = "is-warn";
+    rotulo = "Some sem você saber para onde";
+    frase = `${BRL(saldo, 0)} por mês não foram explicados — ${NUM(pct)}% da renda. Isso não é dinheiro guardado: o que você guarda já foi lançado na etapa 2. É gasto que passou sem registro.`;
+  } else if (pct <= 25) {
+    tom = "is-bad";
+    rotulo = "Some sem você saber para onde";
+    frase = `${BRL(saldo, 0)} saem todo mês sem destino conhecido — ${NUM(pct)}% de tudo que você ganha, ou ${BRL(saldo * 12, 0)} por ano. Se esse dinheiro estivesse mesmo parado na conta, você já teria percebido.`;
+  } else {
+    tom = "is-bad";
+    rotulo = "Some sem você saber para onde";
+    frase = `Mais de um quarto da sua renda sumiu do mapa: ${BRL(saldo, 0)} por mês, ${BRL(saldo * 12, 0)} por ano. O que você guarda já está lançado, então isso é gasto puro que você não registrou. Um orçamento com esse furo não serve para decidir nada.`;
+  }
+
+  const gatilho =
+    saldo < 0
+      ? {
+          titulo: "O mapa está pronto. Executar é que é o problema.",
+          corpo:
+            "Cortar gasto é fácil de listar e difícil de manter. O que muda o resultado é ter alguém revisando com você mês a mês.",
+          botao: "Quero acompanhamento, não mais um relatório",
+        }
+      : pct <= 3
+        ? {
+            titulo: "Seu retrato bate. E agora?",
+            corpo:
+              "Saber para onde vai o dinheiro é o começo. Decidir o que fazer com ele — reserva, quitar dívida, objetivo, investimento — é uma decisão nova todo mês.",
+            botao: "Quero decidir isso com alguém junto",
+          }
+        : {
+            titulo: "O furo apareceu. Fechar ele é outra coisa.",
+            corpo:
+              "Achar dinheiro que some exige rastrear os gastos por algumas semanas e alguém olhando junto para enxergar o padrão. Sozinho, quase ninguém acha.",
+            botao: "Quero descobrir para onde vai esse dinheiro",
+          };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8 pb-20">
-      <div className="flex items-center gap-4">
-        <Link href="/ferramentas">
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-3xl font-bold text-white flex items-center gap-2">
-            <Wallet className="h-8 w-8 text-blue-400" /> Raio-X do Orçamento
-          </h1>
-          <p className="text-muted-foreground">Mapeie cada centavo e descubra a verdade sobre suas finanças.</p>
-        </div>
+    <CascaFerramenta f={f}>
+      {barra}
+      <Destaque tom={tom} rotulo={rotulo} valor={BRL(Math.abs(saldo))} frase={frase} />
+      <Tabela
+        linhas={[
+          ["Entra por mês", BRL(R)],
+          ["Você guarda", BRL(G)],
+          ["Sai por mês, registrado", BRL(D)],
+          [
+            saldo < 0 ? "Falta para fechar" : pct <= 3 ? "Diferença" : "Não explicado",
+            BRL(Math.abs(saldo)),
+            "hl",
+          ],
+        ]}
+      />
+      <Nota>
+        {saldo > 0 && pct > 3
+          ? "Num raio-X bem feito não existe sobra: o que você poupa já foi lançado na etapa 2. Quando o resultado dá positivo, quase sempre é gasto que não foi registrado — cartão, aplicativo, assinatura, dinheiro solto. Lançamentos anuais como 13º, IPTU e IPVA foram divididos por 12."
+          : "Lançamentos anuais como 13º, IPTU e IPVA foram divididos por 12 para caber no mês. É por isso que o resultado costuma ser pior do que a conta de cabeça."}
+      </Nota>
+      <GatilhoPlano
+        titulo={gatilho.titulo}
+        corpo={gatilho.corpo}
+        nivel="Reunião e WhatsApp ilimitados desde o Nível I."
+        botao={gatilho.botao}
+      />
+      <div className="flex gap-3">
+        <Button variant="outline" className="flex-1" onClick={() => setEtapa(2)}>
+          Revisar lançamentos
+        </Button>
+        <Button
+          variant="ghost"
+          onClick={() => {
+            setListas({
+              rendas: [...INICIAL.rendas],
+              guarda: [...INICIAL.guarda],
+              gastos: [...INICIAL.gastos],
+            });
+            setEtapa(0);
+          }}
+        >
+          Refazer do zero
+        </Button>
       </div>
-
-      {step === 1 && renderStep(
-        "Suas Fontes de Renda", 
-        "Adicione salários, aluguéis, dividendos e renda extra.", 
-        incomes, setIncomes, 
-        "Ex: Salário Mensal",
-        "bg-green-500"
-      )}
-
-      {step === 2 && renderStep(
-        "Seus Investimentos Mensais", 
-        "Quanto você guarda ou investe todo mês?", 
-        investments, setInvestments, 
-        "Ex: Aporte Tesouro Direto",
-        "bg-blue-500"
-      )}
-
-      {step === 3 && renderStep(
-        "Despesas Fixas (Obrigatórias)", 
-        "Contas que chegam todo mês e são essenciais.", 
-        fixedExpenses, setFixedExpenses, 
-        "Ex: Aluguel / Condomínio",
-        "bg-yellow-500"
-      )}
-
-      {step === 4 && renderStep(
-        "Despesas Variáveis (Estilo de Vida)", 
-        "Gastos com lazer, compras, delivery e supérfluos.", 
-        variableExpenses, setVariableExpenses, 
-        "Ex: iFood / Uber",
-        "bg-red-500"
-      )}
-
-      {step === 5 && result && (() => {
-        // --- Lógica de alerta progressivo ---
-        // alertRatio = |diferença anual| / entradas anuais
-        const r = result.alertRatio; // 0 a 1+
-        const isPositive = result.balance >= 0;
-
-        // Classificação de intensidade (só aplica quando há diferença)
-        // < 1% das entradas anuais: equilíbrio (elogio permitido)
-        // 1% a 10%: atenção leve
-        // 10% a 25%: alerta moderado
-        // 25% a 50%: alerta sério
-        // > 50%: crise
-        const isEquilibrio = r < 0.01;
-        const isLeve = r >= 0.01 && r < 0.10;
-        const isModerado = r >= 0.10 && r < 0.25;
-        const isSério = r >= 0.25 && r < 0.50;
-        const isCrise = r >= 0.50;
-
-        // Cores e títulos do card principal
-        const cardBorder = isEquilibrio
-          ? 'border-green-500 bg-green-500/10'
-          : isLeve
-          ? (isPositive ? 'border-green-500 bg-green-500/10' : 'border-yellow-500 bg-yellow-500/10')
-          : isModerado
-          ? 'border-orange-500 bg-orange-500/10'
-          : isSério
-          ? 'border-red-500 bg-red-500/10'
-          : 'border-red-700 bg-red-700/10';
-
-        const mainTitle = isEquilibrio
-          ? (isPositive ? 'Seu orçamento está equilibrado.' : 'Quase no zero a zero.')
-          : isLeve
-          ? (isPositive ? 'Tem dinheiro sumindo sem rastreio.' : 'Pequeno vazamento no orçamento.')
-          : isModerado
-          ? (isPositive ? 'Uma fatia do seu dinheiro não tem destino declarado.' : 'Seu orçamento está no vermelho.')
-          : isSério
-          ? (isPositive ? 'Gasto não registrado em volume preocupante.' : 'Descontrole financeiro sério.')
-          : (isPositive ? 'Grande parte da sua renda some sem explicação.' : 'Situação crítica. Isso não é sustentável.');
-
-        // Diagnóstico: Capital Ocioso (positivo) ou Déficit nas Contas (negativo)
-        // Tipo de ineficiência
-        const diagLabel = isPositive ? 'Ineficiência de Alocação' : 'Risco de Insolvência';
-        const diagSubLabel = isPositive ? 'Gasto Não Rastreado' : 'Déficit nas Contas';
-
-        // Cor proporcional ao nível de alerta
-        // Positivo: verde (leve) → amarelo (moderado) → laranja (sério) → vermelho (crise)
-        // Negativo: amarelo (leve) → laranja (moderado) → vermelho (sério/crise)
-        const yearlyColor = isEquilibrio
-          ? 'text-green-400'
-          : isLeve
-          ? (isPositive ? 'text-green-400' : 'text-yellow-400')
-          : isModerado
-          ? (isPositive ? 'text-yellow-400' : 'text-orange-400')
-          : isSério
-          ? (isPositive ? 'text-orange-400' : 'text-red-500')
-          : (isPositive ? 'text-red-500' : 'text-red-600');
-
-        const yearlySubtext = isPositive
-          ? 'Valor que sai da sua renda todo mês sem registro nem destino declarado.'
-          : 'Projeção de endividamento em 12 meses mantendo esse ritmo.';
-
-        // Mensagem de alerta progressiva
-        const alertMsg = isEquilibrio
-          ? null // sem alerta
-          : isLeve && isPositive
-          ? `Você já declarou seus investimentos — e ainda assim sobram ${formatCurrency(result.balance)}/mês sem destino registrado. Esse valor não está guardado: está sendo gasto em algum lugar que você não mapeou. Em 1 ano, são ${formatCurrency(Math.abs(result.yearlyLoss))} que simplesmente somem.`
-          : isLeve && !isPositive
-          ? `Você está gastando ${formatCurrency(Math.abs(result.balance))}/mês a mais do que ganha. Parece pouco, mas em 1 ano já são ${formatCurrency(Math.abs(result.yearlyLoss))}. Pequenos vazamentos afundam qualquer plano.`
-          : isModerado && isPositive
-          ? `${formatCurrency(result.balance)}/mês saem da sua renda sem registro. Você já informou o que investe — então esse valor está sendo consumido em gastos que você não rastreia. Em 1 ano: ${formatCurrency(Math.abs(result.yearlyLoss))} gastos sem que você saiba exatamente onde.`
-          : isModerado && !isPositive
-          ? `Você está consumindo ${formatCurrency(Math.abs(result.balance))} a mais por mês. Em 1 ano: ${formatCurrency(Math.abs(result.yearlyLoss))} no buraco. Esse ritmo inviabiliza qualquer objetivo financeiro.`
-          : isSério && isPositive
-          ? `${formatCurrency(result.balance)}/mês somem da sua renda sem nenhum registro. Você já declarou seus investimentos — esse dinheiro está indo para gastos não mapeados. Em 1 ano: ${formatCurrency(Math.abs(result.yearlyLoss))} consumidos sem rastreio. Esse volume de gasto invisivel impede qualquer planejamento real.`
-          : isSério && !isPositive
-          ? `Você está gastando ${formatCurrency(Math.abs(result.balance))} a mais por mês. Em 1 ano: ${formatCurrency(Math.abs(result.yearlyLoss))} de dívida acumulada. Esse nível de descontrole destrói reservas, crédito e qualquer chance de avançar.`
-          : isPositive
-          ? `${formatCurrency(result.balance)}/mês saem da sua renda sem nenhum destino declarado — e não estão nos seus investimentos. Em 1 ano: ${formatCurrency(Math.abs(result.yearlyLoss))} gastos sem que você saiba onde, como ou por quê. Nesse volume, o gasto não rastreado é o maior buraco do seu orçamento.`
-          : `Você está gastando ${formatCurrency(Math.abs(result.balance))} a mais por mês. Em 1 ano: ${formatCurrency(Math.abs(result.yearlyLoss))} de rombo. Isso é uma emergência financeira. Cada mês sem ação aprofunda o buraco.`;
-
-        // CTA do card de venda
-        const ctaTitle = isEquilibrio
-          ? 'Equilíbrio é o ponto de partida, não o destino.'
-          : isLeve
-          ? 'Essa ferramenta mostra o diagnóstico. O tratamento é outra coisa.'
-          : isModerado
-          ? 'Saber o número é o primeiro passo. O segundo é fazer algo com ele.'
-          : isSério
-          ? 'Esse nível de desequilíbrio não se resolve sozinho.'
-          : 'Isso precisa de ação imediata, não de mais ferramentas.';
-
-        const ctaBody = isEquilibrio
-          ? `Essa ferramenta mostra que suas contas fecham, mas não analisa se você está investindo bem, se tem reserva de emergência adequada ou se seus objetivos são alcançáveis com esse ritmo. Para isso, é preciso ir além dos números.`
-          : `Essa ferramenta mapeia o fluxo, mas não diz o que cortar, o que priorizar nem como reorganizar. Para transformar esse diagnóstico em um plano real de ação, é preciso uma análise personalizada.`;
-
-        const ctaButton = isEquilibrio
-          ? 'Quero ir além do equilíbrio e construir patrimônio'
-          : isLeve
-          ? 'Quero entender o que fazer com esse diagnóstico'
-          : isModerado || isSério
-          ? 'Quero um plano para reorganizar meu orçamento'
-          : 'Quero resolver isso agora';
-
-        return (
-        <div className="space-y-6 animate-in fade-in zoom-in-95">
-          <Card className={`border-2 ${cardBorder}`}>
-            <CardContent className="p-8 text-center space-y-6">
-              <h2 className="text-3xl font-bold text-white">{mainTitle}</h2>
-              
-              <div className="grid md:grid-cols-2 gap-8 py-6">
-                <div className="space-y-2 text-left">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Renda Total</span>
-                    <span className="text-green-400 font-bold">{formatCurrency(result.totalIncome)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Investimentos</span>
-                    <span className="text-blue-400 font-bold">-{formatCurrency(result.totalInvest)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Despesas Fixas</span>
-                    <span className="text-yellow-400 font-bold">-{formatCurrency(result.totalFixed)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Despesas Variáveis</span>
-                    <span className="text-red-400 font-bold">-{formatCurrency(result.totalVariable)}</span>
-                  </div>
-                  <div className="h-px bg-white/10 my-2" />
-                  <div className="flex justify-between text-lg font-bold">
-                    <span>Saldo Final</span>
-                    <span className={isPositive ? 'text-green-400' : 'text-red-400'}>
-                      {formatCurrency(result.balance)}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex flex-col justify-center items-center bg-black/20 p-4 rounded-xl gap-1">
-                  <p className={`text-xs font-semibold uppercase tracking-widest ${yearlyColor} opacity-70`}>{diagLabel}</p>
-                  <p className={`text-sm font-bold ${yearlyColor}`}>{diagSubLabel}</p>
-                  <p className={`text-4xl font-bold mt-1 ${yearlyColor}`}>
-                    {formatCurrency(Math.abs(result.yearlyLoss))}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1 text-center leading-snug">{yearlySubtext}</p>
-                </div>
-              </div>
-
-              {/* Mensagem de alerta progressiva */}
-              {alertMsg && (
-                <div className={`text-left p-4 rounded-xl border ${
-                  isLeve ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-200'
-                  : isModerado ? 'bg-orange-500/10 border-orange-500/30 text-orange-200'
-                  : 'bg-red-500/10 border-red-500/30 text-red-200'
-                } text-sm leading-relaxed`}>
-                  {alertMsg}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Gatilho de Venda */}
-          <div className="bg-card border border-white/10 rounded-xl p-6 space-y-4">
-            <p className="text-sm font-semibold text-white">{ctaTitle}</p>
-            <p className="text-sm text-muted-foreground">{ctaBody}</p>
-            <p className="text-sm text-muted-foreground">
-              O que essa ferramenta não faz: ela não analisa <span className="text-white font-medium">qual categoria cortar, como reorganizar prioridades nem se seus investimentos estão adequados ao seu perfil</span>. Para isso, é preciso ir além do mapeamento.
-            </p>
-            <Link href="/planos">
-              <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary/10">
-                {ctaButton}
-              </Button>
-            </Link>
-          </div>
-          
-          <Button variant="ghost" onClick={() => {
-            setStep(1); 
-            setIncomes([]); 
-            setInvestments([]); 
-            setFixedExpenses([]); 
-            setVariableExpenses([]);
-          }} className="w-full">
-            Refazer Raio-X
-          </Button>
-        </div>
-        );
-      })()}
-    </div>
+    </CascaFerramenta>
   );
 }
