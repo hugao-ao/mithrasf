@@ -188,6 +188,7 @@ export const FERRAMENTAS: Ferramenta[] = [
     nova: true,
     desc: "Recebeu uma proposta de empréstimo? Confira se a parcela oferecida bate com os juros informados.",
     como: "Coloque o valor e a taxa. Se já tem uma proposta, compare com ela.",
+    opcionais: ["of"],
     campos: {
       pv: money("Valor contratado", 10000),
       j: juro("Juros do empréstimo", 2.5, "mes"),
@@ -347,6 +348,7 @@ export const FERRAMENTAS: Ferramenta[] = [
     nova: true,
     desc: "O preço do imóvel não é o que você precisa ter. Mostra tudo que aparece na hora da compra.",
     como: "Além da entrada, tem imposto, cartório e mudança.",
+    opcionais: ["mv"],
     campos: {
       pr: money("Preço do imóvel", 400000),
       ent: qtd("Entrada exigida pelo banco", 20, "%"),
@@ -389,6 +391,7 @@ export const FERRAMENTAS: Ferramenta[] = [
     nova: true,
     desc: "Põe os dois lado a lado com reajuste e TR, e deixa escolher entre parcela fixa ou decrescente.",
     como: "No consórcio você paga menos, mas espera para ter o bem.",
+    opcionais: ["tr", "rj"],
     campos: {
       pr: money("Valor do bem", 300000),
       pz: prazo("Prazo", 15, "anos"),
@@ -448,6 +451,7 @@ export const FERRAMENTAS: Ferramenta[] = [
     nova: true,
     desc: "Compara cinco caminhos até a casa própria, com aluguel, imóvel e consórcio reajustando todo ano.",
     como: "Todos gastam o mesmo por mês. O que sobra vai para investimento.",
+    opcionais: ["tr", "ent", "vz", "rjal", "rjco"],
     campos: {
       pr: money("Preço do imóvel", 400000),
       al: money("Aluguel de um imóvel parecido", 1800),
@@ -558,6 +562,7 @@ export const FERRAMENTAS: Ferramenta[] = [
     nova: true,
     desc: "Soma tudo que o carro come por mês, não só a parcela. O número costuma assustar.",
     como: "Junte parcela, combustível, seguro, IPVA e manutenção.",
+    opcionais: ["pc"],
     campos: {
       pc: money("Parcela do financiamento", 1200),
       cb: money("Combustível por mês", 600),
@@ -598,6 +603,7 @@ export const FERRAMENTAS: Ferramenta[] = [
     icone: CreditCard,
     desc: "Soma cashback e milhas na mesma conta, desconta a anuidade e diz qual cartão sobra mais no ano.",
     como: "Cada cartão pode dar dinheiro de volta, pontos, ou os dois.",
+    opcionais: ["a1", "c1", "p1", "a2", "c2", "p2"],
     campos: {
       g: money("Quanto você gasta no cartão por mês", 3000),
       dol: money("Cotação do dólar do seu cartão", 5.4),
@@ -656,6 +662,7 @@ export const FERRAMENTAS: Ferramenta[] = [
     nova: true,
     desc: "Mostra quanto você precisa ter guardado, quanto tempo aguenta hoje e quando chega lá.",
     como: "Depende do seu gasto e de quão firme é a sua renda.",
+    opcionais: ["ja", "ap"],
     campos: {
       g: money("Quanto você gasta por mês", 3500),
       t: opt("Como você trabalha", "clt", [
@@ -707,6 +714,7 @@ export const FERRAMENTAS: Ferramenta[] = [
     nova: true,
     desc: "Calcula quanto sua família precisaria ter para manter a vida sem a sua renda.",
     como: "Quanto tempo eles precisariam se sustentar sem você.",
+    opcionais: ["dv"],
     campos: {
       r: money("Quanto você leva para casa por mês", 5000),
       pz: prazo("Por quanto tempo eles dependeriam", 10, "anos"),
@@ -749,6 +757,7 @@ export const FERRAMENTAS: Ferramenta[] = [
     nova: true,
     desc: "Você diz o que quer e para quando. Ele diz quanto precisa guardar todo mês.",
     como: "Serve para viagem, entrada do imóvel, festa, qualquer coisa com data.",
+    opcionais: ["ja"],
     campos: {
       alvo: money("Quanto custa", 30000),
       pz: prazo("Falta quanto tempo", 24, "meses"),
@@ -839,6 +848,7 @@ export const FERRAMENTAS: Ferramenta[] = [
     nova: true,
     desc: "Traduz seu salário de carteira assinada para o valor equivalente como PJ.",
     como: "Carteira assinada tem 13º, férias e FGTS que o PJ não tem.",
+    opcionais: ["ben", "imp"],
     campos: {
       sal: money("Seu salário na carteira", 5000),
       ben: money("Vale-refeição, plano e outros por mês", 900),
@@ -1006,6 +1016,7 @@ export const FERRAMENTAS: Ferramenta[] = [
     nova: true,
     desc: "Soma suas deduções aplicando o teto de cada uma e diz qual modelo deixa mais dinheiro com você.",
     como: "Cada dedução tem um limite. A ferramenta corta o que passa do teto.",
+    opcionais: ["dep", "edu", "sau", "inss", "pgbl"],
     campos: {
       renda: money("Sua renda tributável no ano", 96000),
       dep: qtd("Quantos dependentes", 1, "pessoas"),

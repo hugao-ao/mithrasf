@@ -10,15 +10,26 @@ import { useState } from "react";
 /** Quando a pessoa não sabe a taxa, ela vem das parcelas. */
 type Divida = {
   d: string;
-  s: number;
+  s: number | null;
   modo: "sabe" | "nao";
-  j: ValorJuro;
-  pv: number;
-  np: number;
-  pc: number;
+  j: { n: number | null; u: ValorJuro["u"] };
+  pv: number | null;
+  np: number | null;
+  pc: number | null;
 };
 
-const INICIAL: Divida[] = [
+const novaDivida = (): Divida => ({
+  d: "",
+  s: null,
+  modo: "sabe",
+  j: { n: null, u: "mes" },
+  pv: null,
+  np: null,
+  pc: null,
+});
+
+/** Carregado pelo botão "ver um exemplo". */
+const EXEMPLO: Divida[] = [
   { d: "Cartão de crédito", s: 3200, modo: "sabe", j: { n: 14, u: "mes" }, pv: 0, np: 0, pc: 0 },
   {
     d: "Empréstimo do banco",
@@ -32,25 +43,24 @@ const INICIAL: Divida[] = [
   { d: "Crediário da loja", s: 1500, modo: "sabe", j: { n: 7.5, u: "mes" }, pv: 0, np: 0, pc: 0 },
 ];
 
-const taxaDe = (x: Divida) => (x.modo === "sabe" ? iMes(x.j) : taxaDeParcelas(x.pv, x.pc, x.np));
+const taxaDe = (x: Divida) =>
+  x.modo === "sabe"
+    ? iMes({ n: x.j.n ?? 0, u: x.j.u })
+    : taxaDeParcelas(x.pv ?? 0, x.pc ?? 0, x.np ?? 0);
 
 export default function QualDivida({ f }: { f: Ferramenta }) {
-  const [itens, setItens] = useState<Divida[]>(() => INICIAL.map((x) => ({ ...x, j: { ...x.j } })));
+  const [itens, setItens] = useState<Divida[]>(() => [novaDivida()]);
 
   const mudar = (i: number, patch: Partial<Divida>) =>
     setItens((L) => L.map((x, k) => (k === i ? { ...x, ...patch } : x)));
   const remover = (i: number) => setItens((L) => L.filter((_, k) => k !== i));
-  const adicionar = () =>
-    setItens((L) => [
-      ...L,
-      { d: "", s: 0, modo: "sabe", j: { n: 0, u: "mes" }, pv: 0, np: 0, pc: 0 },
-    ]);
+  const adicionar = () => setItens((L) => [...L, novaDivida()]);
 
   const calc = itens
-    .filter((x) => x.s > 0)
+    .filter((x) => (x.s ?? 0) > 0)
     .map((x) => {
       const taxa = taxaDe(x);
-      return { ...x, taxa, custo: x.s * taxa };
+      return { ...x, taxa, custo: (x.s ?? 0) * taxa };
     })
     .sort((a, b) => b.custo - a.custo);
 
@@ -118,9 +128,9 @@ export default function QualDivida({ f }: { f: Ferramenta }) {
                   type="number"
                   step="any"
                   className={classeEntrada}
-                  value={x.j.n}
+                  value={x.j.n ?? ""}
                   onChange={(e) =>
-                    mudar(i, { j: { n: parseFloat(e.target.value || "0") || 0, u: x.j.u } })
+                    mudar(i, { j: { n: e.target.value === "" ? null : parseFloat(e.target.value) || 0, u: x.j.u } })
                   }
                 />
                 <span className="shrink-0 pr-1 text-sm text-muted-foreground">%</span>
@@ -146,8 +156,8 @@ export default function QualDivida({ f }: { f: Ferramenta }) {
                     type="number"
                     step="1"
                     className={classeEntrada}
-                    value={x.np}
-                    onChange={(e) => mudar(i, { np: parseInt(e.target.value || "0", 10) || 0 })}
+                    value={x.np ?? ""}
+                    onChange={(e) => mudar(i, { np: e.target.value === "" ? null : parseInt(e.target.value, 10) || 0 })}
                   />
                   <span className="shrink-0 pr-1 text-xs text-muted-foreground">x de</span>
                 </div>
@@ -155,7 +165,7 @@ export default function QualDivida({ f }: { f: Ferramenta }) {
                   <CampoMoeda valor={x.pc} onChange={(n) => mudar(i, { pc: n })} />
                 </div>
                 <span className="basis-full text-right text-xs font-semibold text-primary">
-                  = {NUM(taxaDeParcelas(x.pv, x.pc, x.np) * 100, 2)}% ao mês
+                  = {NUM(taxaDeParcelas(x.pv ?? 0, x.pc ?? 0, x.np ?? 0) * 100, 2)}% ao mês
                 </span>
               </div>
             )}
@@ -193,9 +203,18 @@ export default function QualDivida({ f }: { f: Ferramenta }) {
           />
         </div>
       ) : (
-        <p className="rounded-xl border border-white/10 bg-black/20 p-5 text-sm text-muted-foreground">
-          Adicione ao menos uma dívida com saldo para ver o resultado.
-        </p>
+        <div className="flex flex-col items-start gap-3 rounded-xl border border-dashed border-white/15 bg-black/20 p-5">
+          <p className="text-sm text-muted-foreground">
+            Informe o valor que você ainda deve em pelo menos uma dívida para ver o resultado.
+          </p>
+          <button
+            type="button"
+            onClick={() => setItens(EXEMPLO.map((x) => ({ ...x, j: { ...x.j } })))}
+            className="text-sm font-semibold text-primary underline-offset-4 hover:underline"
+          >
+            Ver um exemplo preenchido
+          </button>
+        </div>
       )}
     </CascaFerramenta>
   );

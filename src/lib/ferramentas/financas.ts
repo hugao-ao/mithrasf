@@ -80,8 +80,12 @@ export const mascaraMoeda = (n: number): string =>
     maximumFractionDigits: 2,
   });
 
-/** Texto digitado num campo de moeda de volta para número (centavos). */
-export const lerMoeda = (s: string): number => {
+/**
+ * Texto digitado num campo de moeda de volta para número (centavos).
+ * Devolve null quando o campo está vazio, para distinguir "não preenchi"
+ * de "preenchi com zero".
+ */
+export const lerMoeda = (s: string): number | null => {
   const d = String(s).replace(/\D/g, "").slice(0, 15);
-  return d ? parseInt(d, 10) / 100 : 0;
+  return d ? parseInt(d, 10) / 100 : null;
 };

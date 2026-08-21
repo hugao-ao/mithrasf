@@ -59,6 +59,8 @@ export type Ferramenta = {
   icone: LucideIcon;
   nova?: boolean;
   campos?: Record<string, Campo>;
+  /** Campos onde deixar em branco é resposta legítima — viram zero no cálculo. */
+  opcionais?: string[];
   calc?: (v: Valores) => Resultado;
   /** Ferramentas com tela própria, fora do motor declarativo. */
   custom?: "fluxo" | "dividas" | "oraculo";
@@ -97,11 +99,67 @@ export const opt = (
   w?: boolean,
 ): Campo => ({ t: "sel", l, v, opts, w });
 
-/** Valores iniciais de um conjunto de campos, prontos para o useState. */
+/**
+ * Estado inicial: tudo vazio. Os números declarados no catálogo não são
+ * preenchimento — são só o exemplo que o botão "ver um exemplo" carrega.
+ * Listas de opções continuam com a escolha padrão, porque um seletor sempre
+ * precisa de um valor.
+ */
 export function valoresIniciais(campos: Record<string, Campo>): Valores {
   const v: Valores = {};
   for (const [k, c] of Object.entries(campos)) {
+    if (c.t === "sel") v[k] = c.v;
+    else if (c.t === "juro" || c.t === "prazo") v[k] = { n: null, u: (c.v as any).u };
+    else v[k] = null;
+  }
+  return v;
+}
+
+/** Os valores de demonstração do catálogo, para o botão de exemplo. */
+export function valoresExemplo(campos: Record<string, Campo>): Valores {
+  const v: Valores = {};
+  for (const [k, c] of Object.entries(campos)) {
     v[k] = c.t === "juro" || c.t === "prazo" ? { ...(c.v as object) } : c.v;
+  }
+  return v;
+}
+
+const vazio = (c: Campo, valor: any): boolean => {
+  if (c.t === "sel") return false;
+  if (c.t === "juro" || c.t === "prazo") return valor?.n === null || valor?.n === undefined;
+  return valor === null || valor === undefined;
+};
+
+/** Só calcula quando todo campo obrigatório foi preenchido. */
+export function estaPronto(
+  campos: Record<string, Campo>,
+  valores: Valores,
+  opcionais: string[] = [],
+): boolean {
+  return Object.entries(campos).every(
+    ([k, c]) => opcionais.includes(k) || !vazio(c, valores[k]),
+  );
+}
+
+/** Quantos campos obrigatórios ainda faltam. */
+export function faltando(
+  campos: Record<string, Campo>,
+  valores: Valores,
+  opcionais: string[] = [],
+): number {
+  return Object.entries(campos).filter(
+    ([k, c]) => !opcionais.includes(k) && vazio(c, valores[k]),
+  ).length;
+}
+
+/** Troca os vazios por zero antes de entregar ao cálculo. */
+export function paraCalculo(campos: Record<string, Campo>, valores: Valores): Valores {
+  const v: Valores = {};
+  for (const [k, c] of Object.entries(campos)) {
+    const atual = valores[k];
+    if (c.t === "sel") v[k] = atual;
+    else if (c.t === "juro" || c.t === "prazo") v[k] = { n: atual?.n ?? 0, u: atual?.u };
+    else v[k] = atual ?? 0;
   }
   return v;
 }

@@ -17,52 +17,74 @@ import { X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 type Recorrencia = "unica" | "anual" | "mensal";
-type Objetivo = { d: string; v: number; q: ValorPrazo; rec: Recorrencia };
+type Objetivo = { d: string; v: number | null; q: { n: number | null; u: ValorPrazo["u"] }; rec: Recorrencia };
 
-const OBJ_INICIAIS: Objetivo[] = [
-  { d: "Trocar de carro", v: 60000, q: { n: 5, u: "anos" }, rec: "unica" },
-  { d: "Faculdade do filho", v: 24000, q: { n: 10, u: "anos" }, rec: "anual" },
-];
+/** Carregado pelo botão "ver um exemplo". */
+const EXEMPLO = {
+  pat: 40000,
+  ap: 800,
+  r: { n: 10, u: "ano" as ValorJuro["u"] },
+  pz: { n: 25, u: "anos" as ValorPrazo["u"] },
+  obj: [
+    { d: "Trocar de carro", v: 60000, q: { n: 5, u: "anos" as ValorPrazo["u"] }, rec: "unica" as Recorrencia },
+    { d: "Faculdade do filho", v: 24000, q: { n: 10, u: "anos" as ValorPrazo["u"] }, rec: "anual" as Recorrencia },
+  ],
+};
 
 /** Renda mensal estimada de um patrimônio, a 0,4% ao mês sem tocar no principal. */
 const TAXA_RENDA = 0.004;
 
 export default function Oraculo({ f }: { f: Ferramenta }) {
-  const [pat, setPat] = useState(40000);
-  const [ap, setAp] = useState(800);
-  const [r, setR] = useState<ValorJuro>({ n: 10, u: "ano" });
-  const [pz, setPz] = useState<ValorPrazo>({ n: 25, u: "anos" });
-  const [obj, setObj] = useState<Objetivo[]>(() => OBJ_INICIAIS.map((o) => ({ ...o, q: { ...o.q } })));
+  const [pat, setPat] = useState<number | null>(null);
+  const [ap, setAp] = useState<number | null>(null);
+  const [r, setR] = useState<{ n: number | null; u: ValorJuro["u"] }>({ n: null, u: "ano" });
+  const [pz, setPz] = useState<{ n: number | null; u: ValorPrazo["u"] }>({ n: null, u: "anos" });
+  const [obj, setObj] = useState<Objetivo[]>([]);
 
   const mudarObj = (i: number, patch: Partial<Objetivo>) =>
     setObj((L) => L.map((o, k) => (k === i ? { ...o, ...patch } : o)));
   const removerObj = (i: number) => setObj((L) => L.filter((_, k) => k !== i));
   const adicionarObj = () =>
-    setObj((L) => [...L, { d: "", v: 0, q: { n: 1, u: "anos" }, rec: "unica" }]);
+    setObj((L) => [...L, { d: "", v: null, q: { n: null, u: "anos" }, rec: "unica" }]);
+
+  const carregarExemplo = () => {
+    setPat(EXEMPLO.pat);
+    setAp(EXEMPLO.ap);
+    setR({ ...EXEMPLO.r });
+    setPz({ ...EXEMPLO.pz });
+    setObj(EXEMPLO.obj.map((o) => ({ ...o, q: { ...o.q } })));
+  };
+
+  /* Precisa de rendimento e prazo para existir curva; patrimônio e aporte podem
+     ser um ou o outro, mas não os dois em branco. */
+  const pronto = r.n !== null && pz.n !== null && (pat !== null || ap !== null);
 
   const sim = useMemo(() => {
-    const i = iMes(r);
-    const n = nMes(pz);
-    const serie: number[] = [pat];
+    const i = iMes({ n: r.n ?? 0, u: r.u });
+    const n = nMes({ n: pz.n ?? 0, u: pz.u });
+    const p0 = pat ?? 0;
+    const aporte = ap ?? 0;
+    const serie: number[] = [p0];
     const marcas: number[] = [];
-    let s = pat;
-    for (const o of obj) marcas.push(nMes(o.q));
+    let s = p0;
+    for (const o of obj) marcas.push(nMes({ n: o.q.n ?? 0, u: o.q.u }));
     for (let m = 1; m <= n; m++) {
-      s = s * (1 + i) + ap;
+      s = s * (1 + i) + aporte;
       for (const o of obj) {
-        const a = nMes(o.q);
-        if (o.rec === "unica" && m === a) s -= o.v;
-        else if (o.rec === "anual" && m >= a && (m - a) % 12 === 0) s -= o.v;
-        else if (o.rec === "mensal" && m >= a) s -= o.v;
+        const a = nMes({ n: o.q.n ?? 0, u: o.q.u });
+        const valor = o.v ?? 0;
+        if (o.rec === "unica" && m === a) s -= valor;
+        else if (o.rec === "anual" && m >= a && (m - a) % 12 === 0) s -= valor;
+        else if (o.rec === "mensal" && m >= a) s -= valor;
       }
       serie.push(s);
     }
-    return { serie, marcas, fim: s, n, i };
+    return { serie, marcas, fim: s, n, i, p0, aporte };
   }, [pat, ap, r, pz, obj]);
 
-  const semObj = fvSerie(pat, ap, sim.i, sim.n);
+  const semObj = fvSerie(sim.p0, sim.aporte, sim.i, sim.n);
   const renda = Math.max(sim.fim, 0) * TAXA_RENDA;
-  const depositado = pat + ap * sim.n;
+  const depositado = sim.p0 + sim.aporte * sim.n;
   const quebrou = sim.serie.findIndex((v) => v < 0);
   const acabou = sim.fim < 0;
 
@@ -88,8 +110,8 @@ export default function Oraculo({ f }: { f: Ferramenta }) {
               type="number"
               step="any"
               className={classeEntrada}
-              value={r.n}
-              onChange={(e) => setR({ n: parseFloat(e.target.value || "0") || 0, u: r.u })}
+              value={r.n ?? ""}
+              onChange={(e) => setR({ n: e.target.value === "" ? null : parseFloat(e.target.value) || 0, u: r.u })}
             />
             <span className="shrink-0 pr-1 text-sm text-muted-foreground">%</span>
             <Seg
@@ -111,8 +133,8 @@ export default function Oraculo({ f }: { f: Ferramenta }) {
               type="number"
               step="any"
               className={classeEntrada}
-              value={pz.n}
-              onChange={(e) => setPz({ n: parseFloat(e.target.value || "0") || 0, u: pz.u })}
+              value={pz.n ?? ""}
+              onChange={(e) => setPz({ n: e.target.value === "" ? null : parseFloat(e.target.value) || 0, u: pz.u })}
             />
             <Seg
               valor={pz.u}
@@ -155,9 +177,9 @@ export default function Oraculo({ f }: { f: Ferramenta }) {
                 type="number"
                 step="any"
                 className={classeEntrada}
-                value={o.q.n}
+                value={o.q.n ?? ""}
                 onChange={(e) =>
-                  mudarObj(i, { q: { n: parseFloat(e.target.value || "0") || 0, u: o.q.u } })
+                  mudarObj(i, { q: { n: e.target.value === "" ? null : parseFloat(e.target.value) || 0, u: o.q.u } })
                 }
               />
               <Seg
@@ -205,6 +227,20 @@ export default function Oraculo({ f }: { f: Ferramenta }) {
         </button>
       </div>
 
+      {!pronto ? (
+        <div className="flex flex-col items-start gap-3 rounded-xl border border-dashed border-white/15 bg-black/20 p-5">
+          <p className="text-sm text-muted-foreground">
+            Informe o rendimento, por quanto tempo, e quanto você já tem ou guarda por mês.
+          </p>
+          <button
+            type="button"
+            onClick={carregarExemplo}
+            className="text-sm font-semibold text-primary underline-offset-4 hover:underline"
+          >
+            Ver um exemplo preenchido
+          </button>
+        </div>
+      ) : (
       <div className="flex flex-col gap-4">
         <Destaque
           tom={acabou ? "is-bad" : "is-good"}
@@ -236,6 +272,7 @@ export default function Oraculo({ f }: { f: Ferramenta }) {
           botao="Quero validar isso com um especialista"
         />
       </div>
+      )}
     </CascaFerramenta>
   );
 }

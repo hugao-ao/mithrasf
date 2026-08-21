@@ -9,7 +9,7 @@ import { X } from "lucide-react";
 import { useState } from "react";
 
 type Freq = "mes" | "ano";
-type Item = { d: string; v: number; f: Freq };
+type Item = { d: string; v: number | null; f: Freq };
 
 const ETAPAS = [
   {
@@ -32,7 +32,15 @@ const ETAPAS = [
   },
 ];
 
-const INICIAL = {
+/** Abre com uma linha em branco em cada etapa, pronta para receber o primeiro lançamento. */
+const vazio = () => ({
+  rendas: [{ d: "", v: null, f: "mes" as Freq }],
+  guarda: [{ d: "", v: null, f: "mes" as Freq }],
+  gastos: [{ d: "", v: null, f: "mes" as Freq }],
+});
+
+/** Carregado pelo botão "ver um exemplo". */
+const EXEMPLO = {
   rendas: [
     { d: "Salário", v: 4500, f: "mes" as Freq },
     { d: "13º salário", v: 4500, f: "ano" as Freq },
@@ -48,15 +56,12 @@ const INICIAL = {
   ],
 };
 
-const porMes = (a: Item[]) => a.reduce((t, x) => t + (x.f === "ano" ? x.v / 12 : x.v), 0);
+const porMes = (a: Item[]) =>
+  a.reduce((t, x) => t + ((x.v ?? 0) / (x.f === "ano" ? 12 : 1)), 0);
 
 export default function FluxoCaixa({ f }: { f: Ferramenta }) {
   const [etapa, setEtapa] = useState(0);
-  const [listas, setListas] = useState<Record<string, Item[]>>(() => ({
-    rendas: [...INICIAL.rendas],
-    guarda: [...INICIAL.guarda],
-    gastos: [...INICIAL.gastos],
-  }));
+  const [listas, setListas] = useState<Record<string, Item[]>>(vazio);
 
   const mudar = (key: string, i: number, patch: Partial<Item>) =>
     setListas((L) => ({
@@ -150,6 +155,23 @@ export default function FluxoCaixa({ f }: { f: Ferramenta }) {
             {etapa === 2 ? "Ver meu resultado" : "Continuar"}
           </Button>
         </div>
+
+        {etapa === 0 && (
+          <button
+            type="button"
+            onClick={() => {
+              setListas({
+                rendas: [...EXEMPLO.rendas],
+                guarda: [...EXEMPLO.guarda],
+                gastos: [...EXEMPLO.gastos],
+              });
+              setEtapa(3);
+            }}
+            className="-mt-1 w-fit text-sm font-semibold text-primary underline-offset-4 hover:underline"
+          >
+            Ver um exemplo preenchido
+          </button>
+        )}
       </CascaFerramenta>
     );
   }
@@ -161,8 +183,27 @@ export default function FluxoCaixa({ f }: { f: Ferramenta }) {
   const R = porMes(listas.rendas);
   const G = porMes(listas.guarda);
   const D = porMes(listas.gastos);
+
+  /* Sem renda lançada não há percentual de descontrole a calcular. */
+  if (R <= 0) {
+    return (
+      <CascaFerramenta f={f}>
+        {barra}
+        <div className="flex flex-col items-start gap-3 rounded-xl border border-dashed border-white/15 bg-black/20 p-5">
+          <p className="text-sm text-muted-foreground">
+            Você ainda não lançou nada que entra. Volte à primeira etapa e informe pelo menos uma
+            renda.
+          </p>
+          <Button variant="outline" onClick={() => setEtapa(0)}>
+            Voltar para as rendas
+          </Button>
+        </div>
+      </CascaFerramenta>
+    );
+  }
+
   const saldo = R - G - D;
-  const pct = R > 0 ? (Math.abs(saldo) / R) * 100 : 0;
+  const pct = (Math.abs(saldo) / R) * 100;
 
   let tom: Tom;
   let rotulo: string;
@@ -254,11 +295,7 @@ export default function FluxoCaixa({ f }: { f: Ferramenta }) {
         <Button
           variant="ghost"
           onClick={() => {
-            setListas({
-              rendas: [...INICIAL.rendas],
-              guarda: [...INICIAL.guarda],
-              gastos: [...INICIAL.gastos],
-            });
+            setListas(vazio());
             setEtapa(0);
           }}
         >

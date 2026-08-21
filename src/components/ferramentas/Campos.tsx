@@ -52,8 +52,8 @@ export function CampoMoeda({
   onChange,
   id,
 }: {
-  valor: number;
-  onChange: (n: number) => void;
+  valor: number | null;
+  onChange: (n: number | null) => void;
   id?: string;
 }) {
   return (
@@ -62,8 +62,9 @@ export function CampoMoeda({
         id={id}
         type="text"
         inputMode="decimal"
-        className={cn(entrada, "pr-2")}
-        value={mascaraMoeda(valor)}
+        placeholder="R$ 0,00"
+        className={cn(entrada, "pr-2 placeholder:font-normal placeholder:text-muted-foreground/50")}
+        value={valor === null || valor === undefined ? "" : mascaraMoeda(valor)}
         onChange={(e) => {
           /* `currentTarget` é anulado depois do handler; `target` sobrevive. */
           const el = e.target as HTMLInputElement;
@@ -97,10 +98,17 @@ export function CampoDinamico({
   const id = `campo-${chave}`;
   const v = valores[chave];
 
+  /** Campo numérico vazio precisa continuar vazio na tela, não virar zero. */
+  const num = (s: string): number | null => (s === "" ? null : parseFloat(s) || 0);
+  const mostra = (x: number | null | undefined) => (x === null || x === undefined ? "" : x);
+  const placeholder = "placeholder:font-normal placeholder:text-muted-foreground/50";
+
   let controle: React.ReactNode;
 
   if (campo.t === "money") {
-    controle = <CampoMoeda id={id} valor={v as number} onChange={(n) => onChange(chave, n)} />;
+    controle = (
+      <CampoMoeda id={id} valor={v as number | null} onChange={(n) => onChange(chave, n)} />
+    );
   } else if (campo.t === "juro") {
     controle = (
       <div className={caixa}>
@@ -108,9 +116,10 @@ export function CampoDinamico({
           id={id}
           type="number"
           step="any"
-          className={entrada}
-          value={v.n}
-          onChange={(e) => onChange(chave, { n: parseFloat(e.target.value || "0") || 0, u: v.u })}
+          placeholder="0"
+          className={cn(entrada, placeholder)}
+          value={mostra(v?.n)}
+          onChange={(e) => onChange(chave, { n: num(e.target.value), u: v.u })}
         />
         <span className="shrink-0 pr-1 text-sm text-muted-foreground">%</span>
         <Seg
@@ -130,9 +139,10 @@ export function CampoDinamico({
           id={id}
           type="number"
           step="any"
-          className={entrada}
-          value={v.n}
-          onChange={(e) => onChange(chave, { n: parseFloat(e.target.value || "0") || 0, u: v.u })}
+          placeholder="0"
+          className={cn(entrada, placeholder)}
+          value={mostra(v?.n)}
+          onChange={(e) => onChange(chave, { n: num(e.target.value), u: v.u })}
         />
         <Seg
           valor={v.u}
@@ -168,9 +178,10 @@ export function CampoDinamico({
           id={id}
           type="number"
           step="any"
-          className={entrada}
-          value={v as number}
-          onChange={(e) => onChange(chave, parseFloat(e.target.value || "0") || 0)}
+          placeholder="0"
+          className={cn(entrada, placeholder)}
+          value={mostra(v as number | null)}
+          onChange={(e) => onChange(chave, num(e.target.value))}
         />
         {campo.suf ? (
           <span className="shrink-0 pr-2 text-sm text-muted-foreground">{campo.suf}</span>
