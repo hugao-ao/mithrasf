@@ -21,13 +21,18 @@ function Card({ f }: { f: Ferramenta }) {
           </span>
         )}
 
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/5 transition-colors duration-300 group-hover:bg-primary/10">
-          <Icone className="h-5 w-5 text-primary" />
-        </span>
+        {/* Recolhido, ícone e nome descem para o centro do card — sem isso sobraria
+            um vazio embaixo, já que o espaço da descrição fica sempre reservado
+            para a grade não pular. Ao revelar, o grupo sobe. */}
+        <div className="flex flex-col gap-2.5 transition-transform duration-300 ease-out can-hover:translate-y-7 can-hover:group-hover:translate-y-0 can-hover:group-focus-visible:translate-y-0">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/5 transition-colors duration-300 group-hover:bg-primary/10">
+            <Icone className="h-5 w-5 text-primary" />
+          </span>
 
-        <h3 className="text-[0.98rem] font-bold leading-tight tracking-tight text-white">
-          {f.nome}
-        </h3>
+          <h3 className="text-[0.98rem] font-bold leading-tight tracking-tight text-white">
+            {f.nome}
+          </h3>
+        </div>
 
         <p className="text-[0.8rem] leading-snug text-muted-foreground transition-[opacity,transform] duration-300 can-hover:translate-y-1 can-hover:opacity-0 can-hover:group-hover:translate-y-0 can-hover:group-hover:opacity-100 can-hover:group-focus-visible:translate-y-0 can-hover:group-focus-visible:opacity-100">
           {f.desc}
