@@ -1,6 +1,7 @@
 import { CampoDinamico } from "@/components/ferramentas/Campos";
 import { CascaFerramenta } from "@/components/ferramentas/CascaFerramenta";
 import { PainelResultado } from "@/components/ferramentas/Resultado";
+import { MEMORIAS } from "@/lib/ferramentas/memoria";
 import {
   estaPronto,
   faltando,
@@ -31,7 +32,11 @@ export default function FerramentaGenerica({ f }: { f: Ferramenta }) {
   const resultado = useMemo(() => {
     if (!pronto || !f.calc) return null;
     try {
-      return f.calc(paraCalculo(campos, valores));
+      const v = paraCalculo(campos, valores);
+      const r = f.calc(v);
+      /* A memória mora fora do catálogo: lá se responde "quanto dá", aqui "como chegou". */
+      const montar = MEMORIAS[f.id];
+      return montar ? { ...r, memoria: montar(v) } : r;
     } catch {
       return null;
     }

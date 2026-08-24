@@ -1,6 +1,12 @@
 import { CampoMoeda, Seg, classeCaixa, classeEntrada } from "@/components/ferramentas/Campos";
 import { CascaFerramenta } from "@/components/ferramentas/CascaFerramenta";
-import { Destaque, GatilhoPlano, Nota, Tabela } from "@/components/ferramentas/Resultado";
+import {
+  Destaque,
+  GatilhoPlano,
+  MemoriaCalculo,
+  Nota,
+  Tabela,
+} from "@/components/ferramentas/Resultado";
 import { Button } from "@/components/ui/button";
 import { BRL, NUM } from "@/lib/ferramentas/financas";
 import type { Ferramenta, Tom } from "@/lib/ferramentas/tipos";
@@ -276,6 +282,46 @@ export default function FluxoCaixa({ f }: { f: Ferramenta }) {
             "hl",
           ],
         ]}
+      />
+      <MemoriaCalculo
+        memoria={{
+          passos: [
+            {
+              rotulo: "Tudo que entra, trazido para o mês",
+              conta: listas.rendas
+                .filter((x) => (x.v ?? 0) > 0)
+                .map((x) => `${x.d || "sem nome"} ${BRL(x.v ?? 0)}${x.f === "ano" ? " ÷ 12" : ""}`)
+                .join("  +  ") || "nada lançado",
+              valor: BRL(R),
+            },
+            {
+              rotulo: "Tudo que você guarda, trazido para o mês",
+              conta: listas.guarda
+                .filter((x) => (x.v ?? 0) > 0)
+                .map((x) => `${x.d || "sem nome"} ${BRL(x.v ?? 0)}${x.f === "ano" ? " ÷ 12" : ""}`)
+                .join("  +  ") || "nada lançado",
+              valor: BRL(G),
+            },
+            {
+              rotulo: "Tudo que sai, trazido para o mês",
+              conta: listas.gastos
+                .filter((x) => (x.v ?? 0) > 0)
+                .map((x) => `${x.d || "sem nome"} ${BRL(x.v ?? 0)}${x.f === "ano" ? " ÷ 12" : ""}`)
+                .join("  +  ") || "nada lançado",
+              valor: BRL(D),
+            },
+            {
+              rotulo: saldo < 0 ? "O que falta para fechar" : "O que não foi explicado",
+              conta: `${BRL(R)} − ${BRL(G)} − ${BRL(D)}`,
+              valor: BRL(saldo),
+            },
+            {
+              rotulo: "Isso representa, da sua renda",
+              conta: `${BRL(Math.abs(saldo))} ÷ ${BRL(R)}`,
+              valor: NUM(pct, 1) + "%",
+            },
+          ],
+        }}
       />
       <Nota>
         {saldo > 0 && pct > 3

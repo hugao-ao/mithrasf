@@ -1,7 +1,13 @@
 import { CampoMoeda, Seg, classeCaixa, classeEntrada } from "@/components/ferramentas/Campos";
 import { CascaFerramenta } from "@/components/ferramentas/CascaFerramenta";
 import { Grafico } from "@/components/ferramentas/Grafico";
-import { Destaque, GatilhoPlano, Nota, Tabela } from "@/components/ferramentas/Resultado";
+import {
+  Destaque,
+  GatilhoPlano,
+  MemoriaCalculo,
+  Nota,
+  Tabela,
+} from "@/components/ferramentas/Resultado";
 import {
   BRL,
   fvSerie,
@@ -260,6 +266,89 @@ export default function Oraculo({ f }: { f: Ferramenta }) {
             ["Com seus objetivos", BRL(sim.fim, 0), "hl"],
             ["Renda mensal disso", BRL(renda, 0)],
           ]}
+        />
+        <MemoriaCalculo
+          memoria={{
+            passos: [
+              {
+                rotulo: "Rendimento convertido para o mês",
+                conta:
+                  r.u === "ano"
+                    ? `(1 + ${NUM(r.n ?? 0, 2)}%)^(1/12) − 1`
+                    : `${NUM(r.n ?? 0, 2)}% já é mensal`,
+                valor: NUM(sim.i * 100, 4) + "% ao mês",
+              },
+              {
+                rotulo: "Prazo em meses",
+                conta:
+                  pz.u === "anos" ? `${NUM(pz.n ?? 0, 0)} anos × 12` : `${NUM(pz.n ?? 0, 0)} meses`,
+                valor: `${sim.n} meses`,
+              },
+              {
+                rotulo: "Quanto você deposita ao todo",
+                conta: `${BRL(sim.p0, 0)} que já tem + ${BRL(sim.aporte)} × ${sim.n} meses`,
+                valor: BRL(depositado, 0),
+              },
+              {
+                rotulo: "Onde chegaria sem nenhum objetivo",
+                conta: `${BRL(sim.p0, 0)} rendendo, mais ${BRL(sim.aporte)} por mês, durante ${sim.n} meses`,
+                valor: BRL(semObj, 0),
+              },
+              ...obj
+                .filter((o) => (o.v ?? 0) > 0)
+                .map((o) => ({
+                  rotulo: `Objetivo: ${o.d || "sem nome"}`,
+                  conta: `${BRL(o.v ?? 0, 0)} ${
+                    o.rec === "unica"
+                      ? `uma vez, no mês ${nMes({ n: o.q.n ?? 0, u: o.q.u })}`
+                      : o.rec === "anual"
+                        ? `todo ano, a partir do mês ${nMes({ n: o.q.n ?? 0, u: o.q.u })}`
+                        : `todo mês, a partir do mês ${nMes({ n: o.q.n ?? 0, u: o.q.u })}`
+                  }`,
+                  valor: "sai da curva",
+                })),
+              {
+                rotulo: "Quanto os objetivos custaram do patrimônio final",
+                conta: `${BRL(semObj, 0)} − ${BRL(sim.fim, 0)}`,
+                valor: BRL(semObj - sim.fim, 0),
+              },
+              {
+                rotulo: "Renda mensal sem encostar no principal",
+                conta: `${BRL(Math.max(sim.fim, 0), 0)} × 0,4% ao mês`,
+                valor: BRL(renda, 0),
+              },
+            ],
+            serie: {
+              colunas: ["Mês", "Rendeu", "Depositou", "Saiu para objetivos", "Patrimônio"],
+              linhas: sim.serie
+                .map((valor, m) => {
+                  if (m === 0) return null;
+                  const anterior = sim.serie[m - 1];
+                  const rend = anterior * sim.i;
+                  const saques = obj.reduce((t, o) => {
+                    const a = nMes({ n: o.q.n ?? 0, u: o.q.u });
+                    const val = o.v ?? 0;
+                    if (o.rec === "unica" && m === a) return t + val;
+                    if (o.rec === "anual" && m >= a && (m - a) % 12 === 0) return t + val;
+                    if (o.rec === "mensal" && m >= a) return t + val;
+                    return t;
+                  }, 0);
+                  return [
+                    String(m),
+                    BRL(rend, 0),
+                    BRL(sim.aporte, 0),
+                    saques > 0 ? "− " + BRL(saques, 0) : "—",
+                    BRL(valor, 0),
+                  ];
+                })
+                .filter((l): l is string[] => l !== null)
+                .filter((_, i, arr) => i < 12 || (i + 1) % 12 === 0 || i === arr.length - 1),
+              resumo:
+                sim.n > 60
+                  ? `Série de ${sim.n} meses resumida: os 12 primeiros, depois um mês por ano, e o último.`
+                  : undefined,
+            },
+          }}
         />
         <Nota>
           Não descontei inflação nem imposto. Daqui a {NUM(sim.n / 12, 0)} anos esse valor compra

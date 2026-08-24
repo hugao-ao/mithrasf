@@ -15,12 +15,6 @@ function Card({ f }: { f: Ferramenta }) {
         className="group relative flex h-auto min-h-[176px] cursor-pointer flex-col gap-2.5 rounded-2xl border border-white/5 bg-card/50 p-5 transition-[transform,border-color,background-color,box-shadow] duration-300 ease-out hover:z-10 hover:border-primary/40 hover:bg-card hover:shadow-[0_18px_40px_-18px_rgba(0,0,0,0.75)] focus-visible:border-primary/40 focus-visible:outline-none can-hover:h-44 can-hover:hover:scale-[1.055]"
         tabIndex={0}
       >
-        {f.nova && (
-          <span className="absolute right-3.5 top-3.5 rounded-full border border-primary/35 px-1.5 py-0.5 text-[0.6rem] font-bold uppercase tracking-[0.1em] text-primary">
-            nova
-          </span>
-        )}
-
         {/* Recolhido, ícone e nome descem para o centro do card — sem isso sobraria
             um vazio embaixo, já que o espaço da descrição fica sempre reservado
             para a grade não pular. Ao revelar, o grupo sobe. */}

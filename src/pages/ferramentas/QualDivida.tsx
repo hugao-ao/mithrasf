@@ -1,6 +1,12 @@
 import { CampoMoeda, Seg, classeCaixa, classeEntrada } from "@/components/ferramentas/Campos";
 import { CascaFerramenta } from "@/components/ferramentas/CascaFerramenta";
-import { Destaque, GatilhoPlano, Nota, Tabela } from "@/components/ferramentas/Resultado";
+import {
+  Destaque,
+  GatilhoPlano,
+  MemoriaCalculo,
+  Nota,
+  Tabela,
+} from "@/components/ferramentas/Resultado";
 import { BRL, iMes, NUM, taxaDeParcelas, type ValorJuro } from "@/lib/ferramentas/financas";
 import type { Ferramenta, Linha } from "@/lib/ferramentas/tipos";
 import { cn } from "@/lib/utils";
@@ -190,6 +196,29 @@ export default function QualDivida({ f }: { f: Ferramenta }) {
             frase={`Ela sozinha te custa ${BRL(top.custo)} por mês só de juros — ${NUM(total > 0 ? (top.custo / total) * 100 : 0, 0)}% de tudo que você paga de juros. Quitar essa primeiro economiza mais do que quitar a maior.`}
           />
           <Tabela linhas={linhas} />
+          <MemoriaCalculo
+            memoria={{
+              passos: calc.map((x) => ({
+                rotulo: (x.d || "Dívida sem nome") + " — quanto os juros custam por mês",
+                conta:
+                  x.modo === "sabe"
+                    ? `${BRL(x.s ?? 0)} × ${NUM(x.taxa * 100, 2)}% ao mês`
+                    : `taxa descoberta de ${BRL(x.pv ?? 0)} em ${x.np ?? 0}× de ${BRL(x.pc ?? 0)} = ${NUM(x.taxa * 100, 2)}% ao mês, aplicada sobre ${BRL(x.s ?? 0)}`,
+                valor: BRL(x.custo) + " por mês",
+              })),
+              serie: {
+                colunas: ["Dívida", "Você deve", "Taxa ao mês", "Juros por mês", "Juros por ano"],
+                linhas: calc.map((x) => [
+                  x.d || "sem nome",
+                  BRL(x.s ?? 0),
+                  NUM(x.taxa * 100, 2) + "%",
+                  BRL(x.custo),
+                  BRL(x.custo * 12),
+                ]),
+                resumo: "Ordenadas pelo que mais custa por mês — é essa a ordem de ataque.",
+              },
+            }}
+          />
           <Nota>
             A maior dívida nem sempre é a pior. O que dói é a taxa, não o tamanho. Se você não sabe
             a taxa, informe quanto pegou, em quantas vezes e o valor da parcela — a conta sai

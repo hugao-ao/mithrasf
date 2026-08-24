@@ -33,6 +33,28 @@ export type Gatilho = {
   botao: string;
 };
 
+/** Uma conta feita, com o cálculo à mostra. */
+export type Passo = {
+  rotulo: string;
+  /** A conta escrita como ela é feita, com os números dentro. */
+  conta: string;
+  valor: string;
+};
+
+/** Série mês a mês, para quem quiser conferir linha por linha. */
+export type Serie = {
+  colunas: string[];
+  linhas: string[][];
+  /** Avisa quando a tabela foi resumida, e como. */
+  resumo?: string;
+};
+
+/** O passo a passo por trás do resultado, aberto sob demanda. */
+export type Memoria = {
+  passos?: Passo[];
+  serie?: Serie;
+};
+
 export type Resultado = {
   tom?: Tom;
   /** Rótulo curto acima do número-herói. */
@@ -45,6 +67,8 @@ export type Resultado = {
   /** Ressalva honesta sobre o que o cálculo não considera. */
   nota: string;
   gat: Gatilho;
+  /** Memória de cálculo, exibida só se o cliente abrir. */
+  memoria?: Memoria;
 };
 
 export type Ferramenta = {
@@ -57,7 +81,6 @@ export type Ferramenta = {
   /** Aparece sob o título dentro da ferramenta. */
   como: string;
   icone: LucideIcon;
-  nova?: boolean;
   campos?: Record<string, Campo>;
   /** Campos onde deixar em branco é resposta legítima — viram zero no cálculo. */
   opcionais?: string[];
