@@ -286,19 +286,19 @@ export default function Oraculo({ f }: { f: Ferramenta }) {
               },
               {
                 rotulo: "Quanto você deposita ao todo",
-                conta: `${BRL(sim.p0, 0)} que já tem + ${BRL(sim.aporte)} × ${sim.n} meses`,
-                valor: BRL(depositado, 0),
+                conta: `${BRL(sim.p0)} que já tem + ${BRL(sim.aporte)} × ${sim.n} meses`,
+                valor: BRL(depositado),
               },
               {
                 rotulo: "Onde chegaria sem nenhum objetivo",
-                conta: `${BRL(sim.p0, 0)} rendendo, mais ${BRL(sim.aporte)} por mês, durante ${sim.n} meses`,
-                valor: BRL(semObj, 0),
+                conta: `${BRL(sim.p0)} rendendo, mais ${BRL(sim.aporte)} por mês, durante ${sim.n} meses`,
+                valor: BRL(semObj),
               },
               ...obj
                 .filter((o) => (o.v ?? 0) > 0)
                 .map((o) => ({
                   rotulo: `Objetivo: ${o.d || "sem nome"}`,
-                  conta: `${BRL(o.v ?? 0, 0)} ${
+                  conta: `${BRL(o.v ?? 0)} ${
                     o.rec === "unica"
                       ? `uma vez, no mês ${nMes({ n: o.q.n ?? 0, u: o.q.u })}`
                       : o.rec === "anual"
@@ -309,13 +309,13 @@ export default function Oraculo({ f }: { f: Ferramenta }) {
                 })),
               {
                 rotulo: "Quanto os objetivos custaram do patrimônio final",
-                conta: `${BRL(semObj, 0)} − ${BRL(sim.fim, 0)}`,
-                valor: BRL(semObj - sim.fim, 0),
+                conta: `${BRL(semObj)} − ${BRL(sim.fim)}`,
+                valor: BRL(semObj - sim.fim),
               },
               {
                 rotulo: "Renda mensal sem encostar no principal",
-                conta: `${BRL(Math.max(sim.fim, 0), 0)} × 0,4% ao mês`,
-                valor: BRL(renda, 0),
+                conta: `${BRL(Math.max(sim.fim, 0))} × 0,4% ao mês`,
+                valor: BRL(renda),
               },
             ],
             serie: {
@@ -335,10 +335,10 @@ export default function Oraculo({ f }: { f: Ferramenta }) {
                   }, 0);
                   return [
                     String(m),
-                    BRL(rend, 0),
-                    BRL(sim.aporte, 0),
-                    saques > 0 ? "− " + BRL(saques, 0) : "—",
-                    BRL(valor, 0),
+                    BRL(rend),
+                    BRL(sim.aporte),
+                    saques > 0 ? "− " + BRL(saques) : "—",
+                    BRL(valor),
                   ];
                 })
                 .filter((l): l is string[] => l !== null)

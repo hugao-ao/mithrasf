@@ -131,6 +131,12 @@ export function MemoriaCalculo({ memoria }: { memoria: Memoria }) {
       </summary>
 
       <div className="flex flex-col gap-4 border-t border-white/10 px-4 py-4">
+        {/* Sem este aviso, ver R$ 8.080,23 aqui e R$ 8.080 acima parece erro. */}
+        <p className="text-[0.75rem] italic leading-relaxed text-muted-foreground">
+          Aqui os valores aparecem com centavos. No resultado acima, alguns são arredondados
+          para facilitar a leitura.
+        </p>
+
         {passos?.length ? (
           <div className="flex flex-col gap-3">
             {passos.map((p, i) => (

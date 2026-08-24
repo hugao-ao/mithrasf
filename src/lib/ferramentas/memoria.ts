@@ -267,13 +267,13 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
     const cart = v.pr * 0.015;
     return {
       passos: [
-        { rotulo: "Entrada", conta: `${BRL(v.pr, 0)} × ${NUM(v.ent, 1)}%`, valor: BRL(ent, 2) },
-        { rotulo: "ITBI", conta: `${BRL(v.pr, 0)} × 2%`, valor: BRL(itbi, 2) },
-        { rotulo: "Cartório e registro", conta: `${BRL(v.pr, 0)} × 1,5%`, valor: BRL(cart, 2) },
+        { rotulo: "Entrada", conta: `${BRL(v.pr)} × ${NUM(v.ent, 1)}%`, valor: BRL(ent, 2) },
+        { rotulo: "ITBI", conta: `${BRL(v.pr)} × 2%`, valor: BRL(itbi, 2) },
+        { rotulo: "Cartório e registro", conta: `${BRL(v.pr)} × 1,5%`, valor: BRL(cart, 2) },
         {
           rotulo: "Total que você precisa ter",
-          conta: `${BRL(ent, 0)} + ${BRL(itbi, 0)} + ${BRL(cart, 0)} + ${BRL(v.mv, 0)}`,
-          valor: BRL(ent + itbi + cart + v.mv, 0),
+          conta: `${BRL(ent)} + ${BRL(itbi)} + ${BRL(cart)} + ${BRL(v.mv)}`,
+          valor: BRL(ent + itbi + cart + v.mv, 2),
         },
       ],
     };
@@ -306,18 +306,18 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
         },
         {
           rotulo: "Total do consórcio antes do reajuste",
-          conta: `${BRL(v.pr, 0)} × (1 + ${NUM(v.tx, 1)}%)`,
-          valor: BRL(v.pr * (1 + v.tx / 100), 0),
+          conta: `${BRL(v.pr)} × (1 + ${NUM(v.tx, 1)}%)`,
+          valor: BRL(v.pr * (1 + v.tx / 100), 2),
         },
         {
           rotulo: "Primeira parcela do consórcio",
-          conta: `${BRL(v.pr * (1 + v.tx / 100), 0)} ÷ ${n}`,
+          conta: `${BRL(v.pr * (1 + v.tx / 100))} ÷ ${n}`,
           valor: BRL(base),
         },
         {
           rotulo: "Total do consórcio com o reajuste aplicado",
           conta: `soma das ${n} parcelas, reajustadas ${NUM(v.rj || 0, 1)}% a cada 12 meses`,
-          valor: BRL(acumCons, 0),
+          valor: BRL(acumCons, 2),
         },
       ],
       serie: {
@@ -348,7 +348,7 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
           `ano ${ano(k) + 1}`,
           BRL(alK(k)),
           BRL(coK(k)),
-          BRL(v.pr * Math.pow(1 + v.vz / 100, k / 12), 0),
+          BRL(v.pr * Math.pow(1 + v.vz / 100, k / 12)),
         ]);
       }
     }
@@ -356,17 +356,17 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
       passos: [
         {
           rotulo: "Quanto sobra para financiar",
-          conta: `${BRL(v.pr, 0)} − ${BRL(v.ent, 0)}`,
-          valor: BRL(fin, 0),
+          conta: `${BRL(v.pr)} − ${BRL(v.ent)}`,
+          valor: BRL(fin, 2),
         },
         {
           rotulo: "Parcela fixa do financiamento",
-          conta: `${BRL(fin, 0)} × ${NUM(i, 6)} ÷ (1 − (1 + ${NUM(i, 6)})^−${n})`,
+          conta: `${BRL(fin)} × ${NUM(i, 6)} ÷ (1 − (1 + ${NUM(i, 6)})^−${n})`,
           valor: BRL(pP),
         },
         {
           rotulo: "Primeira parcela do consórcio",
-          conta: `${BRL(v.pr, 0)} × (1 + ${NUM(v.tx, 1)}%) ÷ ${n}`,
+          conta: `${BRL(v.pr)} × (1 + ${NUM(v.tx, 1)}%) ÷ ${n}`,
           valor: BRL(pC0),
         },
         {
@@ -376,8 +376,8 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
         },
         {
           rotulo: "Quanto o imóvel valeria no fim",
-          conta: `${BRL(v.pr, 0)} × (1 + ${NUM(v.vz, 1)}%)^${NUM(n / 12, 1)}`,
-          valor: BRL(v.pr * Math.pow(1 + v.vz / 100, n / 12), 0),
+          conta: `${BRL(v.pr)} × (1 + ${NUM(v.vz, 1)}%)^${NUM(n / 12, 1)}`,
+          valor: BRL(v.pr * Math.pow(1 + v.vz / 100, n / 12), 2),
         },
       ],
       serie: {
@@ -406,7 +406,7 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
         {
           rotulo: "Custo real por ano",
           conta: `${BRL(v.pc + v.cb + an)} × 12`,
-          valor: BRL((v.pc + v.cb + an) * 12, 0),
+          valor: BRL((v.pc + v.cb + an) * 12, 2),
         },
       ],
     };
@@ -419,21 +419,21 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
     const milhas = (p: number) => ((usd * p) / 1000) * v.ml;
     return {
       passos: [
-        { rotulo: "Gasto no ano", conta: `${BRL(v.g)} × 12`, valor: BRL(anual, 0) },
+        { rotulo: "Gasto no ano", conta: `${BRL(v.g)} × 12`, valor: BRL(anual) },
         {
           rotulo: "Equivalente em dólares",
-          conta: `${BRL(anual, 0)} ÷ ${BRL(v.dol)}`,
+          conta: `${BRL(anual)} ÷ ${BRL(v.dol)}`,
           valor: "US$ " + NUM(usd, 0),
         },
         {
           rotulo: "Cartão A — sobra no ano",
-          conta: `${BRL(cash(v.c1), 0)} de cashback + ${BRL(milhas(v.p1), 0)} de milhas − ${BRL(v.a1, 0)} de anuidade`,
-          valor: BRL(cash(v.c1) + milhas(v.p1) - v.a1, 0),
+          conta: `${BRL(cash(v.c1))} de cashback + ${BRL(milhas(v.p1))} de milhas − ${BRL(v.a1)} de anuidade`,
+          valor: BRL(cash(v.c1) + milhas(v.p1) - v.a1, 2),
         },
         {
           rotulo: "Cartão B — sobra no ano",
-          conta: `${BRL(cash(v.c2), 0)} de cashback + ${BRL(milhas(v.p2), 0)} de milhas − ${BRL(v.a2, 0)} de anuidade`,
-          valor: BRL(cash(v.c2) + milhas(v.p2) - v.a2, 0),
+          conta: `${BRL(cash(v.c2))} de cashback + ${BRL(milhas(v.p2))} de milhas − ${BRL(v.a2)} de anuidade`,
+          valor: BRL(cash(v.c2) + milhas(v.p2) - v.a2, 2),
         },
       ],
     };
@@ -464,11 +464,11 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
                 : "carteira assinada: 6 meses",
           valor: `${meses} meses`,
         },
-        { rotulo: "Sua reserva ideal", conta: `${BRL(v.g)} × ${meses}`, valor: BRL(alvo, 0) },
-        { rotulo: "Quanto falta", conta: `${BRL(alvo, 0)} − ${BRL(v.ja, 0)}`, valor: BRL(falta, 0) },
+        { rotulo: "Sua reserva ideal", conta: `${BRL(v.g)} × ${meses}`, valor: BRL(alvo) },
+        { rotulo: "Quanto falta", conta: `${BRL(alvo)} − ${BRL(v.ja)}`, valor: BRL(falta) },
         {
           rotulo: "Quantos meses você aguenta hoje sem renda",
-          conta: `${BRL(v.ja, 0)} ÷ ${BRL(v.g)}`,
+          conta: `${BRL(v.ja)} ÷ ${BRL(v.g)}`,
           valor: NUM(v.g > 0 ? v.ja / v.g : 0, 1) + " meses",
         },
       ],
@@ -494,12 +494,12 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
         {
           rotulo: "Para manter o padrão de vida",
           conta: `${BRL(v.r)} × ${n}`,
-          valor: BRL(v.r * n, 0),
+          valor: BRL(v.r * n, 2),
         },
         {
           rotulo: "Total necessário",
-          conta: `${BRL(v.r * n, 0)} + ${BRL(v.dv, 0)} de dívidas`,
-          valor: BRL(v.r * n + v.dv, 0),
+          conta: `${BRL(v.r * n)} + ${BRL(v.dv)} de dívidas`,
+          valor: BRL(v.r * n + v.dv, 2),
         },
       ],
     };
@@ -528,17 +528,17 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
         },
         {
           rotulo: "Quanto o que você já tem vira sozinho",
-          conta: `${BRL(v.ja, 0)} × (1 + ${NUM(i, 6)})^${n}`,
+          conta: `${BRL(v.ja)} × (1 + ${NUM(i, 6)})^${n}`,
           valor: BRL(fut, 2),
         },
         {
           rotulo: "Quanto falta juntar",
-          conta: `${BRL(v.alvo, 0)} − ${BRL(fut, 0)}`,
+          conta: `${BRL(v.alvo)} − ${BRL(fut)}`,
           valor: BRL(falta, 2),
         },
         {
           rotulo: "Depósito mensal necessário",
-          conta: `${BRL(falta, 0)} × ${NUM(i, 6)} ÷ ((1 + ${NUM(i, 6)})^${n} − 1)`,
+          conta: `${BRL(falta)} × ${NUM(i, 6)} ÷ ((1 + ${NUM(i, 6)})^${n} − 1)`,
           valor: BRL(pmt),
         },
       ],
@@ -561,13 +561,13 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
         },
         {
           rotulo: "Meses até o aumento cobrir o curso",
-          conta: g > 0 ? `${BRL(v.c, 0)} ÷ ${BRL(g)}` : "sem aumento, não se paga",
+          conta: g > 0 ? `${BRL(v.c)} ÷ ${BRL(g)}` : "sem aumento, não se paga",
           valor: g > 0 ? `${Math.ceil(v.c / g)} meses` : "—",
         },
         {
           rotulo: "Lucro líquido em 5 anos",
-          conta: `${BRL(g)} × 60 − ${BRL(v.c, 0)}`,
-          valor: BRL(g * 60 - v.c, 0),
+          conta: `${BRL(g)} × 60 − ${BRL(v.c)}`,
+          valor: BRL(g * 60 - v.c, 2),
         },
       ],
     };
@@ -581,24 +581,24 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
       passos: [
         {
           rotulo: "13º salário diluído por mês",
-          conta: `${BRL(v.sal, 0)} ÷ 12`,
+          conta: `${BRL(v.sal)} ÷ 12`,
           valor: BRL(v.sal / 12, 2),
         },
         {
           rotulo: "Férias mais um terço, por mês",
-          conta: `${BRL(v.sal, 0)} × 1,3333 ÷ 12`,
+          conta: `${BRL(v.sal)} × 1,3333 ÷ 12`,
           valor: BRL((v.sal * 1.3333) / 12, 2),
         },
-        { rotulo: "FGTS", conta: `${BRL(v.sal, 0)} × 8%`, valor: BRL(v.sal * 0.08, 2) },
+        { rotulo: "FGTS", conta: `${BRL(v.sal)} × 8%`, valor: BRL(v.sal * 0.08, 2) },
         {
           rotulo: "Valor real do seu CLT",
-          conta: `${BRL(v.sal, 0)} + ${BRL(v.sal * extra, 0)} + ${BRL(v.ben, 0)} de benefícios`,
-          valor: BRL(clt, 0),
+          conta: `${BRL(v.sal)} + ${BRL(v.sal * extra)} + ${BRL(v.ben)} de benefícios`,
+          valor: BRL(clt, 2),
         },
         {
           rotulo: "Quanto cobrar como PJ, já descontando o imposto",
-          conta: `${BRL(clt, 0)} ÷ (1 − ${NUM(v.imp, 1)}%)`,
-          valor: BRL(v.imp < 100 ? clt / (1 - v.imp / 100) : 0, 0),
+          conta: `${BRL(clt)} ÷ (1 − ${NUM(v.imp, 1)}%)`,
+          valor: BRL(v.imp < 100 ? clt / (1 - v.imp / 100) : 0, 2),
         },
       ],
     };
@@ -612,22 +612,22 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
       passos: [
         {
           rotulo: "Limite dedutível do PGBL",
-          conta: `${BRL(v.renda, 0)} × 12%`,
+          conta: `${BRL(v.renda)} × 12%`,
           valor: BRL(teto, 2),
         },
         {
           rotulo: "Quanto de fato entra na dedução",
-          conta: `o menor entre ${BRL(v.ap, 0)} e ${BRL(teto, 0)}`,
+          conta: `o menor entre ${BRL(v.ap)} e ${BRL(teto)}`,
           valor: BRL(ded, 2),
         },
         {
           rotulo: "Imposto adiado no ano",
           conta:
             v.comp === "sim" && v.inss === "sim"
-              ? `${BRL(ded, 0)} × 27,5%`
+              ? `${BRL(ded)} × 27,5%`
               : "não se aplica ao seu caso",
           valor:
-            v.comp === "sim" && v.inss === "sim" ? BRL(ded * 0.275, 0) : "R$ 0,00",
+            v.comp === "sim" && v.inss === "sim" ? BRL(ded * 0.275, 2) : "R$ 0,00",
         },
       ],
     };
@@ -648,8 +648,8 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
       if (m % 12 === 0 || m === n) {
         linhas.push([
           `ano ${Math.ceil(m / 12)}`,
-          BRL(v.v0 * Math.pow(1 + ia, m), 0),
-          BRL(v.v0 * Math.pow(1 + ib, m), 0),
+          BRL(v.v0 * Math.pow(1 + ia, m)),
+          BRL(v.v0 * Math.pow(1 + ib, m)),
         ]);
       }
     }
@@ -662,27 +662,27 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
         },
         {
           rotulo: "Investimento A — bruto",
-          conta: `${BRL(v.v0, 0)} × (1 + ${NUM(ia, 6)})^${n}`,
+          conta: `${BRL(v.v0)} × (1 + ${NUM(ia, 6)})^${n}`,
           valor: BRL(brutoA, 2),
         },
         {
           rotulo: "Investimento A — imposto sobre o lucro",
           conta:
             v.ta === "sim"
-              ? `(${BRL(brutoA, 0)} − ${BRL(v.v0, 0)}) × ${NUM(aliq * 100, 1)}%`
+              ? `(${BRL(brutoA)} − ${BRL(v.v0)}) × ${NUM(aliq * 100, 1)}%`
               : "isento",
           valor: BRL(impA, 2),
         },
         {
           rotulo: "Investimento B — bruto",
-          conta: `${BRL(v.v0, 0)} × (1 + ${NUM(ib, 6)})^${n}`,
+          conta: `${BRL(v.v0)} × (1 + ${NUM(ib, 6)})^${n}`,
           valor: BRL(brutoB, 2),
         },
         {
           rotulo: "Investimento B — imposto sobre o lucro",
           conta:
             v.tb === "sim"
-              ? `(${BRL(brutoB, 0)} − ${BRL(v.v0, 0)}) × ${NUM(aliq * 100, 1)}%`
+              ? `(${BRL(brutoB)} − ${BRL(v.v0)}) × ${NUM(aliq * 100, 1)}%`
               : "isento",
           valor: BRL(impB, 2),
         },
@@ -710,7 +710,7 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
       passos: [
         {
           rotulo: "Desconto simplificado",
-          conta: `o menor entre ${BRL(v.renda, 0)} × 20% e o teto de ${BRL(LIM_SIMPL, 2)}`,
+          conta: `o menor entre ${BRL(v.renda)} × 20% e o teto de ${BRL(LIM_SIMPL, 2)}`,
           valor: BRL(simpl, 2),
         },
         {
@@ -720,17 +720,17 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
         },
         {
           rotulo: "Educação, respeitado o teto",
-          conta: `o menor entre ${BRL(v.edu, 0)} e ${BRL(LIM_EDU, 2)} × ${NUM(1 + v.dep, 0)} pessoas`,
+          conta: `o menor entre ${BRL(v.edu)} e ${BRL(LIM_EDU, 2)} × ${NUM(1 + v.dep, 0)} pessoas`,
           valor: BRL(dEdu, 2),
         },
         {
           rotulo: "PGBL, respeitado o teto",
-          conta: `o menor entre ${BRL(v.pgbl, 0)} e ${BRL(v.renda, 0)} × 12%`,
+          conta: `o menor entre ${BRL(v.pgbl)} e ${BRL(v.renda)} × 12%`,
           valor: BRL(dPgbl, 2),
         },
         {
           rotulo: "Soma das deduções da declaração completa",
-          conta: `${BRL(dDep, 0)} + ${BRL(dEdu, 0)} + ${BRL(v.sau, 0)} de saúde + ${BRL(v.inss, 0)} de INSS + ${BRL(dPgbl, 0)}`,
+          conta: `${BRL(dDep)} + ${BRL(dEdu)} + ${BRL(v.sau)} de saúde + ${BRL(v.inss)} de INSS + ${BRL(dPgbl)}`,
           valor: BRL(dDep + dEdu + v.sau + v.inss + dPgbl, 2),
         },
       ],
@@ -744,18 +744,18 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
       passos: [
         {
           rotulo: "Imposto de herança do seu estado",
-          conta: `${BRL(v.pat, 0)} × ${NUM(v.al, 1)}%`,
+          conta: `${BRL(v.pat)} × ${NUM(v.al, 1)}%`,
           valor: BRL(it, 2),
         },
         {
           rotulo: "Cartório e advogado",
-          conta: `${BRL(v.pat, 0)} × 3%`,
+          conta: `${BRL(v.pat)} × 3%`,
           valor: BRL(cu, 2),
         },
         {
           rotulo: "Total que a família precisa ter em dinheiro",
-          conta: `${BRL(it, 0)} + ${BRL(cu, 0)}`,
-          valor: BRL(it + cu, 0),
+          conta: `${BRL(it)} + ${BRL(cu)}`,
+          valor: BRL(it + cu, 2),
         },
       ],
     };
