@@ -31,9 +31,9 @@ const trilha = [
   },
   {
     numero: "03",
-    titulo: "Reserva do Horário — R$ 250,00",
+    titulo: "Diagnóstico Financeiro — R$ 250,00",
     descricao:
-      "Para garantir o horário, é feita uma reserva no valor de R$ 250,00. Em caso de não comparecimento sem aviso prévio, 50% do valor é retido. Se comparecer, o valor é integralmente abatido do Planejamento.",
+      "O Diagnóstico tem preço fixo de R$ 250,00 e é gratuito para quem chega por indicação de um cliente nosso. Ele vale por si só: fazer o Diagnóstico não obriga a contratar mais nada. Faltando sem avisar com 24 horas de antecedência, a reunião conta como realizada.",
     icon: Shield,
   },
   {
@@ -59,11 +59,43 @@ const trilha = [
   },
   {
     numero: "07",
-    titulo: "Entrega do Planejamento de Referência",
+    titulo: "Reuniões de explicação — quantas forem necessárias",
     descricao:
-      "Em até 15 dias após o fechamento do negócio, você recebe seu Planejamento Financeiro de Referência completo — pronto para seguir, manter atualizado e consultar sempre que precisar.",
+      "A primeira reunião de entrega acontece no mínimo 15 dias depois do diagnóstico — o tempo de reunir a documentação e montar o plano. A partir dela, você tem quantas reuniões forem necessárias até que cada objetivo e cada uma das 18 partes tenham sido explicados. Nenhuma reunião termina sem a próxima já marcada.",
+    icon: Users,
+  },
+  {
+    numero: "08",
+    titulo: "Termo de entrega e o seu PDF",
+    descricao:
+      "Na última reunião você assina o Termo de Plano Entregue e recebe, na mesma hora, o PDF completo e datado do seu Planejamento. Ele fica com você — não depende de continuar assinando nada para ser seu.",
     icon: BookOpen,
   },
+];
+
+/** As 18 partes do Protocolo Argos, na ordem em que aparecem no documento. */
+const protocolo = [
+  { topico: "Gestão Financeira", partes: ["Dívidas", "Cortes de gastos", "Aumento de receita"] },
+  {
+    topico: "Gestão de Risco",
+    partes: [
+      "Risco de patrimônio",
+      "Risco de orçamento",
+      "Risco de saúde básica",
+      "Doenças graves e acidentes",
+      "Risco da profissão",
+    ],
+  },
+  { topico: "Gestão de Ativos", partes: ["Distribuição de ativos", "Aportes mensais"] },
+  {
+    topico: "Longo Prazo e Pós-Aposentadoria",
+    partes: ["Acúmulo mais vantajoso", "Análise", "Conclusão"],
+  },
+  {
+    topico: "Planejamento Tributário",
+    partes: ["Forma de recebimento", "Forma de declaração", "PGBL ou não"],
+  },
+  { topico: "Planejamento Sucessório", partes: ["Patrimônio estimado", "Soluções possíveis"] },
 ];
 
 const vantagens = [
@@ -192,6 +224,96 @@ export default function PlanejamentoReferencia() {
         </div>
       </section>
 
+      {/* ── O QUE VEM DENTRO ─────────────────────────────────────────────── */}
+      <section className="space-y-10">
+        <div className="text-center space-y-3">
+          <h2 className="text-3xl md:text-4xl font-bold text-white">
+            O que vem dentro do documento
+          </h2>
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            Duas partes, que não são independentes: a primeira é aonde você quer chegar, a
+            segunda é o caminho até lá.
+          </p>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Parte I */}
+          <div className="bg-card/40 border border-primary/20 rounded-2xl p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="h-11 w-11 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
+                <Target className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-[0.7rem] uppercase tracking-wider text-muted-foreground">
+                  Parte I
+                </p>
+                <h3 className="text-lg font-bold text-white">Seus objetivos</h3>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Para <span className="text-white font-semibold">cada objetivo</span> que você
+              declarar no diagnóstico — sem limite de quantidade —, uma estratégia escrita com
+              o valor estimado, o prazo, o esforço mensal necessário e o caminho recomendado,
+              considerando os seus outros objetivos e o que cabe no seu bolso.
+            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Se um objetivo não couber nos seus números,{" "}
+              <span className="text-white font-semibold">
+                a gente mostra por que não cabe e o que precisaria mudar
+              </span>{" "}
+              — prazo, valor, aporte ou ordem de prioridade.
+            </p>
+          </div>
+
+          {/* Parte II */}
+          <div className="bg-card/40 border border-white/5 rounded-2xl p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="h-11 w-11 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
+                <Compass className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-[0.7rem] uppercase tracking-wider text-muted-foreground">
+                  Parte II · Protocolo Argos
+                </p>
+                <h3 className="text-lg font-bold text-white">O caminho, em 18 partes</h3>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Colocar a vida financeira em ordem é o que faz os seus objetivos caberem. Cada
+              uma das 18 partes traz a sua situação hoje, a recomendação, o porquê dela e o
+              próximo passo prático.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {protocolo.map((t) => (
+                <div key={t.topico} className="space-y-1">
+                  <p className="text-xs font-bold text-primary">{t.topico}</p>
+                  <ul className="space-y-0.5">
+                    {t.partes.map((p) => (
+                      <li key={p} className="text-xs text-muted-foreground flex gap-1.5">
+                        <span className="text-primary/50">·</span>
+                        <span>{p}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-primary/5 border border-primary/20 rounded-2xl p-6 text-center space-y-2">
+          <p className="text-white font-semibold">
+            O valor do Planejamento é personalizado para cada caso.
+          </p>
+          <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+            Ele é definido no fechamento, depois do diagnóstico, quando já se sabe o tamanho do
+            trabalho. E enquanto você mantiver um plano mensal,{" "}
+            <span className="text-white">manter o seu Planejamento atualizado não custa nada</span>{" "}
+            — a revisão faz parte da assinatura.
+          </p>
+        </div>
+      </section>
+
       {/* ── VANTAGENS ────────────────────────────────────────────────────── */}
       <section className="space-y-10">
         <div className="text-center space-y-3">
@@ -229,7 +351,7 @@ export default function PlanejamentoReferencia() {
             O caminho até o seu Planejamento
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Do primeiro contato à entrega do documento — sete etapas simples
+            Do primeiro contato à entrega do documento — oito etapas simples
             e transparentes.
           </p>
         </div>

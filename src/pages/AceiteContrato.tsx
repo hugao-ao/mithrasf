@@ -14,6 +14,8 @@ import {
   BookOpen,
 } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
+import ContratoTexto from "@/components/ContratoTexto";
+import { porNome } from "@/lib/planos";
 
 // ─── Configurações ────────────────────────────────────────────────────────────
 const SUPABASE_URL = "https://vbikskbfkhundhropykf.supabase.co";
@@ -23,101 +25,6 @@ const CYCLOPAY_API_KEY = "ak_aeb26f6be167cc077eb227c128262e731523d492";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ─── Mapa de planos ────────────────────────────────────────────────────────────
-const PLANOS_CONFIG: Record<
-  string,
-  {
-    planId: number;
-    checkoutId: number;
-    preco: string;
-    checkoutFallback: string;
-    sla_agenda: string;
-    sla_whatsapp: string;
-    incluso: string;
-    nao_incluso: string;
-    escopo: string[];
-    adesao_info: string;
-  }
-> = {
-  "HV Nível I": {
-    planId: 11830,
-    checkoutId: 11649,
-    preco: "29,90",
-    checkoutFallback: "WrKjwGYR4p",
-    sla_agenda: "6 meses",
-    sla_whatsapp: "30 dias",
-    incluso: "Orientação estratégica e resolução de dúvidas pontuais.",
-    nao_incluso:
-      "Cotações de preços, pesquisas de mercado, contato com terceiros, execução de tarefas operacionais, relatórios escritos fora de reunião.",
-    escopo: [
-      "Contato ilimitado via WhatsApp (sem análises novas ou cotações).",
-      "Resolução de qualquer tipo de demanda durante o horário da reunião.",
-    ],
-    adesao_info:
-      "(Com um Planejamento de Referência, tem direito a pedir 1 reunião de monitoramento a cada 6 meses)",
-  },
-  "HV Nível II": {
-    planId: 11831,
-    checkoutId: 11650,
-    preco: "59,90",
-    checkoutFallback: "2GoFRSHleo",
-    sla_agenda: "4 meses",
-    sla_whatsapp: "15 dias",
-    incluso:
-      "Tudo do Nível I + Realização de cotações de preços e pesquisas comparativas de produtos/serviços solicitados em reunião.",
-    nao_incluso:
-      "Contato com terceiros (corretores, gerentes), intermediação de contratações, execução de tarefas operacionais, relatórios mensais.",
-    escopo: [
-      "Contato ilimitado via WhatsApp (sem novas análises).",
-      "Resolução de qualquer tipo de demanda durante o horário da reunião.",
-      "Cotações e pesquisas relativas às demandas da reunião.",
-    ],
-    adesao_info:
-      "(Com um Planejamento de Referência, tem direito a pedir 1 reunião de monitoramento a cada 4 meses)",
-  },
-  "HV Nível III": {
-    planId: 11833,
-    checkoutId: 11652,
-    preco: "119,90",
-    checkoutFallback: "kgl3pLDplo",
-    sla_agenda: "2 meses",
-    sla_whatsapp: "7 dias",
-    incluso:
-      "Tudo do Nível II + Supervisão técnica ativa em reuniões/grupos com terceiros + Relatórios mensais de acompanhamento.",
-    nao_incluso:
-      "Execução operacional de tarefas (preenchimento de formulários, envio de documentos, trâmites burocráticos) em nome do cliente.",
-    escopo: [
-      "Contato ilimitado via WhatsApp.",
-      "Resolução de qualquer tipo de demanda durante o horário da reunião.",
-      "Cotações e pesquisas relativas às demandas da reunião.",
-      "Supervisão Ativa: Acompanhamento em tempo real (reuniões conjuntas ou grupos de WhatsApp) das tratativas com outros profissionais para garantir a adequação técnica do que está sendo contratado.",
-      "Contato via WhatsApp mensal para atualizações e/ou relatórios.",
-    ],
-    adesao_info:
-      "(Com um Planejamento de Referência, tem direito a pedir 1 reunião de monitoramento a cada 2 meses)",
-  },
-  "HV Nível IV": {
-    planId: 11835,
-    checkoutId: 11653,
-    preco: "299,90",
-    checkoutFallback: "rHe327XILq",
-    sla_agenda: "1 mês",
-    sla_whatsapp: "72 horas",
-    incluso:
-      "Tudo do Nível III + Execução operacional completa de demandas burocráticas + Relatórios semanais + Horário fixo garantido.",
-    nao_incluso:
-      "Atos que exijam estritamente a presença física, assinatura biométrica ou uso de senha pessoal intransferível do titular.",
-    escopo: [
-      "Contato ilimitado via WhatsApp.",
-      "Resolução de qualquer tipo de demanda durante o horário da reunião.",
-      "Cotações e pesquisas relativas às demandas da reunião.",
-      "Supervisão Ativa com outros profissionais (conforme Nível III).",
-      "Execução Operacional Completa: Realização de todas as tarefas burocráticas e administrativas possíveis, entregando a solução pronta para validação final do cliente.",
-      "Contato via WhatsApp semanal para atualizações e/ou relatórios.",
-    ],
-    adesao_info: "",
-  },
-};
 
 // ─── Checkbox customizado ──────────────────────────────────────────────────────
 function CustomCheckbox({
@@ -155,143 +62,12 @@ function CustomCheckbox({
   );
 }
 
-// ─── Contrato completo por plano (idêntico ao de Planos.tsx) ─────────────────
-function ContratoCompleto({ planoNome }: { planoNome: string }) {
-  const plano = PLANOS_CONFIG[planoNome] || PLANOS_CONFIG["HV Nível I"];
-
-  return (
-    <div className="text-sm text-muted-foreground space-y-4 text-justify">
-      <p>
-        <strong>1. OBJETO:</strong> Prestação de serviços de Consultoria e Planejamento
-        Financeiro Pessoal, abrangendo, conforme o nível contratado: Planejamento
-        Orçamentário, Gestão de Passivos e Dívidas, Análise de Viabilidade de Seguros
-        (Vida, Auto, Residencial, Saúde), Planejamento Previdenciário (PGBL/VGBL),
-        Estratégia de Alocação de Ativos, Otimização Fiscal (IRPF), Planejamento
-        Sucessório, Gestão de Cartões/Milhas e Análise de Crédito
-        (Financiamentos/Consórcios).
-      </p>
-
-      {/* Escopo específico do plano */}
-      <div className="bg-primary/10 p-3 rounded border border-primary/20">
-        <p className="text-xs font-bold text-primary mb-1">
-          ESCOPO ESPECÍFICO DESTE PLANO ({planoNome}):
-        </p>
-        <ul className="space-y-1 mb-2">
-          {plano.escopo.map((item, i) => (
-            <li key={i} className="flex gap-2 text-xs text-white">
-              <span className="text-primary shrink-0">•</span>
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
-        {plano.adesao_info && (
-          <p className="text-xs text-muted-foreground italic mb-2">{plano.adesao_info}</p>
-        )}
-        <p className="text-xs text-white">{plano.incluso}</p>
-        <p className="text-xs text-red-300 mt-1">
-          <strong>VEDAÇÕES:</strong> {plano.nao_incluso}
-        </p>
-      </div>
-
-      <p>
-        <strong>Níveis de Serviço (Intermediação e Execução):</strong>
-        <br />
-        <strong>Nível III:</strong> Inclui a Supervisão Ativa, onde o CONSULTOR participa
-        em conjunto com o CONTRATANTE (via reuniões ou grupos de WhatsApp) nas tratativas
-        com outros profissionais do mercado, atuando como suporte técnico para assegurar a
-        adequação dos produtos, sem qualquer recebimento de comissão ou vínculo comercial
-        com os fornecedores.
-        <br />
-        <strong>Nível IV:</strong> Inclui a Supervisão Ativa do Nível III somada à execução
-        operacional completa de todas as demandas burocráticas e administrativas que não
-        exijam a presença física, assinatura biométrica ou senha pessoal intransferível do
-        CONTRATANTE, entregando as soluções prontas para validação final.
-      </p>
-
-      <p>
-        <strong>2. METODOLOGIA DE INVESTIMENTOS E SEGUROS:</strong>
-        <br />
-        <strong>Investimentos:</strong> O serviço limita-se à definição da estratégia de
-        Alocação de Ativos (Asset Allocation) e Rebalanceamento Periódico, baseando-se
-        exclusivamente na metodologia de Classificação de Risco dos Ativos (7 perfis de
-        risco). O CONSULTOR não realiza custódia de valores nem emite ordens de
-        compra/venda. A execução final é de responsabilidade exclusiva do cliente junto à
-        sua corretora.
-        <br />
-        <strong>Seguros e Previdência:</strong> O trabalho consiste na análise de
-        necessidade, cálculo de capital segurado e comparação técnica de apólices. A
-        contratação final deve ser realizada através de corretor habilitado (SUSEP) ou
-        instituição financeira de escolha do cliente.
-      </p>
-
-      <p>
-        <strong>3. OBRIGAÇÕES DO CONSULTOR:</strong> Prestar as orientações técnicas com
-        diligência; manter sigilo absoluto das informações (LGPD); cumprir os prazos de
-        resposta (SLA) estabelecidos neste plano.
-      </p>
-
-      <p>
-        <strong>4. OBRIGAÇÕES DO CONTRATANTE:</strong> Fornecer informações verídicas;
-        manter os pagamentos em dia; comparecer às reuniões agendadas.
-      </p>
-
-      <p>
-        <strong>5. AGENDAMENTOS E SLA:</strong>
-        <br />
-        <strong>Política de "No-Show" (Ausência):</strong> O não comparecimento à reunião
-        agendada, sem aviso prévio de cancelamento com antecedência mínima de 24 horas,
-        implicará na consideração do serviço como PRESTADO, descontando-se do saldo de
-        reuniões ou considerando-se cumprida a agenda do mês.
-        <br />
-        <strong>Canais Oficiais:</strong> Para fins de registro e contagem de prazos, são
-        válidas apenas as solicitações realizadas em reunião ou via WhatsApp oficial. Áudios
-        com mais de 2 minutos ou mensagens fora do horário comercial poderão ter prazo de
-        resposta estendido.
-        <br />
-        <strong>SLA deste plano — Agenda:</strong> {plano.sla_agenda} |{" "}
-        <strong>WhatsApp:</strong> {plano.sla_whatsapp}
-      </p>
-
-      <p>
-        <strong>6. CANCELAMENTO E ARREPENDIMENTO:</strong>
-        <br />
-        Conforme o Art. 49 do CDC, o cliente tem direito ao arrependimento em até 7 dias
-        após a contratação, com reembolso integral. Após este prazo, o cancelamento da
-        assinatura mensal pode ser feito a qualquer momento, interrompendo-se as cobranças
-        futuras, sem reembolso dos dias já utilizados no mês corrente.
-      </p>
-
-      <p>
-        <strong>7. ISENÇÃO DE RESPONSABILIDADE (CVM):</strong>
-        <br />
-        Este serviço NÃO constitui consultoria de valores mobiliários (CVM Resolução 19)
-        nem gestão de carteira administrada. O CONSULTOR não promete rentabilidade futura
-        nem se responsabiliza por prejuízos decorrentes de riscos de mercado.
-      </p>
-
-      <div className="bg-red-500/10 border border-red-500/30 p-3 rounded">
-        <h4 className="text-red-400 font-bold mb-1 flex items-center gap-2 text-xs">
-          <AlertTriangle className="h-4 w-4" /> CONDIÇÃO ESSENCIAL PARA ATENDIMENTO
-        </h4>
-        <p className="text-xs text-white">
-          <strong>8. POLÍTICA DE PAGAMENTO E SUSPENSÃO DE SERVIÇOS:</strong> O acesso a
-          quaisquer benefícios deste plano (incluindo respostas no WhatsApp, agendamento de
-          reuniões e envio de relatórios) está estritamente condicionado à regularidade dos
-          pagamentos. O CONSULTOR realizará a verificação de adimplência antes de iniciar
-          qualquer atendimento. Havendo pendência financeira, a prestação de serviços será{" "}
-          <strong>IMEDIATAMENTE SUSPENSA</strong> até a regularização, sem que isso gere
-          qualquer direito a indenização ou extensão de prazo contratual.
-        </p>
-      </div>
-    </div>
-  );
-}
 
 // ─── Componente principal ──────────────────────────────────────────────────────
 export default function AceiteContrato() {
   const params = new URLSearchParams(window.location.search);
   const planoNome = decodeURIComponent(params.get("plano") || "HV Nível I");
-  const plano = PLANOS_CONFIG[planoNome] || PLANOS_CONFIG["HV Nível I"];
+  const plano = porNome(planoNome);
 
   // ─── Estado ────────────────────────────────────────────────────────────────
   const [nome, setNome] = useState("");
@@ -327,6 +103,15 @@ export default function AceiteContrato() {
     }
     if (!aceiteTermos || !aceiteCancelamento || !aceiteCondicao) {
       setErro("Você precisa marcar todos os checkboxes obrigatórios para continuar.");
+      return;
+    }
+
+    // Níveis cujo checkout ainda não existe com o preço vigente não podem seguir
+    // pelo fluxo automático — mandaria o cliente para uma cobrança de outro valor.
+    if (!plano.checkoutUrl) {
+      setErro(
+        "Este nível ainda não tem contratação automática. Fale com o consultor pelo WhatsApp para assinar.",
+      );
       return;
     }
 
@@ -375,9 +160,9 @@ export default function AceiteContrato() {
 
       // 2. Gerar link de checkout personalizado
       const successUrl = `https://hvsaudefinanceira.com.br/aguardando-formulario?email=${encodeURIComponent(email.trim().toLowerCase())}&cpf=${encodeURIComponent(cpfLimpo || '')}&plano=${encodeURIComponent(planoNome)}`;
-      if (customerId) {
+      if (customerId && plano.pagamento) {
         const linkRes = await fetch(
-          `https://api.cyclopay.com/v1/customers/${customerId}/checkout/${plano.checkoutId}`,
+          `https://api.cyclopay.com/v1/customers/${customerId}/checkout/${plano.pagamento?.checkoutId}`,
           {
             method: "POST",
             headers: {
@@ -403,7 +188,7 @@ export default function AceiteContrato() {
         plano_preco: plano.preco,
         plano_checkout_url:
           checkoutUrl ||
-          `https://planofinanceiro.cyclopay.com/checkout/${plano.checkoutFallback}`,
+          plano.checkoutUrl,
         aceite_termos: aceiteTermos,
         aceite_politica_cancelamento: aceiteCancelamento,
         aceite_condicao_atendimento: aceiteCondicao,
@@ -424,7 +209,7 @@ export default function AceiteContrato() {
       // (ou o Cyclopay redireciona se configurado com success_url)
       window.location.href =
         checkoutUrl ||
-        `https://planofinanceiro.cyclopay.com/checkout?hash=${plano.checkoutFallback}`;
+        plano.checkoutUrl;
     } catch (err) {
       console.error(err);
       setErro("Ocorreu um erro. Por favor, tente novamente.");
@@ -539,7 +324,7 @@ export default function AceiteContrato() {
 
             {contratoExpandido && (
               <div className="bg-black/30 border border-white/10 rounded-xl p-4 max-h-96 overflow-y-auto">
-                <ContratoCompleto planoNome={planoNome} />
+                <ContratoTexto plano={plano} />
               </div>
             )}
           </div>
