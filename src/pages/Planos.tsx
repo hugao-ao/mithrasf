@@ -8,8 +8,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useDisjuntores } from "@/lib/disjuntores";
 import { BENEFICIOS_COMUNS, PLANOS, linkWhatsapp, type Nivel } from "@/lib/planos";
-import { BookOpen, Check, Clock, Handshake, MessageCircle, Shield, Star, Target } from "lucide-react";
+import { BookOpen, Check, Clock, Handshake, MessageCircle, Shield, Star, Target, Wrench } from "lucide-react";
+import { useState } from "react";
 import { Link } from "wouter";
 
 const ICONE: Record<Nivel, typeof Target> = {
@@ -21,6 +23,10 @@ const ICONE: Record<Nivel, typeof Target> = {
 };
 
 export default function Planos() {
+  const { liberadoPorNivel } = useDisjuntores();
+  /* Nome do plano cujo disjuntor barrou a contratação; null = sem aviso na tela. */
+  const [emManutencao, setEmManutencao] = useState<string | null>(null);
+
   return (
     <div className="space-y-16 pb-20">
       {/* Header */}
@@ -58,6 +64,7 @@ export default function Planos() {
         {PLANOS.map((plan) => {
           const Icone = ICONE[plan.nivel];
           const temCheckout = Boolean(plan.checkoutUrl);
+          const contratacaoLiberada = liberadoPorNivel(plan.nivel);
           return (
             <div
               key={plan.nivel}
@@ -130,6 +137,11 @@ export default function Planos() {
                         : "bg-white/10 text-white hover:bg-white/20"
                     }`}
                     onClick={() => {
+                      /* Disjuntor desligado: nada de mandar para o contrato. */
+                      if (!contratacaoLiberada) {
+                        setEmManutencao(plan.nome);
+                        return;
+                      }
                       window.location.href = `/aceite-contrato?plano=${encodeURIComponent(plan.nome)}`;
                     }}
                   >
@@ -277,6 +289,44 @@ export default function Planos() {
           </Button>
         </Link>
       </div>
+
+      {/* Aviso de manutenção — aparece quando o disjuntor do plano está desligado */}
+      <Dialog open={emManutencao !== null} onOpenChange={(aberto) => !aberto && setEmManutencao(null)}>
+        <DialogContent className="bg-card border-primary/20 text-white sm:max-w-sm">
+          <DialogHeader className="items-center text-center space-y-3">
+            <div className="h-14 w-14 rounded-full bg-primary/10 border border-primary/40 flex items-center justify-center">
+              <Wrench className="h-6 w-6 text-primary" />
+            </div>
+            <DialogTitle className="text-lg font-bold text-primary">
+              Contratação em manutenção
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground text-sm leading-relaxed">
+              A contratação{emManutencao ? <> do <span className="text-white font-medium">{emManutencao}</span></> : null}{" "}
+              está temporariamente indisponível. Em breve retomaremos a normalidade.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-2 pt-2">
+            <Button
+              className="bg-primary text-black hover:bg-primary/90 font-bold"
+              onClick={() => setEmManutencao(null)}
+            >
+              Entendi
+            </Button>
+            <Button
+              variant="ghost"
+              className="text-muted-foreground hover:text-primary text-xs h-8"
+              onClick={() => {
+                window.location.href = linkWhatsapp(
+                  `Oi Hugo. Tentei assinar o ${emManutencao ?? "plano"} e apareceu que está em manutenção.`,
+                );
+              }}
+            >
+              <MessageCircle className="h-4 w-4 mr-1.5" /> Falar com o consultor
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
