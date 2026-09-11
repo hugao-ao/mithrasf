@@ -110,7 +110,7 @@ export const FERRAMENTAS: Ferramenta[] = [
           titulo: "A conta está certa. O problema é que ela volta.",
           corpo:
             "Semana que vem é o plano de celular, o seguro do carro, a internet. Cada um vira uma pesquisa que você faz sozinho.",
-          nivel: "A partir do Nível II, essa pesquisa passa a ser feita por nós.",
+          nivel: "No Nível III a gente entrega os contatos; a partir do Nível IV, a pesquisa é feita por nós.",
           botao: "Quero parar de pesquisar sozinho",
         },
       };
@@ -245,7 +245,7 @@ export const FERRAMENTAS: Ferramenta[] = [
           titulo: "A parcela está conferida. A proposta inteira, não.",
           corpo:
             "Falta olhar IOF, seguro prestamista, tarifa de cadastro e se existe proposta melhor em outro banco.",
-          nivel: "A partir do Nível II, a gente cota outros bancos para comparar.",
+          nivel: "No Nível III a gente entrega os contatos dos bancos; a partir do Nível IV, a cotação é conduzida por nós.",
           botao: "Quero conferir a proposta inteira",
         },
       };
@@ -389,10 +389,10 @@ export const FERRAMENTAS: Ferramenta[] = [
     icone: FileText,
     desc: "Põe os dois lado a lado com reajuste e TR, e deixa escolher entre parcela fixa ou decrescente.",
     como: "No consórcio você paga menos, mas espera para ter o bem.",
-    opcionais: ["ent", "rend", "tr", "rj"],
+    opcionais: ["tr", "rj"],
     campos: {
-      pr: money("Valor do bem", 300000),
-      ent: money("Quanto você tem hoje", 0),
+      pr: money("Valor do imóvel", 300000),
+      fi: money("Valor financiado", 240000),
       pz: prazo("Prazo do financiamento", 15, "anos"),
       pzc: prazo("Prazo do consórcio", 15, "anos"),
       j: juro("Juros do financiamento", 11, "ano"),
@@ -401,7 +401,6 @@ export const FERRAMENTAS: Ferramenta[] = [
         ["sac", "Parcela decrescente (SAC)"],
       ]),
       tx: qtd("Taxa de administração do consórcio", 18, "%"),
-      rend: juro("Quanto seu dinheiro rende — opcional", 0, "ano"),
       tr: qtd("TR do financiamento — opcional", 0, "% ao ano"),
       rj: qtd("Reajuste anual do consórcio — opcional", 0, "% ao ano", true),
     },
@@ -410,24 +409,24 @@ export const FERRAMENTAS: Ferramenta[] = [
         titulo: "A conta está feita. A carta de crédito é que tem letra miúda.",
         corpo:
           "Grupo, prazo, seguro obrigatório, regra de lance e reajuste anual mudam tudo — e variam de administradora para administradora.",
-        nivel: "A partir do Nível II, a gente cota e compara as administradoras para você.",
+        nivel: "A partir do Nível IV, a gente cota e compara as administradoras para você.",
         botao: "Quero comparar as opções reais",
       };
-      const ent = v.ent || 0;
       const price = v.sis === "price";
+      /* Ninguém financia mais do que o imóvel vale. */
+      const fin = Math.min(Math.max(0, v.fi), v.pr);
+      const entrada = v.pr - fin;
 
-      /* Financiamento: a entrada abate o principal, como em qualquer banco. */
-      const fin = Math.max(0, v.pr - ent);
       const nF = nMes(v.pz);
       const iF = iMes({ n: v.j.n + (v.tr || 0), u: v.j.u });
       const pFin = price ? pmtPrice(fin, iF, nF) : fin / nF + fin * iF;
       const totFin = price ? pmtPrice(fin, iF, nF) * nF : fin + totJurosSac(fin, iF, nF);
-      const netFin = ent + totFin;
+      /* A entrada entra no total: é dinheiro que sai do bolso para ter o imóvel.
+         Sem ela, a conta compararia parcelas sobre valores diferentes. */
+      const netFin = entrada + totFin;
 
-      /* Consórcio: não existe entrada. A carta é o bem inteiro, e o dinheiro
-         que você tem fica rendendo até dar para quitar o que falta. */
+      /* No consórcio não existe entrada: a carta cobre o imóvel inteiro. */
       const nC = nMes(v.pzc);
-      const iR = iMes(v.rend);
       const parcelas: number[] = [];
       let p = (v.pr * (1 + v.tx / 100)) / nC;
       for (let m = 0; m < nC; m++) {
@@ -435,53 +434,26 @@ export const FERRAMENTAS: Ferramenta[] = [
         parcelas.push(p);
       }
       const totCons = parcelas.reduce((a, b) => a + b, 0);
-      /* restante[m] = o que ainda falta pagar depois de quitada a parcela m. */
-      const restante: number[] = new Array(nC + 1).fill(0);
-      for (let m = nC - 1; m >= 0; m--) restante[m] = restante[m + 1] + parcelas[m];
 
-      let inv = ent;
-      let pago = 0;
-      let mesQuita = nC;
-      let sobra = 0;
-      for (let m = 1; m <= nC; m++) {
-        inv *= 1 + iR;
-        pago += parcelas[m - 1];
-        /* No último mês restante é zero, então a comparação sempre fecha aqui. */
-        if (inv >= restante[m]) {
-          mesQuita = m;
-          sobra = inv - restante[m];
-          break;
-        }
-      }
-      const antecipou = mesQuita < nC;
-      const quitacao = restante[mesQuita];
-      const netCons = ent + pago - sobra;
-
-      const dif = netFin - netCons;
+      const dif = netFin - totCons;
       const cons = dif > 0;
-      const anos = (x: number) => NUM(x / 12, 1) + " anos";
 
       return {
         tom: cons ? "is-good" : "is-bad",
         k: cons ? "Consórcio sai mais barato em" : "Financiamento sai mais barato em",
         val: BRL(Math.abs(dif), 0),
-        sub: antecipou
-          ? `Com ${BRL(ent, 0)} rendendo ${NUM(v.rend.n, 1)}% ao ano, no mês ${mesQuita} (${anos(mesQuita)}) o dinheiro cobre os ${BRL(quitacao, 0)} que faltam e você encerra o consórcio. O financiamento, com a mesma quantia de entrada, ainda teria ${anos(nF)} pela frente.`
-          : `Parcela de ${BRL(parcelas[0])} no consórcio contra ${BRL(pFin)} no financiamento${price ? "" : " (primeira, decrescente)"}. Mas no consórcio você só recebe o bem quando for sorteado ou der o lance.`,
+        sub: `Parcela de ${BRL(parcelas[0])} no consórcio contra ${BRL(pFin)} no financiamento${price ? "" : " (primeira, decrescente)"}. No consórcio não há entrada, mas você só recebe o imóvel quando for sorteado ou der o lance — e a carta cobre o valor cheio, não só o que você financiaria.`,
         rows: [
-          ["Valor do bem", BRL(v.pr, 0), "dim"],
-          ["Quanto você tem hoje", BRL(ent, 0), "dim"],
-          ["Financiamento · financia " + BRL(fin, 0) + " em " + nF + " meses", BRL(pFin)],
+          ["Valor do imóvel", BRL(v.pr, 0), "dim"],
+          ["Você financia", BRL(fin, 0), "dim"],
+          ["Entrada que você precisa dar", BRL(entrada, 0), "dim"],
+          [`Financiamento · parcela em ${nF} meses`, BRL(pFin)],
           ["Financiamento · entrada mais parcelas", BRL(netFin, 0)],
-          ["Consórcio · carta de " + BRL(v.pr, 0) + " em " + nC + " meses", BRL(parcelas[0])],
-          [
-            antecipou ? `Consórcio · quitado no mês ${mesQuita} com ` + BRL(quitacao, 0) : "Consórcio · vai até o fim",
-            antecipou ? BRL(pago, 0) + " em parcelas" : BRL(totCons, 0),
-            "dim",
-          ],
-          ["Consórcio · custo final para você", BRL(netCons, 0), "hl"],
+          [`Consórcio · carta de ${BRL(v.pr, 0)} em ${nC} meses`, BRL(parcelas[0])],
+          ["Consórcio · última parcela", BRL(parcelas[nC - 1])],
+          ["Consórcio · total das parcelas", BRL(totCons, 0), "hl"],
         ],
-        nota: "No consórcio não existe entrada: a carta é o bem inteiro. Por isso o dinheiro que você tem fica rendendo e só entra quando já dá para quitar o que falta — e o que sobrar depois da quitação volta para você. No financiamento esse mesmo dinheiro vira entrada e abate o principal. Os dois custos finais já incluem essa quantia, então dá para comparar de frente. TR e reajuste começam em zero: a TR passa longos períodos zerada, mas o reajuste do consórcio acompanha a inflação do bem.",
+        nota: `A entrada de ${BRL(entrada, 0)} está somada ao total do financiamento, porque é dinheiro que sai do seu bolso para ter o imóvel. No consórcio ela não existe: a carta é o valor cheio, e por isso as parcelas incidem sobre ${BRL(v.pr, 0)}, não sobre ${BRL(fin, 0)}. TR e reajuste começam em zero — a TR passa longos períodos zerada, mas o reajuste do consórcio acompanha a inflação do imóvel.`,
         gat,
       };
     },
@@ -631,7 +603,7 @@ export const FERRAMENTAS: Ferramenta[] = [
           titulo: "O custo está na mesa. O que fazer com ele, não.",
           corpo:
             "Trocar por um mais barato, quitar antes, mudar o seguro ou vender e usar aplicativo — cada opção muda seu orçamento inteiro.",
-          nivel: "Leve esse número para a reunião. Reunião ilimitada desde o Nível I.",
+          nivel: "Leve esse número para a reunião — a partir do Nível II.",
           botao: "Quero ver o que fazer com esse número",
         },
       };
@@ -687,7 +659,7 @@ export const FERRAMENTAS: Ferramenta[] = [
           titulo: "Os cartões estão comparados. Seu gasto real, não.",
           corpo:
             "Você troca de emprego, passa a viajar, o banco mexe no programa de pontos. A resposta de hoje não é a de daqui a um ano.",
-          nivel: "A partir do Nível II, a gente refaz essa comparação sempre que a sua vida mudar.",
+          nivel: "A partir do Nível IV, a gente cota e compara os cartões para você, sempre que a sua vida mudar.",
           botao: "Quero a resposta revisada quando mudar",
         },
       };
@@ -740,7 +712,7 @@ export const FERRAMENTAS: Ferramenta[] = [
           corpo:
             "Guardar todo mês é fácil de escrever e difícil de manter quando aparece o imprevisto — que é justamente o que a reserva existe para cobrir.",
           nivel:
-            "Reunião e WhatsApp ilimitados desde o Nível I, para ajustar sempre que sair do trilho.",
+            "WhatsApp ilimitado desde o Nível I, e reunião a partir do Nível II, para ajustar sempre que sair do trilho.",
           botao: "Quero alguém acompanhando isso comigo",
         },
       };
@@ -829,7 +801,7 @@ export const FERRAMENTAS: Ferramenta[] = [
           titulo: "O valor por mês está claro. Encaixar ele no orçamento, não.",
           corpo:
             "Esse objetivo disputa espaço com a reserva, com a dívida e com a aposentadoria. Sozinho ele cabe; junto com os outros, quase nunca.",
-          nivel: "Reunião ilimitada desde o Nível I para colocar todos os objetivos na mesma mesa.",
+          nivel: "A partir do Nível II você senta com a gente para colocar todos os objetivos na mesma mesa.",
           botao: "Quero ver isso junto com o resto",
         },
       };
@@ -869,7 +841,7 @@ export const FERRAMENTAS: Ferramenta[] = [
           titulo: "A conta se paga. A premissa é que precisa passar por conferência.",
           corpo:
             "O aumento que você colocou é o que o mercado paga mesmo? Existe caminho mais barato para o mesmo salto?",
-          nivel: "Traga isso para a reunião antes de assinar a matrícula. Nível I já cobre.",
+          nivel: "Traga isso para a reunião antes de assinar a matrícula — a partir do Nível II.",
           botao: "Quero conferir antes de me matricular",
         },
       };
@@ -911,7 +883,7 @@ export const FERRAMENTAS: Ferramenta[] = [
           titulo: "O número mínimo está claro. A decisão é maior que ele.",
           corpo:
             "Vira reserva maior, INSS por conta, contador, férias não pagas e mês sem cliente. O número certo protege tudo isso.",
-          nivel: "A partir do Nível III, acompanhamos a conversa com contador e com a empresa.",
+          nivel: "A partir do Nível IV, a conversa com o contador é conduzida por nós, e você tem reunião anual com especialista.",
           botao: "Quero fazer essa transição com apoio",
         },
       };
@@ -980,7 +952,7 @@ export const FERRAMENTAS: Ferramenta[] = [
           titulo: "A resposta do PGBL está aqui. O produto certo, não.",
           corpo:
             "Taxa de administração, taxa de carregamento e tabela regressiva mudam o resultado mais que a escolha entre PGBL e VGBL.",
-          nivel: "A partir do Nível II, a gente compara os planos disponíveis para você.",
+          nivel: "A partir do Nível IV, a gente cota e compara os planos disponíveis para você.",
           botao: "Quero comparar os planos de verdade",
         },
       };

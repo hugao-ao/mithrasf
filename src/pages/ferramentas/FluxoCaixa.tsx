@@ -331,7 +331,7 @@ export default function FluxoCaixa({ f }: { f: Ferramenta }) {
       <GatilhoPlano
         titulo={gatilho.titulo}
         corpo={gatilho.corpo}
-        nivel="Reunião e WhatsApp ilimitados desde o Nível I."
+        nivel="WhatsApp ilimitado desde o Nível I; reunião a partir do Nível II."
         botao={gatilho.botao}
       />
       <div className="flex gap-3">

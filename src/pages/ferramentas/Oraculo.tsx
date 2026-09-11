@@ -357,7 +357,7 @@ export default function Oraculo({ f }: { f: Ferramenta }) {
         <GatilhoPlano
           titulo="A projeção está pronta. As premissas é que precisam de conferência."
           corpo="Essa rentabilidade você consegue de verdade no seu perfil? O valor por mês é sustentável ou é o que você gostaria de guardar?"
-          nivel="Traga a projeção para a reunião — conferimos junto e ajustamos."
+          nivel="Traga a projeção para a reunião — a partir do Nível II, conferimos junto e ajustamos."
           botao="Quero validar isso com um especialista"
         />
       </div>

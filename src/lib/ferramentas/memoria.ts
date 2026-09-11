@@ -282,13 +282,12 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
   },
 
   consorcio: (v) => {
-    const ent = v.ent || 0;
     const price = v.sis === "price";
-    const fin = Math.max(0, v.pr - ent);
+    const fin = Math.min(Math.max(0, v.fi), v.pr);
+    const entrada = v.pr - fin;
     const nF = nMes(v.pz);
     const nC = nMes(v.pzc);
     const iF = iMes({ n: v.j.n + (v.tr || 0), u: v.j.u });
-    const iR = iMes(v.rend);
 
     const parcelas: number[] = [];
     let p = (v.pr * (1 + v.tx / 100)) / nC;
@@ -296,50 +295,36 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
       if (m > 0 && m % 12 === 0) p *= 1 + (v.rj || 0) / 100;
       parcelas.push(p);
     }
-    const restante: number[] = new Array(nC + 1).fill(0);
-    for (let m = nC - 1; m >= 0; m--) restante[m] = restante[m + 1] + parcelas[m];
+    const totCons = parcelas.reduce((a, b) => a + b, 0);
 
-    /* A série mostra a corrida: de um lado o que falta do consórcio caindo,
-       do outro o dinheiro rendendo. O cruzamento é onde ele se encerra. */
+    /* A série vai até o mais longo dos dois prazos, para dar para ver
+       as parcelas de um lado enquanto o outro já acabou. */
     const linhas: string[][] = [];
-    let inv = ent;
-    let pago = 0;
-    let mesQuita = nC;
-    let sobra = 0;
     const amF = fin / nF;
     let saldoF = fin;
-    /* Para antes da quitação: depois dela o consórcio não existe mais, e
-       continuar a série daria a impressão de que ele segue correndo. */
-    for (let m = 1; m <= nC; m++) {
-      inv *= 1 + iR;
-      pago += parcelas[m - 1];
-      let pFinM = 0;
+    let acumCons = 0;
+    const meses = Math.max(nF, nC);
+    for (let m = 1; m <= meses; m++) {
+      let pFinM = "—";
       if (m <= nF) {
-        pFinM = price ? pmtPrice(fin, iF, nF) : amF + saldoF * iF;
+        pFinM = BRL(price ? pmtPrice(fin, iF, nF) : amF + saldoF * iF);
         if (!price) saldoF -= amF;
       }
-      linhas.push([
-        String(m),
-        BRL(parcelas[m - 1]),
-        m <= nF ? BRL(pFinM) : "—",
-        BRL(restante[m]),
-        BRL(inv),
-      ]);
-      if (inv >= restante[m]) {
-        mesQuita = m;
-        sobra = inv - restante[m];
-        break;
+      let pConsM = "—";
+      if (m <= nC) {
+        acumCons += parcelas[m - 1];
+        pConsM = BRL(parcelas[m - 1]);
       }
+      linhas.push([String(m), pConsM, pFinM, BRL(acumCons)]);
     }
-    const totCons = parcelas.reduce((a, b) => a + b, 0);
-    const netCons = ent + pago - sobra;
+    const totFin = price ? pmtPrice(fin, iF, nF) * nF : fin + totJurosSac(fin, iF, nF);
 
     return {
       passos: [
         {
-          rotulo: "Financiamento: quanto entra no contrato",
-          conta: `${BRL(v.pr)} do bem − ${BRL(ent)} de entrada`,
-          valor: BRL(fin, 2),
+          rotulo: "Entrada que você precisa dar",
+          conta: `${BRL(v.pr)} do imóvel − ${BRL(fin)} financiado`,
+          valor: BRL(entrada, 2),
         },
         {
           rotulo: "Juros do financiamento no mês, já com a TR",
@@ -347,7 +332,12 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
           valor: pct(iF) + " ao mês",
         },
         {
-          rotulo: "Consórcio: a carta é o bem inteiro",
+          rotulo: "Financiamento: entrada mais todas as parcelas",
+          conta: `${BRL(entrada)} + ${BRL(totFin)} em ${nF} parcelas`,
+          valor: BRL(entrada + totFin, 2),
+        },
+        {
+          rotulo: "Consórcio: a carta cobre o imóvel inteiro",
           conta: `${BRL(v.pr)} × (1 + ${NUM(v.tx, 1)}% de taxa de administração)`,
           valor: BRL(v.pr * (1 + v.tx / 100), 2),
         },
@@ -357,45 +347,15 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
           valor: BRL(parcelas[0]),
         },
         {
-          rotulo: "Total do consórcio se for até o fim",
+          rotulo: "Total do consórcio com o reajuste aplicado",
           conta: `soma das ${nC} parcelas, reajustadas ${NUM(v.rj || 0, 1)}% a cada 12 meses`,
           valor: BRL(totCons, 2),
         },
-        {
-          rotulo: "Rendimento do seu dinheiro no mês",
-          conta: `(1 + ${NUM(v.rend.n, 2)}%)^(1/12) − 1`,
-          valor: pct(iR) + " ao mês",
-        },
-        {
-          rotulo:
-            mesQuita < nC
-              ? "Mês em que o dinheiro passa a cobrir o que falta"
-              : "O dinheiro não alcança o saldo antes do fim",
-          conta:
-            mesQuita < nC
-              ? `no mês ${mesQuita} o investido (${BRL(inv)}) alcançou os ${BRL(restante[mesQuita])} que faltavam`
-              : `as ${nC} parcelas quitam o consórcio sozinhas, e o investido (${BRL(inv)}) fica todo com você`,
-          valor: `mês ${mesQuita}`,
-        },
-        {
-          rotulo: "Custo final do consórcio para você",
-          conta: `${BRL(ent)} que você tinha + ${BRL(pago)} pago em parcelas − ${BRL(sobra)} que sobrou do investimento`,
-          valor: BRL(netCons, 2),
-        },
       ],
       serie: {
-        colunas: [
-          "Mês",
-          "Parcela consórcio",
-          "Parcela financiamento",
-          "Falta do consórcio",
-          "Seu dinheiro rendendo",
-        ],
+        colunas: ["Mês", "Parcela consórcio", "Parcela financiamento", "Consórcio acumulado"],
         linhas: filtrarMeses(linhas).map((x) => x.item),
-        resumo:
-          mesQuita < nC
-            ? `Série até o mês ${mesQuita}, quando o consórcio é encerrado. ${amostrar(linhas, linhas.length) || ""}`.trim()
-            : amostrar(linhas, linhas.length),
+        resumo: amostrar(linhas, meses),
       },
     };
   },

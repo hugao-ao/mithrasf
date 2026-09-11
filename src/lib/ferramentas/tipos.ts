@@ -189,4 +189,4 @@ export function paraCalculo(campos: Record<string, Campo>, valores: Valores): Va
 
 /** Rodapé fixo do gatilho, repetido em todas as ferramentas. */
 export const RODAPE_PLANO =
-  "Reunião e WhatsApp ilimitados em todos os níveis · a partir de R$ 29,90/mês";
+  "WhatsApp ilimitado em todos os níveis · reunião a partir do Nível II · desde R$ 29,90/mês";
