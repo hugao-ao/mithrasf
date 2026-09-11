@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import {
   aliqIR,
+  IRPF_ISENCAO_ANUAL,
+  irpfAnual,
   BRL,
   fvSerie,
   iMes,
@@ -924,25 +926,42 @@ export const FERRAMENTAS: Ferramenta[] = [
       ap: money("Quanto pretende guardar por ano", 12000),
     },
     calc: (v) => {
-      const vale = v.comp === "sim" && v.inss === "sim";
       const teto = v.renda * 0.12;
       const ded = Math.min(v.ap, teto);
-      const eco = ded * 0.275;
+      /* Sem outras deduções: é o cenário que dá o maior desconto possível,
+         porque deixa a base — e com ela a alíquota — no ponto mais alto. */
+      const impSem = irpfAnual(v.renda);
+      const impCom = irpfAnual(v.renda, v.renda - ded);
+      const eco = impSem - impCom;
+      const isento = impSem <= 0;
+      const efetiva = ded > 0 ? eco / ded : 0;
+      const elegivel = v.comp === "sim" && v.inss === "sim";
+      const vale = elegivel && eco > 0;
+
+      const motivo = !elegivel
+        ? v.comp !== "sim"
+          ? "Quem declara no simplificado ou é isento não aproveita a dedução. Nesse caso o PGBL só atrapalha."
+          : "Sem contribuir para o INSS, a dedução do PGBL não se aplica. Nesse caso, olhe VGBL ou investimento comum."
+        : isento
+          ? `Com renda de ${BRL(v.renda, 0)} por ano você não paga imposto de renda — a isenção vai até ${BRL(IRPF_ISENCAO_ANUAL, 0)}. Não há imposto para adiar, então a dedução do PGBL não te dá nada.`
+          : "Mesmo pagando imposto, o valor que você pretende guardar não chega a reduzir o que você deve.";
+
       return {
         tom: vale ? "is-good" : "is-bad",
         k: vale ? "PGBL vale para você" : "PGBL não vale para você",
-        val: vale ? BRL(eco, 0) + " / ano" : "VGBL, se algum",
+        val: vale ? BRL(eco, 0) + " / ano" : isento && elegivel ? "Você é isento" : "VGBL, se algum",
         sub: vale
-          ? `Guardando ${BRL(ded, 0)} em PGBL, você adia esse imposto todo ano. O limite é 12% da sua renda, ou ${BRL(teto, 0)}.`
-          : v.comp !== "sim"
-            ? "Quem declara no simplificado ou é isento não aproveita a dedução. Nesse caso o PGBL só atrapalha."
-            : "Sem contribuir para o INSS, a dedução do PGBL não se aplica. Nesse caso, olhe VGBL ou investimento comum.",
+          ? `Guardando ${BRL(ded, 0)} em PGBL, você adia ${BRL(eco, 0)} de imposto por ano — ${NUM(efetiva * 100, 1)}% do que guardou. O limite dedutível é 12% da sua renda, ou ${BRL(teto, 0)}.`
+          : motivo,
         rows: [
-          ["Limite dedutível (12%)", BRL(teto, 0)],
-          ["Você guardaria", BRL(v.ap, 0)],
+          ["Limite dedutível (12%)", BRL(teto, 0), "dim"],
+          ["Você guardaria", BRL(v.ap, 0), "dim"],
+          ["Entra na dedução", BRL(ded, 0), "dim"],
+          ["Imposto no ano sem o PGBL", BRL(impSem, 0)],
+          ["Imposto no ano com o PGBL", BRL(impCom, 0)],
           [vale ? "Imposto adiado por ano" : "Vantagem fiscal", vale ? BRL(eco, 0) : "nenhuma", "hl"],
         ],
-        nota: "Adiar imposto não é o mesmo que não pagar: no resgate ele volta. A vantagem é o dinheiro render enquanto isso.",
+        nota: "A conta usa a tabela do IRPF por faixas e mostra o teto da vantagem: considera que você não tem nenhuma outra dedução, o que deixa a alíquota no ponto mais alto. Com saúde, dependentes ou educação declarados, o desconto do PGBL costuma ser menor. E adiar imposto não é o mesmo que não pagar: no resgate ele volta — a vantagem é o dinheiro render enquanto isso.",
         gat: {
           titulo: "A resposta do PGBL está aqui. O produto certo, não.",
           corpo:

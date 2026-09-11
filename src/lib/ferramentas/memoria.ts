@@ -1,5 +1,7 @@
 import {
   aliqIR,
+  IRPF_ISENCAO_ANUAL,
+  irpfAnual,
   BRL,
   iMes,
   NUM,
@@ -616,6 +618,11 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
   previdencia: (v) => {
     const teto = v.renda * 0.12;
     const ded = Math.min(v.ap, teto);
+    const elegivel = v.comp === "sim" && v.inss === "sim";
+    const impSem = irpfAnual(v.renda);
+    const impCom = irpfAnual(v.renda, v.renda - ded);
+    const eco = elegivel ? impSem - impCom : 0;
+    const isento = v.renda <= IRPF_ISENCAO_ANUAL;
     return {
       passos: [
         {
@@ -629,13 +636,23 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
           valor: BRL(ded, 2),
         },
         {
+          rotulo: "Imposto no ano sem o PGBL",
+          conta: isento
+            ? `renda de ${BRL(v.renda)} está dentro da isenção de ${BRL(IRPF_ISENCAO_ANUAL)}`
+            : `tabela progressiva sobre ${BRL(v.renda)}, já com o redutor da faixa`,
+          valor: BRL(impSem, 2),
+        },
+        {
+          rotulo: "Imposto no ano com o PGBL",
+          conta: `mesma conta, sobre ${BRL(v.renda)} − ${BRL(ded)} = ${BRL(v.renda - ded)}`,
+          valor: BRL(impCom, 2),
+        },
+        {
           rotulo: "Imposto adiado no ano",
-          conta:
-            v.comp === "sim" && v.inss === "sim"
-              ? `${BRL(ded)} × 27,5%`
-              : "não se aplica ao seu caso",
-          valor:
-            v.comp === "sim" && v.inss === "sim" ? BRL(ded * 0.275, 2) : "R$ 0,00",
+          conta: elegivel
+            ? `${BRL(impSem)} − ${BRL(impCom)}`
+            : "não se aplica: precisa declarar no completo e contribuir para o INSS",
+          valor: BRL(eco, 2),
         },
       ],
     };

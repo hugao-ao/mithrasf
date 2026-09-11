@@ -56,6 +56,51 @@ export function taxaDeParcelas(pv: number, pmt: number, n: number): number {
 export const aliqIR = (meses: number): number =>
   meses <= 6 ? 0.225 : meses <= 12 ? 0.2 : meses <= 24 ? 0.175 : 0.15;
 
+/* ── IRPF: tabela progressiva anual ───────────────────────
+   Vigente desde a Lei 15.270/2025. A tabela é 12x a mensal
+   (isento até R$ 2.428,80/mês); o redutor é o que zera o imposto
+   de quem ganha até R$ 60 mil por ano e some aos R$ 88.200. */
+
+export const IRPF_ISENCAO_ANUAL = 60000;
+export const IRPF_REDUTOR_TETO = 88200;
+
+/** Faixas anuais: [teto da faixa, alíquota, parcela a deduzir]. */
+export const IRPF_FAIXAS: Array<[number, number, number]> = [
+  [29145.6, 0, 0],
+  [33919.8, 0.075, 2185.92],
+  [45012.6, 0.15, 4729.91],
+  [55976.16, 0.225, 8105.85],
+  [Infinity, 0.275, 10904.66],
+];
+
+/** Imposto pela tabela progressiva, antes do redutor. */
+export const irpfTabela = (base: number): number => {
+  if (base <= 0) return 0;
+  const f = IRPF_FAIXAS.find(([teto]) => base <= teto) as [number, number, number];
+  return Math.max(0, base * f[1] - f[2]);
+};
+
+/**
+ * Redutor da Lei 15.270/2025, calculado sobre os rendimentos tributáveis
+ * (não sobre a base). Devolve Infinity na faixa isenta, para o imposto zerar
+ * por completo em vez de depender de a subtração dar negativo.
+ */
+export const irpfRedutor = (rendimentos: number): number => {
+  if (rendimentos <= IRPF_ISENCAO_ANUAL) return Infinity;
+  if (rendimentos >= IRPF_REDUTOR_TETO) return 0;
+  return Math.max(0, 8429.73 - 0.095575 * rendimentos);
+};
+
+/**
+ * Imposto anual devido. `base` separa-se de `rendimentos` porque deduções
+ * (PGBL, saúde, dependentes) abatem a base, mas não mudam o redutor.
+ */
+export const irpfAnual = (rendimentos: number, base = rendimentos): number => {
+  const red = irpfRedutor(rendimentos);
+  if (!isFinite(red)) return 0;
+  return Math.max(0, irpfTabela(base) - red);
+};
+
 /* ── Formatação ───────────────────────────────────────── */
 
 export const BRL = (v: number, d = 2): string =>
