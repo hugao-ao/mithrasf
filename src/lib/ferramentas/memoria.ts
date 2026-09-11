@@ -282,58 +282,120 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
   },
 
   consorcio: (v) => {
-    const n = nMes(v.pz);
-    const i = iMes({ n: v.j.n + (v.tr || 0), u: v.j.u });
-    const price = v.sis === "price";
     const ent = v.ent || 0;
-    /* Mesma base dos dois caminhos: o que falta depois da entrada. */
+    const price = v.sis === "price";
     const fin = Math.max(0, v.pr - ent);
-    const base = (fin * (1 + v.tx / 100)) / n;
-    const linhas: string[][] = [];
-    let pc = base;
-    let acumCons = 0;
-    const am = fin / n;
-    let saldo = fin;
-    for (let m = 1; m <= n; m++) {
-      if (m > 1 && (m - 1) % 12 === 0) pc *= 1 + (v.rj || 0) / 100;
-      acumCons += pc;
-      const jFin = saldo * i;
-      const pFin = price ? pmtPrice(fin, i, n) : am + jFin;
-      if (!price) saldo -= am;
-      linhas.push([String(m), BRL(pc), BRL(pFin), BRL(acumCons)]);
+    const nF = nMes(v.pz);
+    const nC = nMes(v.pzc);
+    const iF = iMes({ n: v.j.n + (v.tr || 0), u: v.j.u });
+    const iR = iMes(v.rend);
+
+    const parcelas: number[] = [];
+    let p = (v.pr * (1 + v.tx / 100)) / nC;
+    for (let m = 0; m < nC; m++) {
+      if (m > 0 && m % 12 === 0) p *= 1 + (v.rj || 0) / 100;
+      parcelas.push(p);
     }
+    const restante: number[] = new Array(nC + 1).fill(0);
+    for (let m = nC - 1; m >= 0; m--) restante[m] = restante[m + 1] + parcelas[m];
+
+    /* A série mostra a corrida: de um lado o que falta do consórcio caindo,
+       do outro o dinheiro rendendo. O cruzamento é onde ele se encerra. */
+    const linhas: string[][] = [];
+    let inv = ent;
+    let pago = 0;
+    let mesQuita = nC;
+    let sobra = 0;
+    const amF = fin / nF;
+    let saldoF = fin;
+    /* Para antes da quitação: depois dela o consórcio não existe mais, e
+       continuar a série daria a impressão de que ele segue correndo. */
+    for (let m = 1; m <= nC; m++) {
+      inv *= 1 + iR;
+      pago += parcelas[m - 1];
+      let pFinM = 0;
+      if (m <= nF) {
+        pFinM = price ? pmtPrice(fin, iF, nF) : amF + saldoF * iF;
+        if (!price) saldoF -= amF;
+      }
+      linhas.push([
+        String(m),
+        BRL(parcelas[m - 1]),
+        m <= nF ? BRL(pFinM) : "—",
+        BRL(restante[m]),
+        BRL(inv),
+      ]);
+      if (inv >= restante[m]) {
+        mesQuita = m;
+        sobra = inv - restante[m];
+        break;
+      }
+    }
+    const totCons = parcelas.reduce((a, b) => a + b, 0);
+    const netCons = ent + pago - sobra;
+
     return {
       passos: [
         {
-          rotulo: "Quanto falta levantar",
+          rotulo: "Financiamento: quanto entra no contrato",
           conta: `${BRL(v.pr)} do bem − ${BRL(ent)} de entrada`,
           valor: BRL(fin, 2),
         },
         {
           rotulo: "Juros do financiamento no mês, já com a TR",
           conta: `(1 + ${NUM(v.j.n + (v.tr || 0), 2)}%)^(1/12) − 1`,
-          valor: pct(i) + " ao mês",
+          valor: pct(iF) + " ao mês",
         },
         {
-          rotulo: "Total do consórcio antes do reajuste",
-          conta: `${BRL(fin)} × (1 + ${NUM(v.tx, 1)}%)`,
-          valor: BRL(fin * (1 + v.tx / 100), 2),
+          rotulo: "Consórcio: a carta é o bem inteiro",
+          conta: `${BRL(v.pr)} × (1 + ${NUM(v.tx, 1)}% de taxa de administração)`,
+          valor: BRL(v.pr * (1 + v.tx / 100), 2),
         },
         {
           rotulo: "Primeira parcela do consórcio",
-          conta: `${BRL(fin * (1 + v.tx / 100))} ÷ ${n}`,
-          valor: BRL(base),
+          conta: `${BRL(v.pr * (1 + v.tx / 100))} ÷ ${nC}`,
+          valor: BRL(parcelas[0]),
         },
         {
-          rotulo: "Total do consórcio com o reajuste aplicado",
-          conta: `soma das ${n} parcelas, reajustadas ${NUM(v.rj || 0, 1)}% a cada 12 meses`,
-          valor: BRL(acumCons, 2),
+          rotulo: "Total do consórcio se for até o fim",
+          conta: `soma das ${nC} parcelas, reajustadas ${NUM(v.rj || 0, 1)}% a cada 12 meses`,
+          valor: BRL(totCons, 2),
+        },
+        {
+          rotulo: "Rendimento do seu dinheiro no mês",
+          conta: `(1 + ${NUM(v.rend.n, 2)}%)^(1/12) − 1`,
+          valor: pct(iR) + " ao mês",
+        },
+        {
+          rotulo:
+            mesQuita < nC
+              ? "Mês em que o dinheiro passa a cobrir o que falta"
+              : "O dinheiro não alcança o saldo antes do fim",
+          conta:
+            mesQuita < nC
+              ? `no mês ${mesQuita} o investido (${BRL(inv)}) alcançou os ${BRL(restante[mesQuita])} que faltavam`
+              : `as ${nC} parcelas quitam o consórcio sozinhas, e o investido (${BRL(inv)}) fica todo com você`,
+          valor: `mês ${mesQuita}`,
+        },
+        {
+          rotulo: "Custo final do consórcio para você",
+          conta: `${BRL(ent)} que você tinha + ${BRL(pago)} pago em parcelas − ${BRL(sobra)} que sobrou do investimento`,
+          valor: BRL(netCons, 2),
         },
       ],
       serie: {
-        colunas: ["Mês", "Parcela consórcio", "Parcela financiamento", "Consórcio acumulado"],
+        colunas: [
+          "Mês",
+          "Parcela consórcio",
+          "Parcela financiamento",
+          "Falta do consórcio",
+          "Seu dinheiro rendendo",
+        ],
         linhas: filtrarMeses(linhas).map((x) => x.item),
-        resumo: amostrar(linhas, n),
+        resumo:
+          mesQuita < nC
+            ? `Série até o mês ${mesQuita}, quando o consórcio é encerrado. ${amostrar(linhas, linhas.length) || ""}`.trim()
+            : amostrar(linhas, linhas.length),
       },
     };
   },
@@ -722,7 +784,8 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
 
   /* ── Imposto e herança ─────────────────────────────── */
   irpf: (v) => {
-    const LIM_SIMPL = 16754.34;
+    /* Ano-calendário 2026, Lei 15.270/2025. */
+    const LIM_SIMPL = 17640;
     const LIM_DEP = 2275.08;
     const LIM_EDU = 3561.5;
     const simpl = Math.min(v.renda * 0.2, LIM_SIMPL);
@@ -757,6 +820,16 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
           rotulo: "Soma das deduções da declaração completa",
           conta: `${BRL(dDep)} + ${BRL(dEdu)} + ${BRL(v.sau)} de saúde + ${BRL(v.inss)} de INSS + ${BRL(dPgbl)}`,
           valor: BRL(dDep + dEdu + v.sau + v.inss + dPgbl, 2),
+        },
+        {
+          rotulo: "Imposto pela simplificada",
+          conta: `tabela por faixas sobre ${BRL(v.renda)} − ${BRL(simpl)} = ${BRL(v.renda - simpl)}`,
+          valor: BRL(irpfAnual(v.renda, v.renda - simpl), 2),
+        },
+        {
+          rotulo: "Imposto pela completa",
+          conta: `tabela por faixas sobre ${BRL(v.renda)} − ${BRL(dDep + dEdu + v.sau + v.inss + dPgbl)} = ${BRL(v.renda - (dDep + dEdu + v.sau + v.inss + dPgbl))}`,
+          valor: BRL(irpfAnual(v.renda, v.renda - (dDep + dEdu + v.sau + v.inss + dPgbl)), 2),
         },
       ],
     };

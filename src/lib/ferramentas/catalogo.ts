@@ -389,17 +389,19 @@ export const FERRAMENTAS: Ferramenta[] = [
     icone: FileText,
     desc: "Põe os dois lado a lado com reajuste e TR, e deixa escolher entre parcela fixa ou decrescente.",
     como: "No consórcio você paga menos, mas espera para ter o bem.",
-    opcionais: ["ent", "tr", "rj"],
+    opcionais: ["ent", "rend", "tr", "rj"],
     campos: {
       pr: money("Valor do bem", 300000),
-      ent: money("Valor da entrada", 0),
-      pz: prazo("Prazo", 15, "anos"),
+      ent: money("Quanto você tem hoje", 0),
+      pz: prazo("Prazo do financiamento", 15, "anos"),
+      pzc: prazo("Prazo do consórcio", 15, "anos"),
       j: juro("Juros do financiamento", 11, "ano"),
       sis: opt("Sistema do financiamento", "price", [
         ["price", "Parcela fixa (Price)"],
         ["sac", "Parcela decrescente (SAC)"],
       ]),
       tx: qtd("Taxa de administração do consórcio", 18, "%"),
+      rend: juro("Quanto seu dinheiro rende — opcional", 0, "ano"),
       tr: qtd("TR do financiamento — opcional", 0, "% ao ano"),
       rj: qtd("Reajuste anual do consórcio — opcional", 0, "% ao ano", true),
     },
@@ -412,62 +414,74 @@ export const FERRAMENTAS: Ferramenta[] = [
         botao: "Quero comparar as opções reais",
       };
       const ent = v.ent || 0;
-      /* A entrada reduz o que falta levantar pelos dois caminhos: no financiamento
-         vira principal menor, no consórcio vira carta de crédito menor. */
-      const fin = Math.max(0, v.pr - ent);
-
-      if (fin <= 0) {
-        return {
-          tom: "is-good",
-          k: "Você não precisa financiar nada",
-          val: BRL(v.pr, 0),
-          sub: "A entrada cobre o valor do bem inteiro, então não há o que comparar — a compra é à vista. Se sobrou dinheiro, vale olhar a ferramenta de à vista contra parcelado.",
-          rows: [
-            ["Valor do bem", BRL(v.pr, 0)],
-            ["Entrada", BRL(ent, 0)],
-            ["Falta levantar", BRL(0, 0), "hl"],
-          ],
-          nota: "Comprando à vista você não paga juros nem taxa de administração. O que resta avaliar é se esse dinheiro rende mais aplicado do que custaria financiar.",
-          gat,
-        };
-      }
-
-      const n = nMes(v.pz);
-      const i = iMes({ n: v.j.n + (v.tr || 0), u: v.j.u });
       const price = v.sis === "price";
-      const pFin = price ? pmtPrice(fin, i, n) : fin / n + fin * i;
-      const totFin = price ? pmtPrice(fin, i, n) * n : fin + totJurosSac(fin, i, n);
-      const base = (fin * (1 + v.tx / 100)) / n;
-      let totCons = 0;
-      let pc = base;
-      for (let k = 0; k < n; k++) {
-        if (k > 0 && k % 12 === 0) pc *= 1 + (v.rj || 0) / 100;
-        totCons += pc;
+
+      /* Financiamento: a entrada abate o principal, como em qualquer banco. */
+      const fin = Math.max(0, v.pr - ent);
+      const nF = nMes(v.pz);
+      const iF = iMes({ n: v.j.n + (v.tr || 0), u: v.j.u });
+      const pFin = price ? pmtPrice(fin, iF, nF) : fin / nF + fin * iF;
+      const totFin = price ? pmtPrice(fin, iF, nF) * nF : fin + totJurosSac(fin, iF, nF);
+      const netFin = ent + totFin;
+
+      /* Consórcio: não existe entrada. A carta é o bem inteiro, e o dinheiro
+         que você tem fica rendendo até dar para quitar o que falta. */
+      const nC = nMes(v.pzc);
+      const iR = iMes(v.rend);
+      const parcelas: number[] = [];
+      let p = (v.pr * (1 + v.tx / 100)) / nC;
+      for (let m = 0; m < nC; m++) {
+        if (m > 0 && m % 12 === 0) p *= 1 + (v.rj || 0) / 100;
+        parcelas.push(p);
       }
-      const dif = totFin - totCons;
+      const totCons = parcelas.reduce((a, b) => a + b, 0);
+      /* restante[m] = o que ainda falta pagar depois de quitada a parcela m. */
+      const restante: number[] = new Array(nC + 1).fill(0);
+      for (let m = nC - 1; m >= 0; m--) restante[m] = restante[m + 1] + parcelas[m];
+
+      let inv = ent;
+      let pago = 0;
+      let mesQuita = nC;
+      let sobra = 0;
+      for (let m = 1; m <= nC; m++) {
+        inv *= 1 + iR;
+        pago += parcelas[m - 1];
+        /* No último mês restante é zero, então a comparação sempre fecha aqui. */
+        if (inv >= restante[m]) {
+          mesQuita = m;
+          sobra = inv - restante[m];
+          break;
+        }
+      }
+      const antecipou = mesQuita < nC;
+      const quitacao = restante[mesQuita];
+      const netCons = ent + pago - sobra;
+
+      const dif = netFin - netCons;
       const cons = dif > 0;
-      const linhasEntrada: Linha[] =
-        ent > 0
-          ? [
-              ["Valor do bem", BRL(v.pr, 0), "dim"],
-              ["Entrada que você já tem", BRL(ent, 0), "dim"],
-            ]
-          : [];
+      const anos = (x: number) => NUM(x / 12, 1) + " anos";
+
       return {
         tom: cons ? "is-good" : "is-bad",
         k: cons ? "Consórcio sai mais barato em" : "Financiamento sai mais barato em",
         val: BRL(Math.abs(dif), 0),
-        sub: `Sobre os ${BRL(fin, 0)} que faltam levantar: parcela de ${BRL(base)} no consórcio contra ${BRL(pFin)} no financiamento${price ? "" : " (primeira, decrescente)"}. Mas no consórcio você só recebe o bem quando for sorteado ou der o lance.`,
+        sub: antecipou
+          ? `Com ${BRL(ent, 0)} rendendo ${NUM(v.rend.n, 1)}% ao ano, no mês ${mesQuita} (${anos(mesQuita)}) o dinheiro cobre os ${BRL(quitacao, 0)} que faltam e você encerra o consórcio. O financiamento, com a mesma quantia de entrada, ainda teria ${anos(nF)} pela frente.`
+          : `Parcela de ${BRL(parcelas[0])} no consórcio contra ${BRL(pFin)} no financiamento${price ? "" : " (primeira, decrescente)"}. Mas no consórcio você só recebe o bem quando for sorteado ou der o lance.`,
         rows: [
-          ...linhasEntrada,
-          ["Falta levantar — é sobre isso que a conta é feita", BRL(fin, 0)],
-          ["Financiamento · " + (price ? "parcela fixa" : "1ª parcela"), BRL(pFin)],
-          ["Financiamento · total das parcelas", BRL(totFin, 0)],
-          ["Consórcio · 1ª parcela", BRL(base)],
-          ["Consórcio · última parcela", BRL(pc)],
-          ["Consórcio · total das parcelas", BRL(totCons, 0), "hl"],
+          ["Valor do bem", BRL(v.pr, 0), "dim"],
+          ["Quanto você tem hoje", BRL(ent, 0), "dim"],
+          ["Financiamento · financia " + BRL(fin, 0) + " em " + nF + " meses", BRL(pFin)],
+          ["Financiamento · entrada mais parcelas", BRL(netFin, 0)],
+          ["Consórcio · carta de " + BRL(v.pr, 0) + " em " + nC + " meses", BRL(parcelas[0])],
+          [
+            antecipou ? `Consórcio · quitado no mês ${mesQuita} com ` + BRL(quitacao, 0) : "Consórcio · vai até o fim",
+            antecipou ? BRL(pago, 0) + " em parcelas" : BRL(totCons, 0),
+            "dim",
+          ],
+          ["Consórcio · custo final para você", BRL(netCons, 0), "hl"],
         ],
-        nota: "A entrada sai do seu bolso nos dois caminhos, então ela não muda qual sai mais barato — muda só o tamanho da dívida. Os totais acima são o que você paga em parcelas, sem contar a entrada. TR e reajuste começam em zero: a TR passa longos períodos zerada, mas o reajuste do consórcio acompanha a inflação do bem.",
+        nota: "No consórcio não existe entrada: a carta é o bem inteiro. Por isso o dinheiro que você tem fica rendendo e só entra quando já dá para quitar o que falta — e o que sobrar depois da quitação volta para você. No financiamento esse mesmo dinheiro vira entrada e abate o principal. Os dois custos finais já incluem essa quantia, então dá para comparar de frente. TR e reajuste começam em zero: a TR passa longos períodos zerada, mas o reajuste do consórcio acompanha a inflação do bem.",
         gat,
       };
     },
@@ -1064,7 +1078,9 @@ export const FERRAMENTAS: Ferramenta[] = [
       pgbl: money("PGBL no ano", 0, true),
     },
     calc: (v) => {
-      const LIM_SIMPL = 16754.34;
+      /* Teto do desconto simplificado no ano-calendário 2026 (Lei 15.270/2025).
+         Ficou congelado em 16.754,34 de 2015 até o ano-calendário 2025. */
+      const LIM_SIMPL = 17640;
       const LIM_DEP = 2275.08;
       const LIM_EDU = 3561.5;
       const simpl = Math.min(v.renda * 0.2, LIM_SIMPL);
@@ -1079,13 +1095,22 @@ export const FERRAMENTAS: Ferramenta[] = [
       const cortes: string[] = [];
       if (v.edu > tetoEdu) cortes.push("educação (" + BRL(v.edu - tetoEdu, 0) + " acima do teto)");
       if (v.pgbl > tetoPgbl) cortes.push("PGBL (" + BRL(v.pgbl - tetoPgbl, 0) + " acima do teto)");
+      /* O que decide não é qual dedução é maior, e sim qual imposto é menor —
+         com a tabela por faixas os dois podem cair na mesma alíquota, ou em
+         nenhuma, se a renda estiver dentro da isenção. */
+      const impSimpl = irpfAnual(v.renda, v.renda - simpl);
+      const impComp = irpfAnual(v.renda, v.renda - total);
+      const economia = Math.abs(impSimpl - impComp);
+      const isento = impSimpl <= 0 && impComp <= 0;
       return {
         tom: "is-good",
-        k: "Escolha a declaração",
-        val: completa ? "Completa" : "Simplificada",
-        sub: completa
-          ? `Suas deduções abatem ${BRL(dif, 0)} a mais que o desconto automático — cerca de ${BRL(dif * 0.275, 0)} a menos de imposto.`
-          : `O desconto automático de ${BRL(simpl, 0)} é maior que suas deduções. A simplificada te dá ${BRL(dif, 0)} a mais de abatimento, sem trabalho nenhum.`,
+        k: isento ? "Você não paga imposto" : "Escolha a declaração",
+        val: isento ? "Tanto faz" : completa ? "Completa" : "Simplificada",
+        sub: isento
+          ? `Com renda tributável de ${BRL(v.renda, 0)} você está dentro da isenção, que vai até ${BRL(IRPF_ISENCAO_ANUAL, 0)} por ano. Qualquer um dos dois modelos zera o imposto — escolha o mais fácil de preencher.`
+          : completa
+            ? `Suas deduções abatem ${BRL(dif, 0)} a mais que o desconto automático, e isso te poupa ${BRL(economia, 0)} de imposto.`
+            : `O desconto automático de ${BRL(simpl, 0)} é maior que suas deduções. A simplificada te poupa ${BRL(economia, 0)} de imposto, sem trabalho nenhum.`,
         rows: [
           [
             "Desconto automático · 20%, teto " + BRL(LIM_SIMPL, 0),
@@ -1097,13 +1122,15 @@ export const FERRAMENTAS: Ferramenta[] = [
           ["Saúde · sem limite", BRL(v.sau, 0), "dim"],
           ["INSS · sem limite", BRL(v.inss, 0), "dim"],
           ["PGBL · teto 12% = " + BRL(tetoPgbl, 0), BRL(dPgbl, 0), "dim"],
-          ["Soma das suas deduções", BRL(total, 0), completa ? "hl" : "dim"],
+          ["Soma das suas deduções", BRL(total, 0), "dim"],
+          ["Imposto pela simplificada", BRL(impSimpl, 0), completa ? "dim" : "hl"],
+          ["Imposto pela completa", BRL(impComp, 0), completa ? "hl" : "dim"],
         ],
         nota: cortes.length
           ? "Cortei o que passou do limite: " +
             cortes.join(" e ") +
             ". Declarar acima do teto não aumenta a restituição e chama atenção da malha fina."
-          : "Os tetos mudam todo ano. Estes são os mais recentes — na hora de declarar, confirme os valores vigentes.",
+          : "A conta usa a tabela do IRPF por faixas e o redutor da Lei 15.270/2025, que isenta quem ganha até R$ 60 mil por ano. Os tetos de dedução mudam — estes são os do ano-calendário 2026; na hora de declarar, confirme os vigentes.",
         gat: {
           titulo: "O modelo está escolhido. O que dá para abater, não.",
           corpo:
