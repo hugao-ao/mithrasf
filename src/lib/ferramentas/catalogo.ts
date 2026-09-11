@@ -33,7 +33,7 @@ import {
   taxaDeParcelas,
   totJurosSac,
 } from "./financas";
-import { juro, money, opt, prazo, qtd, type Ferramenta } from "./tipos";
+import { juro, money, opt, prazo, qtd, type Ferramenta, type Linha } from "./tipos";
 
 /** Ordem das seções na página de ferramentas. */
 export const AREAS = [
@@ -387,9 +387,10 @@ export const FERRAMENTAS: Ferramenta[] = [
     icone: FileText,
     desc: "Põe os dois lado a lado com reajuste e TR, e deixa escolher entre parcela fixa ou decrescente.",
     como: "No consórcio você paga menos, mas espera para ter o bem.",
-    opcionais: ["tr", "rj"],
+    opcionais: ["ent", "tr", "rj"],
     campos: {
       pr: money("Valor do bem", 300000),
+      ent: money("Valor da entrada", 0),
       pz: prazo("Prazo", 15, "anos"),
       j: juro("Juros do financiamento", 11, "ano"),
       sis: opt("Sistema do financiamento", "price", [
@@ -401,12 +402,40 @@ export const FERRAMENTAS: Ferramenta[] = [
       rj: qtd("Reajuste anual do consórcio — opcional", 0, "% ao ano", true),
     },
     calc: (v) => {
+      const gat = {
+        titulo: "A conta está feita. A carta de crédito é que tem letra miúda.",
+        corpo:
+          "Grupo, prazo, seguro obrigatório, regra de lance e reajuste anual mudam tudo — e variam de administradora para administradora.",
+        nivel: "A partir do Nível II, a gente cota e compara as administradoras para você.",
+        botao: "Quero comparar as opções reais",
+      };
+      const ent = v.ent || 0;
+      /* A entrada reduz o que falta levantar pelos dois caminhos: no financiamento
+         vira principal menor, no consórcio vira carta de crédito menor. */
+      const fin = Math.max(0, v.pr - ent);
+
+      if (fin <= 0) {
+        return {
+          tom: "is-good",
+          k: "Você não precisa financiar nada",
+          val: BRL(v.pr, 0),
+          sub: "A entrada cobre o valor do bem inteiro, então não há o que comparar — a compra é à vista. Se sobrou dinheiro, vale olhar a ferramenta de à vista contra parcelado.",
+          rows: [
+            ["Valor do bem", BRL(v.pr, 0)],
+            ["Entrada", BRL(ent, 0)],
+            ["Falta levantar", BRL(0, 0), "hl"],
+          ],
+          nota: "Comprando à vista você não paga juros nem taxa de administração. O que resta avaliar é se esse dinheiro rende mais aplicado do que custaria financiar.",
+          gat,
+        };
+      }
+
       const n = nMes(v.pz);
       const i = iMes({ n: v.j.n + (v.tr || 0), u: v.j.u });
       const price = v.sis === "price";
-      const pFin = price ? pmtPrice(v.pr, i, n) : v.pr / n + v.pr * i;
-      const totFin = price ? pmtPrice(v.pr, i, n) * n : v.pr + totJurosSac(v.pr, i, n);
-      const base = (v.pr * (1 + v.tx / 100)) / n;
+      const pFin = price ? pmtPrice(fin, i, n) : fin / n + fin * i;
+      const totFin = price ? pmtPrice(fin, i, n) * n : fin + totJurosSac(fin, i, n);
+      const base = (fin * (1 + v.tx / 100)) / n;
       let totCons = 0;
       let pc = base;
       for (let k = 0; k < n; k++) {
@@ -415,26 +444,29 @@ export const FERRAMENTAS: Ferramenta[] = [
       }
       const dif = totFin - totCons;
       const cons = dif > 0;
+      const linhasEntrada: Linha[] =
+        ent > 0
+          ? [
+              ["Valor do bem", BRL(v.pr, 0), "dim"],
+              ["Entrada que você já tem", BRL(ent, 0), "dim"],
+            ]
+          : [];
       return {
         tom: cons ? "is-good" : "is-bad",
         k: cons ? "Consórcio sai mais barato em" : "Financiamento sai mais barato em",
         val: BRL(Math.abs(dif), 0),
-        sub: `Parcela de ${BRL(base)} no consórcio contra ${BRL(pFin)} no financiamento${price ? "" : " (primeira, decrescente)"}. Mas no consórcio você só recebe o bem quando for sorteado ou der o lance.`,
+        sub: `Sobre os ${BRL(fin, 0)} que faltam levantar: parcela de ${BRL(base)} no consórcio contra ${BRL(pFin)} no financiamento${price ? "" : " (primeira, decrescente)"}. Mas no consórcio você só recebe o bem quando for sorteado ou der o lance.`,
         rows: [
+          ...linhasEntrada,
+          ["Falta levantar — é sobre isso que a conta é feita", BRL(fin, 0)],
           ["Financiamento · " + (price ? "parcela fixa" : "1ª parcela"), BRL(pFin)],
-          ["Financiamento · total", BRL(totFin, 0)],
+          ["Financiamento · total das parcelas", BRL(totFin, 0)],
           ["Consórcio · 1ª parcela", BRL(base)],
           ["Consórcio · última parcela", BRL(pc)],
-          ["Consórcio · total", BRL(totCons, 0), "hl"],
+          ["Consórcio · total das parcelas", BRL(totCons, 0), "hl"],
         ],
-        nota: "TR e reajuste começam em zero. Coloque valores para ver o cenário com correção — a TR passa longos períodos zerada, mas o reajuste do consórcio acompanha a inflação do bem.",
-        gat: {
-          titulo: "A conta está feita. A carta de crédito é que tem letra miúda.",
-          corpo:
-            "Grupo, prazo, seguro obrigatório, regra de lance e reajuste anual mudam tudo — e variam de administradora para administradora.",
-          nivel: "A partir do Nível II, a gente cota e compara as administradoras para você.",
-          botao: "Quero comparar as opções reais",
-        },
+        nota: "A entrada sai do seu bolso nos dois caminhos, então ela não muda qual sai mais barato — muda só o tamanho da dívida. Os totais acima são o que você paga em parcelas, sem contar a entrada. TR e reajuste começam em zero: a TR passa longos períodos zerada, mas o reajuste do consórcio acompanha a inflação do bem.",
+        gat,
       };
     },
   },

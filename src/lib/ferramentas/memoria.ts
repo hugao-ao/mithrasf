@@ -283,22 +283,30 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
     const n = nMes(v.pz);
     const i = iMes({ n: v.j.n + (v.tr || 0), u: v.j.u });
     const price = v.sis === "price";
-    const base = (v.pr * (1 + v.tx / 100)) / n;
+    const ent = v.ent || 0;
+    /* Mesma base dos dois caminhos: o que falta depois da entrada. */
+    const fin = Math.max(0, v.pr - ent);
+    const base = (fin * (1 + v.tx / 100)) / n;
     const linhas: string[][] = [];
     let pc = base;
     let acumCons = 0;
-    const am = v.pr / n;
-    let saldo = v.pr;
+    const am = fin / n;
+    let saldo = fin;
     for (let m = 1; m <= n; m++) {
       if (m > 1 && (m - 1) % 12 === 0) pc *= 1 + (v.rj || 0) / 100;
       acumCons += pc;
       const jFin = saldo * i;
-      const pFin = price ? pmtPrice(v.pr, i, n) : am + jFin;
+      const pFin = price ? pmtPrice(fin, i, n) : am + jFin;
       if (!price) saldo -= am;
       linhas.push([String(m), BRL(pc), BRL(pFin), BRL(acumCons)]);
     }
     return {
       passos: [
+        {
+          rotulo: "Quanto falta levantar",
+          conta: `${BRL(v.pr)} do bem − ${BRL(ent)} de entrada`,
+          valor: BRL(fin, 2),
+        },
         {
           rotulo: "Juros do financiamento no mês, já com a TR",
           conta: `(1 + ${NUM(v.j.n + (v.tr || 0), 2)}%)^(1/12) − 1`,
@@ -306,12 +314,12 @@ export const MEMORIAS: Record<string, (v: Valores) => Memoria> = {
         },
         {
           rotulo: "Total do consórcio antes do reajuste",
-          conta: `${BRL(v.pr)} × (1 + ${NUM(v.tx, 1)}%)`,
-          valor: BRL(v.pr * (1 + v.tx / 100), 2),
+          conta: `${BRL(fin)} × (1 + ${NUM(v.tx, 1)}%)`,
+          valor: BRL(fin * (1 + v.tx / 100), 2),
         },
         {
           rotulo: "Primeira parcela do consórcio",
-          conta: `${BRL(v.pr * (1 + v.tx / 100))} ÷ ${n}`,
+          conta: `${BRL(fin * (1 + v.tx / 100))} ÷ ${n}`,
           valor: BRL(base),
         },
         {
